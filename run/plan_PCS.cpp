@@ -246,24 +246,11 @@ int main(int argn, char ** args) {
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_PCS_3poles_rangeB.txt", ios::app);
 
+		int N = 800;
+		for (int k = 0; k < N; k++) {
+			for (int j = 16; j < 24; j++) {
+				double maxStep = 0.05 + 0.25*j;
 
-		for (int j = 0; j < 24; j++) {
-
-			int N = 1600;
-			if (j==4)
-				N = 1000;
-			if (j==11)
-				N = 29 + 1000;
-			if (j==12)
-				N = 1400;
-			if (j==18)
-				N = 1699;
-			if (j>18)
-				N = 1800;
-
-			double maxStep = 0.05 + 0.25*j;
-
-			for (int k = 0; k < N; k++) {
 				Plan.plan(c_start, c_goal, runtime, maxStep);
 
 				bool verf = Plan.vfc.verify_path();
