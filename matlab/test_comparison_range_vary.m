@@ -57,7 +57,7 @@ end
 rg = sort(unique(D2(:,1)));
 for i = 1:length(rg)
     M = D2(D2(:,1)==rg(i), 2:end);
-    disp([i-1 rg(i)  size(M,1)])
+%     disp([i-1 rg(i)  size(M,1)])
     tg(i) = mean(M(:,4))*1e3;
     tg_ste(i) = 1e3*std(M(:,4))/sqrt(size(M,1));
     nodes_g(i) =  mean(M(:,10));

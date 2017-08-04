@@ -33,7 +33,7 @@ disp(['Avg. number of IK solutions: ' num2str(floor(mean(D1(:,5)))) ]);
 
 %%
 F = load('benchmark_GD_3poles_rangeB.txt'); 
-D2 = F(F(:,1)==2.3, 2:end);
+D2 = F(F(:,1)==2.55, 2:end);
 verf = D2(:,1)==1;
 suc = D2(:,2)==1;
 
@@ -79,7 +79,7 @@ hold off
 xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
-xlim([0 max(T1)]);
+xlim([0 2.5]);
 % set(h, 'Position', [100, 100, 800, 400]);
 
 h = figure(2);
