@@ -246,9 +246,9 @@ int main(int argn, char ** args) {
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_PCS_3poles_rangeB.txt", ios::app);
 
-		int N = 800;
+		int N = 2000;
 		for (int k = 0; k < N; k++) {
-			for (int j = 16; j < 24; j++) {
+			for (int j = 0; j < 24; j++) {
 				double maxStep = 0.05 + 0.25*j;
 
 				Plan.plan(c_start, c_goal, runtime, maxStep);

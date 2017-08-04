@@ -226,10 +226,11 @@ int main(int argn, char ** args) {
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_GD_3poles_rangeB.txt", ios::app);
 
 
-		for (int j = 0; j < 24; j++) {
-			double maxStep = 0.05 + 0.25*j;
+		for (int k = 0; k < 1800; k++) {
 
-			for (int k = 0; k < 200; k++) {
+			for (int j = 0; j < 24; j++) {
+				double maxStep = 0.05 + 0.25*j;
+
 				Plan.plan(c_start, c_goal, runtime, maxStep);
 
 				bool verf = Plan.vfc.verify_path();
