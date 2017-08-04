@@ -1341,8 +1341,8 @@ void execute_path(int k){
 
 	glutPostRedisplay();
 	if(k<RoboStates.size()-1){
-		if (step==1)
-			sleep(5);
+		//if (step==1)
+		//	sleep(5);
 
 		step+=1;
 		glutTimerFunc(sim_velocity,execute_path,k+1);
