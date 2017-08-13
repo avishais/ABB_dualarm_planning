@@ -7,7 +7,7 @@
 % d = 0.8 for the PCS
 % d = 2.3 for the GD
 % With joint limits of the ABB robots
-% last updated: 08/02/17
+% last updated: 08/03/17
 
 
 clear all
