@@ -182,7 +182,7 @@ int main(int argn, char ** args) {
 
 	srand (time(NULL));
 
-	int mode = 3;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};

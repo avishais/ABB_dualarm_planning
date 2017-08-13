@@ -60,7 +60,7 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, dou
 
 	defaultSettings(); // Avishai
 
-	Range = RBS_tol;
+	Range = get_RBS_tol();
 }
 
 ompl::geometric::RRTConnect::~RRTConnect()
@@ -174,6 +174,8 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 
 	int ik_proj = !active_chain ? nmotion->ik_q1_active : nmotion->ik_q2_active;
 
+	Motion *motion;
+
 	bool first = true;
 	while (count_iterations) {
 		count_iterations--;
@@ -228,7 +230,7 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 			}
 
 			// Check continuity
-			if (stateDistance(nmotion->state, dstate) > RBS_tol)
+			if (stateDistance(nmotion->state, dstate) > Range)
 				break;
 
 			// Check collisions
@@ -243,15 +245,17 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 		}
 		else { // Handle configurations that belong to the opposite tree - and satisfy the closure constraint
 			retrieveStateVector(dstate, ik);
-			if (nmotion->ik_q1_active!=ik[0] && nmotion->ik_q2_active!=ik[1])
+			if (nmotion->ik_q1_active!=ik[0] && nmotion->ik_q2_active!=ik[1]) {
+				reach = false;
 				break;
+			}
 		}
 
 		/* Update advanced motion */
 		if (first) {
 			first = false;
 
-			Motion *motion = new Motion(si_);
+			motion = new Motion(si_);
 			motion->ik_q1_active = ik[0];
 			motion->ik_q2_active = ik[1];
 			updateStateVector(dstate, ik);
@@ -271,21 +275,21 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 		nmotion = motion;
 	}
 
-	if (!first)
+	if (!first) // Some advancement was made
 	{
 		tree->add(motion);
+		tgi.xmotion = motion;
 
-		if (reach) {
+		if (reach)
 			growTree_reached = true;
-			return motion;
-		}
+
+		return motion;
 	}
-	else {
+	else { // No addition to the tree
 		tgi.xmotion = nmotion;
 		return nmotion;
 	}
-}\
-return nmotion;
+
 }
 
 ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
@@ -404,7 +408,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
 		// Grow tree
 		Motion *nmotion = tree->nearest(rmotion); // NN over the active distance
-		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 100);
+		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 1e4);
 
 		// remember which motion was just added
 		Motion *addedMotion = reached_motion;
@@ -413,7 +417,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 		tgi.xmotion = nullptr;
 
 		nmotion = otherTree->nearest(reached_motion); // NN over the active distance
-		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 500);
+		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 1e4);
 
 		Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
 		Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
@@ -548,8 +552,8 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 
 		// Open a_path file
 		std::ofstream myfile, ikfile;
-		myfile.open("../paths/path_milestones.txt");
-		ikfile.open("../paths/ik_path.txt");
+		myfile.open("./paths/path_milestones.txt");
+		ikfile.open("./paths/ik_path.txt");
 
 		myfile << mpath1.size() + mpath2.size() << endl;
 

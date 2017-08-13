@@ -24,13 +24,13 @@ ylabel('angles [^o]');
 % title(['Local connection distance: ' num2str( norm(D(1,:)-D(end,:)) ) ]);
 
 %%
-for i = 2:size(D,1)
-    d(i-1) = norm(D(i,:)-D(i-1,:));
-    m(i-1) = max(abs(D(i,:)-D(i-1,:)));
-end
-figure(2)
-plot(d);
-hold on
-plot(m);
-hold off
-legend('d','m');
+% for i = 2:size(D,1)
+%     d(i-1) = norm(D(i,:)-D(i-1,:));
+%     m(i-1) = max(abs(D(i,:)-D(i-1,:)));
+% end
+% figure(2)
+% plot(d);
+% hold on
+% plot(m);
+% hold off
+% legend('d','m');

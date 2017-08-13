@@ -310,24 +310,57 @@ bool StateValidityChecker::checkMotionSew(const ob::State *s1, const ob::State *
 {
 	State q(12), q1(12), q2(12);
 	// We assume motion starts and ends in a valid configuration - due to projection
-	bool result = true;
 	retrieveStateVector(s1, q1);
 	retrieveStateVector(s2, q2);
 
-	while (normDistance(q1,q2) > dq) {
+	double d = normDistance(q1,q2);
+	while (d > dq) {
 		// interpolate
 		for (int i = 0; i < q1.size(); i++)
-			q[i] = q1[i] + dq * (q2[i]-q1[i]);
+			q[i] = q1[i] + dq/d * (q2[i]-q1[i]);
 
-		if (!isValidSew(q) || normDistance(q1, q) > 0.3) {
-			result = false;
-			break;
-		}
+		if (!isValidSew(q) || (d = normDistance(q1, q)) > RBS_tol)
+			return false;
 
 		q1 = q;
 	}
 
-	return result;
+}
+
+// *************** Reconstruct the Sewing Local-Connection - for post-processing and validation
+
+bool StateValidityChecker::reconstructSew(const ob::State *s1, const ob::State *s2, Matrix &Confs)
+{
+	State q1(n), q2(n);
+	retrieveStateVector(s1,q1);
+	retrieveStateVector(s2,q2);
+
+	Confs.push_back(q1);
+
+	return reconstructRBS(q1, q2, Confs, 0, 1, 1);
+}
+
+bool StateValidityChecker::reconstructSew(State q1, State q2, Matrix &M) {
+
+	State q(n);
+
+	double d = normDistance(q1,q2);
+
+	while (d > dq) {
+		// interpolate
+		for (int i = 0; i < q1.size(); i++)
+			q[i] = q1[i] + dq/d * (q2[i]-q1[i]);
+
+		if (!isValidSew(q) || (d = normDistance(q1, q)) > RBS_tol)
+			return false;
+
+		M.push_back(q);
+		q1 = q;
+	}
+
+	M.push_back(q2);
+
+	return true;
 }
 
 // ------------------------------------ MISC functions ---------------------------------------------------
@@ -337,6 +370,14 @@ double StateValidityChecker::normDistance(State a1, State a2) {
 	for (int i=0; i < a1.size(); i++)
 		sum += pow(a1[i]-a2[i], 2);
 	return sqrt(sum);
+}
+
+double StateValidityChecker::stateDistance(const ob::State *s1, const ob::State *s2) {
+	State q1(12), q2(12);
+	retrieveStateVector(s1, q1);
+	retrieveStateVector(s2, q2);
+
+	return normDistance(q1, q2);
 }
 
 double StateValidityChecker::maxDistance(State a1, State a2) {

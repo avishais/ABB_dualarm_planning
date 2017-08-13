@@ -55,6 +55,10 @@ public:
 	bool isValidSew(State&);
 	bool checkMotionSew(const ob::State *, const ob::State *);
 
+	/** Reconstruct a local connection using Sewing strategy for post-processing  */
+	bool reconstructSew(const ob::State *, const ob::State *, Matrix &);
+	bool reconstructSew(State, State, Matrix &);
+
 	/** Retrieve state from ob::State to vector<double> */
 	void retrieveStateVector(const ob::State *, State &);
 
@@ -69,6 +73,7 @@ public:
 
 	/** Calculate norm distance between two vectors */
 	double normDistance(State, State);
+	double stateDistance(const ob::State*, const ob::State*);
 
 	/** Max distance between two vectors */
 	double maxDistance(State, State);

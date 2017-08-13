@@ -28,12 +28,16 @@ CPPAPC = ${INC_CLASSES}apc_class.cpp ${INC_VALIDITY}StateValidityCheckerPCS.cpp
 CPPGD = ${INC_CLASSES}kdl_class.cpp ${INC_VALIDITY}StateValidityCheckerGD.cpp
 
 CPP_P_PCS = ${INC_RUN}plan_PCS.cpp ${INC_PLANNERS}CBiRRT_PCS.cpp
+CPP_P_PCS_s = ${INC_RUN}plan_PCS.cpp ${INC_PLANNERS}CBiRRT_PCS_s.cpp
 CPP_P_GD = ${INC_RUN}plan_GD.cpp ${INC_PLANNERS}CBiRRT_GD.cpp
+CPP_P_GD_s = ${INC_RUN}plan_GD.cpp ${INC_PLANNERS}CBiRRT_GD_s.cpp
 
 all:
 	#$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcs $(CXXFLAGS) $(LDFLAGS) -std=c++11
-	$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgd $(CXXFLAGS) $(LDFLAGS) -std=c++11
+	#$(CXX) ${CPP_P_PCS_s} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcss $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
+	#$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgd $(CXXFLAGS) $(LDFLAGS) -std=c++11
+	$(CXX) ${CPP_P_GD_s} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgds $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
 
 
