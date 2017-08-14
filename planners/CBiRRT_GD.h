@@ -115,6 +115,8 @@ namespace ompl
             bool final_solved; // Planning query solved?
             double local_connection_time; // Log LC total time
             int local_connection_count; // Log number of LC attempts
+            int grow_iterations; // Total number of iterations in the growTree
+            int grow_calls; // Number of calls to growTree function
 
             /** Reset log paprameters */
             void initiate_log_parameters() {
@@ -127,6 +129,8 @@ namespace ompl
             	nodes_in_trees = 0;
             	local_connection_time = 0;
             	local_connection_count = 0;
+            	grow_iterations = 0;
+            	grow_calls = 0;
             }
 
             // Maximum local connection distance

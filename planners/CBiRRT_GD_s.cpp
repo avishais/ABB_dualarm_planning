@@ -158,20 +158,34 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 // nmotion - nearest
 // mode = 1 -> extend, mode = 2 -> connect.
 {
+	grow_calls++;
+
 	State q(12);
 
 	bool reach = false;
 	growTree_reached = false;
 
 	Motion *motion;
+	double d_prev = 0;
+	int non_covergence_count = 0;
 
 	bool first = true;
-	while (count_iterations) {
-		count_iterations--;
+	while (1) {
+		count_iterations++;
 
 		// find state to add
 		base::State *dstate = tmotion->state;
 		double d = distanceFunction(nmotion, tmotion);
+
+		// Avoid getting stuck in a local projection ROA
+		if (fabs(d-d_prev) < 1e-2)
+			non_covergence_count++;
+		else
+			non_covergence_count = 0;
+		if (non_covergence_count > 1e2)
+			break;
+
+		d_prev = d;
 
 		if (d > maxDistance_)
 		{
@@ -181,6 +195,11 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 		}
 		else
 			reach = true;
+
+		//cout << reach << " " << d << " " << count_iterations << " " << mode << endl;
+		//cout << "tstate: "; printStateVector(tmotion->state);
+		//cout << "nstate: "; printStateVector(nmotion->state);
+		//cout << "dstate - b4: "; printStateVector(dstate);
 
 		// If trying to reach a point that does not satisfy the closure constraint - needs to be projected
 		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
@@ -197,6 +216,8 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 			updateStateVector(tgi.xstate, q);
 			dstate = tgi.xstate;
 		}
+
+		//cout << "dstate: "; printStateVector(dstate);
 
 		/* Update advanced motion */
 		if (first) {
@@ -215,7 +236,15 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 
 		nmotion = motion;
 
+		//cout << "state: "; printStateVector(motion->state);
+		//cin.ignore();
+
+		if (reach)
+			break;
 	}
+
+	grow_iterations += count_iterations;
+	//cout << "\n*** " << count_iterations << " ***\n";
 
 	if (!first)
 	{
@@ -325,8 +354,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 			}
 		}
 
-		cout << "Trees size: " << tStart_->size() << ", " << tGoal_->size() << endl;
-		cout << "Current trees distance: " << distanceBetweenTrees(tree, otherTree) << endl << endl;
+		//cout << "Trees size: " << tStart_->size() << ", " << tGoal_->size() << endl;
+		//cout << "Current trees distance: " << distanceBetweenTrees(tree, otherTree) << endl << endl;
 
 		//===============================================
 
@@ -336,7 +365,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
 		// Grow tree
 		Motion *nmotion = tree->nearest(rmotion); // NN over the active distance
-		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 1e4);
+		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 0);
 
 		// remember which motion was just added
 		Motion *addedMotion = reached_motion;
@@ -345,7 +374,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 		tgi.xmotion = nullptr;
 
 		nmotion = otherTree->nearest(reached_motion); // NN over the active distance
-		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 1e4);
+		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 0);
 
 		Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
 		Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
@@ -580,10 +609,10 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 
 			Matrix M;
 			bool valid = false;
-			valid =  reconstructRBS(path[i-1]->state, path[i]->state, M);
+			valid =  reconstructSew(path[i-1]->state, path[i]->state, M);
 
 			if (!valid) {
-				cout << "Error in reconstructing...\n";
+				OMPL_ERROR("Error in reconstructing.");
 				return;
 			}
 
@@ -628,6 +657,7 @@ void ompl::geometric::RRTConnect::LogPerf2file() {
 	myfile << nodes_in_path << endl; // Nodes in path 10
 	myfile << nodes_in_trees << endl; // 11
 	myfile << local_connection_time/local_connection_count << endl;
+	myfile << (double)grow_iterations/(double)grow_calls << endl;
 
 	myfile.close();
 }

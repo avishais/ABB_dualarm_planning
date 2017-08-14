@@ -164,6 +164,8 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 // nmotion - nearest
 // mode = 1 -> extend, mode = 2 -> connect.
 {
+	grow_calls++;
+
 	Vector q1(6), q2(6), ik(2);
 
 	// Choose active chain
@@ -177,8 +179,8 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 	Motion *motion;
 
 	bool first = true;
-	while (count_iterations) {
-		count_iterations--;
+	while (1) {
+		count_iterations++;
 
 		// find state to add
 		base::State *dstate = tmotion->state;
@@ -273,7 +275,12 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 		}
 
 		nmotion = motion;
+
+		if (reach)
+			break;
 	}
+
+	grow_iterations += count_iterations;
 
 	if (!first) // Some advancement was made
 	{
@@ -408,7 +415,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
 		// Grow tree
 		Motion *nmotion = tree->nearest(rmotion); // NN over the active distance
-		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 1e4);
+		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 0);
 
 		// remember which motion was just added
 		Motion *addedMotion = reached_motion;
@@ -417,7 +424,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 		tgi.xmotion = nullptr;
 
 		nmotion = otherTree->nearest(reached_motion); // NN over the active distance
-		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 1e4);
+		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 0);
 
 		Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
 		Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
@@ -667,6 +674,7 @@ void ompl::geometric::RRTConnect::LogPerf2file() {
 	myfile << nodes_in_path << endl; // Nodes in path 10
 	myfile << nodes_in_trees << endl; // 11
 	myfile << local_connection_time/local_connection_count << endl;
+	myfile << (double)grow_iterations/(double)grow_calls << endl;
 
 	myfile.close();
 }

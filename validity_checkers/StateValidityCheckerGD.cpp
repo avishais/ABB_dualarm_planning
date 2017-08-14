@@ -335,18 +335,18 @@ bool StateValidityChecker::reconstructSew(const ob::State *s1, const ob::State *
 	retrieveStateVector(s1,q1);
 	retrieveStateVector(s2,q2);
 
-	Confs.push_back(q1);
-
-	return reconstructRBS(q1, q2, Confs, 0, 1, 1);
+	return reconstructSew(q1, q2, Confs);
 }
 
 bool StateValidityChecker::reconstructSew(State q1, State q2, Matrix &M) {
 
 	State q(n);
 
+	M.push_back(q1);
+
 	double d = normDistance(q1,q2);
 
-	while (d > dq) {
+	while (d > RBS_tol) {
 		// interpolate
 		for (int i = 0; i < q1.size(); i++)
 			q[i] = q1[i] + dq/d * (q2[i]-q1[i]);
