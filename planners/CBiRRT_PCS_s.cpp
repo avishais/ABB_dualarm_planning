@@ -244,6 +244,7 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 
 			ik[active_chain] = ik_proj;
 			ik = identify_state_ik(dstate, ik);
+
 		}
 		else { // Handle configurations that belong to the opposite tree - and satisfy the closure constraint
 			retrieveStateVector(dstate, ik);

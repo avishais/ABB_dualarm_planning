@@ -215,6 +215,7 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 			retrieveStateVector(dstate, q);
 			updateStateVector(tgi.xstate, q);
 			dstate = tgi.xstate;
+
 		}
 
 		//cout << "dstate: "; printStateVector(dstate);

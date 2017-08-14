@@ -6,7 +6,7 @@
 % State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 % State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 % With joint limits of the ABB robots
-% last updated: 08/13/17
+% last updated: 08/13/2017
 
 clear all
 clc

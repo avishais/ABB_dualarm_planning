@@ -116,7 +116,7 @@ namespace ompl
             double local_connection_time; // Log LC total time
             int local_connection_count; // Log number of LC attempts
             int grow_iterations; // Total number of iterations in the growTree
-            int grow_calls; // Number of calls to growTree function
+            int grow_calls; // Number of calls to the growTree function
 
             /** Reset log paprameters */
             void initiate_log_parameters() {
