@@ -4,7 +4,7 @@
 clear all
 clc
 
-D1 = load('pcs_rbs_verification.txt');
+D1 = load('pcs_rbs_verification1.txt');
 D2 = load('gd_rbs_verification.txt');
 
 %% Visibility

@@ -13,7 +13,7 @@ double fRand(double fMin, double fMax)
 
 int main() {
 
-	int Seed = 1501686226;//time(NULL);//1501629079;//
+	int Seed = time(NULL);//1501629079;//
 	srand( Seed );
 	cout << "Seed in testing: " << Seed << endl;
 
@@ -26,7 +26,7 @@ int main() {
 	State q1(n), q2(n), q1a(n/2), q1b(n/2), q2a(n/2), q2b(n/2);
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/pcs_rbs_verification.txt", ios::app);
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/pcs_rbs_verification1.txt", ios::app);
 
 	int N = 1e5, i = 0;
 	while (i < N) {
@@ -48,15 +48,15 @@ int main() {
 		svc.seperate_Vector(q1, q1a, q1b);
 		State ik1 = svc.identify_state_ik(q1a, q1b);
 
-		bool vsuc;
+		bool vsuc = false;
 		double rbs_time;
-		if (ik2[0]==ik2[0]) {
+		if (ik1[0]==ik2[0]) {
 			clock_t begin = clock();
 			vsuc = svc.checkMotionRBS(q1a, q1b, q2a, q2b, 0, ik1[0], 0, 0);
 			rbs_time = double(clock() - begin) / CLOCKS_PER_SEC;
 			active_chain = 0;
 		}
-		if (!vsuc && ik2[1]==ik2[1]) {
+		if (!vsuc && ik1[1]==ik2[1]) {
 			clock_t begin = clock();
 			vsuc = svc.checkMotionRBS(q1a, q1b, q2a, q2b, 1, ik1[1], 0, 0);
 			rbs_time = double(clock() - begin) / CLOCKS_PER_SEC;

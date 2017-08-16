@@ -28,6 +28,7 @@ disp(['Percent of successful local-connections that were verified: ' num2str(sum
 %%
 
 disp(['Avg. runtime for successful local-connection: ' num2str(mean(D(suc,4))*1e3)  ' +/- ' num2str(std(D(suc,4))/sqrt(size(D(suc,4),1))*1e3) ' msec ']);
+disp(['Avg. runtime for failed local-connection: ' num2str(mean(D(~suc,4))*1e3)  ' +/- ' num2str(std(D(suc,4))/sqrt(size(D(~suc,4),1))*1e3) ' msec ']);
 
 disp(['Success rate/visibility for the RBS: ' num2str(sum(suc)/size(D,1)*100) '%']);
 

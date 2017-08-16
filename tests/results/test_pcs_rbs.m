@@ -5,16 +5,18 @@
 % checking local connection.
 % The success rate is also tracked to calculate visibility.
 % This is also with [-180,180] joint limits (not official ABB limits)
-% last updated: 08/02/17
+% last updated: 08/15/17
 
-% pcs_rbs_verification.txt - seed: 1501685776
+% pcs_rbs_verification.txt
+% seed: 1501685776 for first 253 trials
+% seed: 1502836450 for rest
 % Results in the above files in this form:
 % f << {success} << " " << {path verified} << " " << {distance between confs.} << " " << rbs_time << endl;
 
 clear all
 clc
 
-D = load('pcs_rbs_verification.txt');
+D = load('pcs_rbs_verification1.txt');
 
 %% Verification
 
@@ -28,6 +30,7 @@ disp(['Percent of successful local-connections that were verified: ' num2str(sum
 %%
 
 disp(['Avg. runtime for successful local-connection: ' num2str(mean(D(suc,4))*1e3)  ' +/- ' num2str(std(D(suc,4))/sqrt(size(D(suc,4),1))*1e3) ' msec ']);
+disp(['Avg. runtime for failed local-connection: ' num2str(mean(D(~suc,4))*1e3)  ' +/- ' num2str(std(D(suc,4))/sqrt(size(D(~suc,4),1))*1e3) ' msec ']);
 
 disp(['Success rate/visibility for the RBS: ' num2str(sum(suc)/size(D,1)*100) '%']);
 
@@ -37,7 +40,7 @@ clear td d
 Dd = D(suc,3);
 Td = D(suc,4);
 max_d = max(Dd);
-d = linspace(0, max_d, 15);
+d = linspace(0, max_d, 8);
 for i = 2:length(d)
     M = Td(Dd>=d(i-1) & Dd<d(i));
     td(i) = mean(M);
@@ -57,12 +60,17 @@ ylabel(hAx(2),'computation time [msec]');
 % ylim(hAx(1),[0 8500]);
 % ylim(hAx(2),[0 0.12]);
 
+%% Check uniformity
+
+figure(3)
+hist(D(:,3));
+
 %% Visibility
 
 clear V d
 Dd = D(:,3);
 max_d = max(Dd);
-d = linspace(0, max_d, 30);
+d = linspace(0, max_d, 20);
 for i = 2:length(d)
     S = D(D(:,3)>=d(i-1) & D(:,3)<d(i), 1);
     V(i-1) = sum(S)/length(S) * 100;

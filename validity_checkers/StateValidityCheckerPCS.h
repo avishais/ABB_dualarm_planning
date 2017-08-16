@@ -67,7 +67,7 @@ public:
 	void updateStateVector(const ob::State *, Vector, Vector, Vector);
 	void updateStateVector(const ob::State *, Vector);
 
-	/** Print ob::State ro console */
+	/** Print ob::State to console */
 	void printStateVector(const ob::State *);
 
 	/** Set default OMPL setting */
@@ -161,7 +161,7 @@ private:
 	Matrix Q;
 	Matrix P;
 
-	bool withObs = true; // Include obstacles?
+	bool withObs = false; // Include obstacles?
 	double RBS_tol = 0.05; // RBS local connection resolution
 	int RBS_max_depth = 150; // Maximum RBS recursion depth
 

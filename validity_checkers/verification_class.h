@@ -5,8 +5,8 @@
  *      Author: avishai
  */
 
-//#include "StateValidityCheckerPCS.h"
-#include "StateValidityCheckerGD.h"
+#include "StateValidityCheckerPCS.h"
+//#include "StateValidityCheckerGD.h"
 
 //#include <stdio.h>
 #include <iostream>
@@ -47,7 +47,7 @@ private:
 
 	double continuity_tol;
 	
-	string path_file = "./paths/path.txt";
+	string path_file = "../paths/path.txt";
 
 	Matrix Tsd;
 };
