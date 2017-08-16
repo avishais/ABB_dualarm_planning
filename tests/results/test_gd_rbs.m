@@ -7,7 +7,7 @@
 % This is also with [-180,180] joint limits (not official ABB limits)
 % last updated: 08/02/17
 
-% pcs_rbs_verification.txt - seed: 1501696107
+% gd_rbs_verification.txt - seed: 1501696107
 % Results in the above files in this form:
 % f << {success} << " " << {path verified} << " " << {distance between confs.} << " " << rbs_time << endl;
 

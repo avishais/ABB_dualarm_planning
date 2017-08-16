@@ -50,18 +50,18 @@ int main() {
 
 		bool vsuc = false;
 		double rbs_time;
+		clock_t begin = clock();
 		if (ik1[0]==ik2[0]) {
-			clock_t begin = clock();
+
 			vsuc = svc.checkMotionRBS(q1a, q1b, q2a, q2b, 0, ik1[0], 0, 0);
-			rbs_time = double(clock() - begin) / CLOCKS_PER_SEC;
 			active_chain = 0;
 		}
 		if (!vsuc && ik1[1]==ik2[1]) {
-			clock_t begin = clock();
 			vsuc = svc.checkMotionRBS(q1a, q1b, q2a, q2b, 1, ik1[1], 0, 0);
-			rbs_time = double(clock() - begin) / CLOCKS_PER_SEC;
 			active_chain = 1;
 		}
+		rbs_time = double(clock() - begin) / CLOCKS_PER_SEC;
+
 
 		if (vsuc) {
 			//cout << "Found LC." << endl;
