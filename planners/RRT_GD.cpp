@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Avishai Sintov */
 
 //#include "ompl/geometric/planners/rrt/RRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"

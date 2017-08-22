@@ -1,20 +1,19 @@
 % In this experiment I compare the performance of the GD (with KDL) and the
-% PCS on one scene with obstacles where the start and goal configurations
+% PCS while using the LazyRRT planner on one scene with obstacles where the start and goal configurations
 % are:
 % State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 % State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
-% BiRRR planner
 % The maximum step distance is 1.05.
 % With joint limits of the ABB robots
-% last updated: 08/02/17
-
+% last updated: 08/22/17
+% Maximum step size for both planners: 2
 
 clear all
 clc
 
 %%
-F = load('benchmark_PCS_3poles_rangeB.txt'); 
-D1 = F(F(:,1)==1.05, 2:end);
+D1 = load('benchmark_LazyRRT_PCS_3poles_range2.txt'); 
+D1 = D1(D1(:,2)==1,:);
 
 verf = D1(:,1)==1;
 suc = D1(:,2)==1;
@@ -32,8 +31,7 @@ disp(['Avg. number of IK solutions: ' num2str(floor(mean(D1(:,5)))) ]);
 
 
 %%
-F = load('benchmark_GD_3poles_rangeB.txt'); 
-D2 = F(F(:,1)==1.05, 2:end);
+D2 = load('benchmark_LazyRRT_GD_3poles_range2.txt'); 
 verf = D2(:,1)==1;
 suc = D2(:,2)==1;
 
@@ -79,7 +77,8 @@ hold off
 xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
-xlim([0 max(T1)]);
+xlim([0 max([T1 T2])]);
+title('RRT');
 % set(h, 'Position', [100, 100, 800, 400]);
 
 h = figure(2);

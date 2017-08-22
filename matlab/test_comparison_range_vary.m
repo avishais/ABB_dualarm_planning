@@ -5,6 +5,7 @@
 % State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 % This while benchmarking the maximum step distance.
 % With joint limits of the ABB robots.
+% BiRRR planner
 % last updated: 08/03/17
 
 clear all

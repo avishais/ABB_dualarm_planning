@@ -57,6 +57,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::RRT>(si);
             break;
         }
+        case PLANNER_LAZYRRT:
+        {
+            return std::make_shared<og::LazyRRT>(si);
+            break;
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -225,7 +230,20 @@ int main(int argn, char ** args) {
 	}
 	else {
 		runtime = atof(args[1]);
-		ptype = atoi(args[2])==1 ? PLANNER_BIRRT : PLANNER_RRT;
+		switch (atoi(args[2])) {
+		case 1 :
+			ptype = PLANNER_BIRRT;
+			break;
+		case 2 :
+			ptype = PLANNER_RRT;
+			break;
+		case 3 :
+			ptype = PLANNER_LAZYRRT;
+			break;
+		default :
+			cout << "Error: Requested planner not defined.";
+			exit(1);
+		}
 	}
 
 	plan_C Plan;
@@ -249,7 +267,7 @@ int main(int argn, char ** args) {
 		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155, 0, 3}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_PCS_3poles_range2.txt", ios::app);
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_PCS_3poles_range2.txt", ios::app);
 
 		for (int k = 0; k < 1000; k++) {
 			Plan.plan(c_start, c_goal, runtime, ptype);

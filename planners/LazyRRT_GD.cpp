@@ -32,12 +32,14 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Avishai Sintov */
 
-#include "ompl/geometric/planners/rrt/LazyRRT.h"
+//#include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
+
+#include "LazyRRT_GD.h"
 
 ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT"), StateValidityChecker(si)
 {
@@ -102,7 +104,10 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 	initiate_log_parameters();
 	setRange(Range); // Maximum local connection distance *** will need to profile this value
 
+	base::State *start_node = si_->allocState();
+
     checkValidity();
+    startTime = clock();
     base::Goal                 *goal   = pdef_->getGoal().get();
     base::GoalSampleableRegion *goal_s = dynamic_cast<base::GoalSampleableRegion*>(goal);
 
@@ -112,6 +117,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
         si_->copyState(motion->state, st);
         motion->valid = true;
         nn_->add(motion);
+
+        si_->copyState(start_node,st);
     }
 
     if (nn_->size() == 0)
@@ -133,11 +140,17 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
     bool solutionFound = false;
 
+    goal_s->sampleGoal(rstate);
+    PlanDistance = si_->distance(start_node, rstate);
+
     while (ptc == false && !solutionFound)
     {
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+    	bool gg = false;
+        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample()) {
             goal_s->sampleGoal(rstate);
+            gg = true;
+        }
         else
             sampler_->sampleUniform(rstate);
 
@@ -147,11 +160,24 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
         base::State *dstate = rstate;
 
         /* find state to add */
+        bool reach = true;
         double d = si_->distance(nmotion->state, rstate);
         if (d > maxDistance_)
         {
             si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
             dstate = xstate;
+            reach = false;
+        }
+
+        // If not goal, then must project
+        if (!(gg && reach)) {
+        	// Project dstate (which currently is not on the manifold)
+        	if (!IKproject(dstate)) // Collision check is done inside the projection
+        		continue;
+
+        	retrieveStateVector(dstate, q);
+        	updateStateVector(xstate, q);
+        	dstate = xstate;
         }
 
         /* create a motion */
@@ -182,10 +208,16 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
             for (int i = mpath.size() - 1 ; i >= 0 && solutionFound; --i)
                 if (!mpath[i]->valid)
                 {
-                    if (si_->checkMotion(mpath[i]->parent->state, mpath[i]->state))
-                        mpath[i]->valid = true;
-                    else
-                    {
+                	// Check motion
+                	clock_t sT = clock();
+                	local_connection_count++;
+                	bool validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state);
+                	local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+                	if (validMotion)
+                		mpath[i]->valid = true;
+                	else
+                	{
                         removeMotion(mpath[i]);
                         solutionFound = false;
                         lastGoalMotion_ = nullptr;
@@ -194,6 +226,14 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
             if (solutionFound)
             {
+            	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+            	cout << "Solved in " << total_runtime << "s." << endl;
+
+            	save2file(mpath);
+
+            	nodes_in_path = mpath.size();
+            	nodes_in_trees = nn_->size();
+
                 // set the solution path
                 PathGeometric *path = new PathGeometric(si_);
                 for (int i = mpath.size() - 1 ; i >= 0 ; --i)
@@ -204,9 +244,20 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
         }
     }
 
+    if (!solutionFound)
+    {
+    	// Report computation time
+    	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+
+    	nodes_in_trees = nn_->size();
+    }
+
     si_->freeState(xstate);
     si_->freeState(rstate);
     delete rmotion;
+
+    final_solved = solutionFound;
+    LogPerf2file(); // Log planning parameters
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
@@ -263,3 +314,99 @@ void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
         data.tagState(motions[i]->state, motions[i]->valid ? 1 : 0);
     }
 }
+
+void ompl::geometric::LazyRRT::save2file(vector<Motion*> mpath) {
+
+	cout << "Logging path to files..." << endl;
+
+	int n = get_n();
+	State q(n);
+	vector<Motion*> path;
+
+	{
+		// Open a_path file
+		std::ofstream myfile;
+		myfile.open("./paths/path_milestones.txt");
+
+		myfile << mpath.size() << endl;
+
+		for (int i = mpath.size()-1 ; i >= 0; i--) {
+			retrieveStateVector(mpath[i]->state, q);
+			for (int j = 0; j < n; j++) {
+				myfile << q[j] << " ";
+			}
+			myfile << endl;
+			path.push_back(mpath[i]);
+		}
+		myfile.close();
+	}
+
+	{ // Reconstruct RBS
+
+		// Open a_path file
+		std::ofstream fp, myfile;
+		std::ifstream myfile1;
+		myfile.open("./paths/temp.txt",ios::out);
+
+		retrieveStateVector(path[0]->state, q);
+		for (int j = 0; j < q.size(); j++) {
+			myfile << q[j] << " ";
+		}
+		myfile << endl;
+
+		int count = 1;
+		for (int i = 1; i < path.size(); i++) {
+
+			Matrix M;
+			bool valid = reconstructRBS(path[i-1]->state, path[i]->state, M);
+
+			if (!valid) {
+				cout << "Error in reconstructing...\n";
+				return;
+			}
+
+			for (int k = 1; k < M.size(); k++) {
+				for (int j = 0; j<M[k].size(); j++) {
+					myfile << M[k][j] << " ";
+				}
+				myfile << endl;
+				count++;
+			}
+		}
+
+		// Update file with number of conf.
+		myfile.close();
+		myfile1.open("./paths/temp.txt",ios::in);
+		fp.open("./paths/path.txt",ios::out);
+		fp << count << endl;
+		std::string line;
+		while(myfile1.good()) {
+			std::getline(myfile1, line ,'\n');
+			fp << line << endl;
+		}
+		myfile1.close();
+		fp.close();
+		std::remove("./paths/temp.txt");
+	}
+}
+
+void ompl::geometric::LazyRRT::LogPerf2file() {
+
+	std::ofstream myfile;
+	myfile.open("./paths/perf_log.txt");
+
+	myfile << final_solved << endl;
+	myfile << PlanDistance << endl; // Distance between nodes 1
+	myfile << total_runtime << endl; // Overall planning runtime 2
+	myfile << get_IK_counter() << endl; // How many IK checks? 5
+	myfile << get_IK_time() << endl; // IK computation time 6
+	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
+	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
+	myfile << get_isValid_counter() << endl; // How many nodes checked 9
+	myfile << nodes_in_path << endl; // Nodes in path 10
+	myfile << nodes_in_trees << endl; // 11
+	myfile << local_connection_time/local_connection_count << endl;
+
+	myfile.close();
+}
+

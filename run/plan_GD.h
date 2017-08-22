@@ -17,6 +17,7 @@
 // Modified and custom planners
 #include "../planners/CBiRRT_GD.h"
 #include "../planners/RRT_GD.h"
+#include "../planners/LazyRRT_GD.h"
 
 #include "../validity_checkers/verification_class.h"
 
@@ -32,7 +33,8 @@ using namespace std;
 enum plannerType
 {
 	PLANNER_BIRRT,
-	PLANNER_RRT
+	PLANNER_RRT,
+	PLANNER_LAZYRRT
 };
 
 bool isStateValid(const ob::State *state);

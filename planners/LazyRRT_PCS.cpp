@@ -32,38 +32,47 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Avishai Sintov */
 
-//#include "ompl/geometric/planners/rrt/RRT.h"
+//#include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
-#include <limits>
+#include <cassert>
 
-#include "RRT_PCS.h"
+#include "LazyRRT_PCS.h"
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT"), StateValidityChecker(si)
+ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT"), StateValidityChecker(si)
 {
-	specs_.approximateSolutions = true;
 	specs_.directed = true;
-
-	defaultSettings(); // Avishai
-
 	goalBias_ = 0.05;
 	maxDistance_ = 0.0;
 	lastGoalMotion_ = nullptr;
 
-	Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange, "0.:1.:10000.");
-	Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
+	defaultSettings(); // Avishai
+
+	Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange, "0.:1.:10000.");
+	Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
 
 	Range = 2;
 }
 
-ompl::geometric::RRT::~RRT()
+ompl::geometric::LazyRRT::~LazyRRT()
 {
 	freeMemory();
 }
 
-void ompl::geometric::RRT::clear()
+void ompl::geometric::LazyRRT::setup()
+{
+	Planner::setup();
+	tools::SelfConfig sc(si_, getName());
+	sc.configurePlannerRange(maxDistance_);
+
+	if (!nn_)
+		nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
+	nn_->setDistanceFunction(std::bind(&LazyRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void ompl::geometric::LazyRRT::clear()
 {
 	Planner::clear();
 	sampler_.reset();
@@ -73,18 +82,7 @@ void ompl::geometric::RRT::clear()
 	lastGoalMotion_ = nullptr;
 }
 
-void ompl::geometric::RRT::setup()
-{
-	Planner::setup();
-	tools::SelfConfig sc(si_, getName());
-	sc.configurePlannerRange(maxDistance_);
-
-	if (!nn_)
-		nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-	nn_->setDistanceFunction(std::bind(&RRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
-}
-
-void ompl::geometric::RRT::freeMemory()
+void ompl::geometric::LazyRRT::freeMemory()
 {
 	if (nn_)
 	{
@@ -99,7 +97,7 @@ void ompl::geometric::RRT::freeMemory()
 	}
 }
 
-ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
 	State q1(6), q2(6), ik(2);
 	initiate_log_parameters();
@@ -121,6 +119,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		motion->ik_q1_active = ik[0];
 		motion->ik_q2_active = ik[1];
 		motion->a_chain = 0;
+		motion->valid = true;
 		nn_->add(motion);
 
 		si_->copyState(start_node,st);
@@ -137,12 +136,13 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
 	OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
 
-	Motion *solution  = nullptr;
-	Motion *approxsol = nullptr;
-	double  approxdif = std::numeric_limits<double>::infinity();
-	Motion *rmotion   = new Motion(si_);
+	Motion *solution = nullptr;
+	double  distsol  = -1.0;
+	Motion *rmotion  = new Motion(si_);
 	base::State *rstate = rmotion->state;
 	base::State *xstate = si_->allocState();
+
+	bool solutionFound = false;
 
 	base::State *gstate = si_->allocState();
 	goal_s->sampleGoal(gstate);
@@ -151,7 +151,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
 	int active_chain;
 
-	while (ptc == false)
+	while (ptc == false && !solutionFound)
 	{
 		/* sample random state (with goal biasing) */
 		bool gg = false;
@@ -162,12 +162,13 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		else
 			sampler_->sampleUniform(rstate);
 
-		// Choose active chain
-		active_chain = rand() % 2; // 0 - (q1,a) is the active chain, 1 - (q2,a) is the active chain
-
 		/* find closest state in the tree */
 		Motion *nmotion = nn_->nearest(rmotion);
+		assert(nmotion != rmotion);
 		base::State *dstate = rstate;
+
+		// Choose active chain
+		active_chain = rand() % 2; // 0 - (q1,a) is the active chain, 1 - (q2,a) is the active chain
 
 		/* find state to add */
 		bool reach = true;
@@ -214,88 +215,96 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 				}
 			}
 
+			if (collision_state(getPMatrix(), q1, q2))
+				continue;
+
 			ik = identify_state_ik(q1, q2, ik);
 			updateStateVector(xstate, q1, q2, ik);
 			dstate = xstate;
 		}
-		else  // check if can connect to the goal
+		else { // check if can connect to the goal
 			ik = ik_goal;
+			if (nmotion->ik_q1_active==ik[0])
+				active_chain = 0;
+			else if (nmotion->ik_q2_active==ik[1])
+				active_chain = 1;
+			else
+				continue;
+		}
 
-		// Local connection using the Recursive Bi-Section (RBS)
-		clock_t sT = clock();
-		local_connection_count++;
-		bool validMotion = false;
-		if (nmotion->ik_q1_active == ik[0] && ik[0]!=-1)
-			validMotion = checkMotionRBS(nmotion->state, dstate, 0, nmotion->ik_q1_active);
-		if (!validMotion && nmotion->ik_q2_active == ik[1] && ik[0]!=-1)
-			validMotion = checkMotionRBS(nmotion->state, dstate, 1, nmotion->ik_q2_active);
-		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		/* create a motion */
+		Motion *motion = new Motion(si_);
+		motion->ik_q1_active = ik[0];
+		motion->ik_q2_active = ik[1];
+		updateStateVector(dstate, ik);
+		si_->copyState(motion->state, dstate);
+		motion->parent = nmotion;
+		nmotion->children.push_back(motion);
+		motion->a_chain = active_chain;
+		nn_->add(motion);
 
-		if (validMotion)
+		double dist = 0.0;
+		if (goal->isSatisfied(motion->state, &dist))
 		{
-			/* create a motion */
-			Motion *motion = new Motion(si_);
-			motion->ik_q1_active = ik[0];
-			motion->ik_q2_active = ik[1];
-			updateStateVector(dstate, ik);
-			si_->copyState(motion->state, dstate);
-			motion->a_chain = active_chain;
-			motion->parent = nmotion;
+			distsol = dist;
+			solution = motion;
+			solutionFound = true;
+			lastGoalMotion_ = solution;
 
-			nn_->add(motion);
-			double dist = 0.0;
-			bool sat = goal->isSatisfied(motion->state, &dist);
-			if (sat)
+			// Check that the solution is valid:
+			// construct the solution path
+			std::vector<Motion*> mpath;
+			while (solution != nullptr)
 			{
-				approxdif = dist;
-				solution = motion;
-				break;
+				mpath.push_back(solution);
+				solution = solution->parent;
 			}
-			if (dist < approxdif)
+
+			// check each segment along the path for validity
+			for (int i = mpath.size() - 1 ; i >= 0 && solutionFound; --i)
+				if (!mpath[i]->valid)
+				{
+						// Local connection using the Recursive Bi-Section (RBS)
+					clock_t sT = clock();
+					local_connection_count++;
+					bool validMotion = false;
+					if (mpath[i]->parent->ik_q1_active == mpath[i]->ik_q1_active && mpath[i]->ik_q1_active!=-1)
+						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 0, nmotion->ik_q1_active);
+					if (!validMotion && mpath[i]->parent->ik_q2_active == mpath[i]->ik_q2_active && mpath[i]->ik_q2_active!=-1)
+						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 1, nmotion->ik_q2_active);
+					local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+					if (validMotion)
+						mpath[i]->valid = true;
+					else
+					{
+						removeMotion(mpath[i]);
+						solutionFound = false;
+						lastGoalMotion_ = nullptr;
+					}
+				}
+
+			if (solutionFound)
 			{
-				approxdif = dist;
-				approxsol = motion;
+				total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+				cout << "Solved in " << total_runtime << "s." << endl;
+
+				save2file(mpath);
+
+				nodes_in_path = mpath.size();
+				nodes_in_trees = nn_->size();
+
+				// set the solution path
+				PathGeometric *path = new PathGeometric(si_);
+				for (int i = mpath.size() - 1 ; i >= 0 ; --i)
+					path->append(mpath[i]->state);
+
+				pdef_->addSolutionPath(base::PathPtr(path), false, distsol, getName());
 			}
 		}
 	}
 
-	bool solved = false;
-	bool approximate = false;
-	if (solution == nullptr)
-	{
-		solution = approxsol;
-		approximate = true;
-	}
-
-	if (solution != nullptr)
-	{
-		total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
-		cout << "Solved in " << total_runtime << "s." << endl;
-
-		lastGoalMotion_ = solution;
-
-		/* construct the solution path */
-		std::vector<Motion*> mpath;
-		while (solution != nullptr)
-		{
-			mpath.push_back(solution);
-			solution = solution->parent;
-		}
-
-		save2file(mpath);
-
-		nodes_in_path = mpath.size();
-		nodes_in_trees = nn_->size();
-
-		/* set the solution path */
-		PathGeometric *path = new PathGeometric(si_);
-		for (int i = mpath.size() - 1 ; i >= 0 ; --i)
-			path->append(mpath[i]->state);
-		pdef_->addSolutionPath(base::PathPtr(path), approximate, approxdif, getName());
-		solved = true;
-	}
-
-	if (!solved)
+	if (!solutionFound)
 	{
 		// Report computation time
 		total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
@@ -304,19 +313,46 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 	}
 
 	si_->freeState(xstate);
-	if (rmotion->state)
-		si_->freeState(rmotion->state);
+	si_->freeState(rstate);
 	delete rmotion;
 
-	final_solved = solved;
+	final_solved = solutionFound;
 	LogPerf2file(); // Log planning parameters
 
 	OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
-	return base::PlannerStatus(solved, approximate);
+	return solutionFound ?  base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::LazyRRT::removeMotion(Motion *motion)
+{
+	nn_->remove(motion);
+
+	/* remove self from parent list */
+
+	if (motion->parent)
+	{
+		for (unsigned int i = 0 ; i < motion->parent->children.size() ; ++i)
+			if (motion->parent->children[i] == motion)
+			{
+				motion->parent->children.erase(motion->parent->children.begin() + i);
+				break;
+			}
+	}
+
+	/* remove children */
+	for (unsigned int i = 0 ; i < motion->children.size() ; ++i)
+	{
+		motion->children[i]->parent = nullptr;
+		removeMotion(motion->children[i]);
+	}
+
+	if (motion->state)
+		si_->freeState(motion->state);
+	delete motion;
+}
+
+void ompl::geometric::LazyRRT::getPlannerData(base::PlannerData &data) const
 {
 	Planner::getPlannerData(data);
 
@@ -325,19 +361,21 @@ void ompl::geometric::RRT::getPlannerData(base::PlannerData &data) const
 		nn_->list(motions);
 
 	if (lastGoalMotion_)
-		data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+		data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state, 1));
 
 	for (unsigned int i = 0 ; i < motions.size() ; ++i)
 	{
 		if (motions[i]->parent == nullptr)
 			data.addStartVertex(base::PlannerDataVertex(motions[i]->state));
 		else
-			data.addEdge(base::PlannerDataVertex(motions[i]->parent->state),
+			data.addEdge(base::PlannerDataVertex(motions[i]->parent ? motions[i]->parent->state : nullptr),
 					base::PlannerDataVertex(motions[i]->state));
+
+		data.tagState(motions[i]->state, motions[i]->valid ? 1 : 0);
 	}
 }
 
-void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
+void ompl::geometric::LazyRRT::save2file(vector<Motion*> mpath) {
 
 	cout << "Logging path to files..." << endl;
 
@@ -424,7 +462,7 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 	}
 }
 
-void ompl::geometric::RRT::LogPerf2file() {
+void ompl::geometric::LazyRRT::LogPerf2file() {
 
 	std::ofstream myfile;
 	myfile.open("./paths/perf_log.txt");
@@ -443,3 +481,4 @@ void ompl::geometric::RRT::LogPerf2file() {
 
 	myfile.close();
 }
+
