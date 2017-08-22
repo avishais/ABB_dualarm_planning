@@ -41,7 +41,30 @@ bool isStateValid(const ob::State *state)
 	return true;
 }
 
-void plan_C::plan(State c_start, State c_goal, double runtime, double maxStep) {
+ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p_type)
+{
+    switch (p_type)
+    {
+        case PLANNER_BIRRT:
+        {
+            return std::make_shared<og::RRTConnect>(si, maxStep);
+            break;
+        }
+        case PLANNER_RRT:
+        {
+            return std::make_shared<og::RRT>(si);
+            break;
+        }
+        default:
+        {
+            OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
+            return ob::PlannerPtr(); // Address compiler warning re: no return value.
+            break;
+        }
+    }
+}
+
+void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step) {
 
 	// construct the state space we are planning inz
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
@@ -106,10 +129,10 @@ void plan_C::plan(State c_start, State c_goal, double runtime, double maxStep) {
 	pdef->setStartAndGoalStates(start, goal);
 	pdef->print();
 
+	maxStep = max_step;
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
-	ob::PlannerPtr planner(new og::RRTConnect(si, maxStep));
-	//ob::PlannerPtr planner(new og::RRT(si));
+	ob::PlannerPtr planner = allocatePlanner(si, ptype);
 
 	// set the problem we are trying to solve for the planner
 	planner->setProblemDefinition(pdef);
@@ -225,13 +248,14 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_GD_3poles_rangeB.txt", ios::app);
 
+		plannerType uplanner = PLANNER_BIRRT;
 
 		for (int k = 0; k < 1800; k++) {
 
 			for (int j = 0; j < 24; j++) {
 				double maxStep = 0.05 + 0.25*j;
 
-				Plan.plan(c_start, c_goal, runtime, maxStep);
+				Plan.plan(c_start, c_goal, runtime, uplanner, maxStep);
 
 				bool verf = Plan.vfc.verify_path();
 

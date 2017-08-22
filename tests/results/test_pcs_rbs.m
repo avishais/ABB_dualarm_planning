@@ -9,14 +9,14 @@
 
 % pcs_rbs_verification.txt
 % seed: 1501685776 for first 253 trials
-% seed: 1502836450 for rest
+% seed: 1502836450 for the rest
 % Results in the above files in this form:
 % f << {success} << " " << {path verified} << " " << {distance between confs.} << " " << rbs_time << endl;
 
 clear all
 clc
 
-D = load('pcs_rbs_verification1.txt');
+D = load('pcs_rbs_verification.txt');
 
 %% Verification
 
