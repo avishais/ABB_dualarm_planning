@@ -5,15 +5,14 @@
 % State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 % The maximum step distance is 1.05.
 % With joint limits of the ABB robots
-% last updated: 08/02/17
+% last updated: 08/22/17
 
 
 clear all
 clc
 
 %%
-F = load('benchmark_PCS_3poles_rangeB.txt'); 
-D1 = F(F(:,1)==1.05, 2:end);
+D1 = load('benchmark_RRT_PCS_3poles_range2.txt'); 
 
 verf = D1(:,1)==1;
 suc = D1(:,2)==1;
@@ -77,7 +76,8 @@ hold off
 xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
-xlim([0 max(T1)]);
+xlim([0 max([T1 T2])]);
+title('RRT');
 % set(h, 'Position', [100, 100, 800, 400]);
 
 h = figure(2);
@@ -94,4 +94,4 @@ legend('PCS','GD');
 
 %% 
 disp(' ');
-disp(['Speed-up t_{pcs}/t_{gd}: ' num2str(mean(D1(:,4))/mean(D2(:,4))) ]);
+disp(['Speed-up t_{gd}/t_{pcs}: ' num2str(mean(D2(:,4))/mean(D1(:,4))) ]);

@@ -144,9 +144,11 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 	base::State *rstate = rmotion->state;
 	base::State *xstate = si_->allocState();
 
-	goal_s->sampleGoal(rstate);
-	PlanDistance = si_->distance(start_node, rstate);
-	Vector ik_goal = identify_state_ik(rstate);
+	base::State *gstate = si_->allocState();
+	goal_s->sampleGoal(gstate);
+	PlanDistance = si_->distance(start_node, gstate);
+	Vector ik_goal = identify_state_ik(gstate);
+
 	int active_chain;
 
 	while (ptc == false)
@@ -217,9 +219,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 			updateStateVector(xstate, q1, q2, ik);
 			dstate = xstate;
 		}
-		else { // check if can connect to the goal
+		else  // check if can connect to the goal
 			ik = ik_goal;
-		}
 
 		// Local connection using the Recursive Bi-Section (RBS)
 		clock_t sT = clock();
@@ -235,7 +236,11 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		{
 			/* create a motion */
 			Motion *motion = new Motion(si_);
+			motion->ik_q1_active = ik[0];
+			motion->ik_q2_active = ik[1];
+			updateStateVector(dstate, ik);
 			si_->copyState(motion->state, dstate);
+			motion->a_chain = active_chain;
 			motion->parent = nmotion;
 
 			nn_->add(motion);
@@ -383,9 +388,6 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 
 			Matrix M;
 			bool valid = false;
-			cout << i << " " << i-1 << endl;
-			cout << path[i]->ik_q1_active << path[i-1]->ik_q1_active << endl;
-			cout << path[i]->ik_q2_active << path[i-1]->ik_q2_active << endl;
 			if (path[i]->ik_q1_active == path[i-1]->ik_q1_active)
 				valid = reconstructRBS(path[i-1]->state, path[i]->state, M, 0, path[i-1]->ik_q1_active);
 			if (!valid && path[i]->ik_q2_active == path[i-1]->ik_q2_active) {

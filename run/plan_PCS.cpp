@@ -178,7 +178,6 @@ void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType pty
 		// get the goal representation from the problem definition (not the same as the goal state)
 		// and inquire about the found path
 		//ob::PathPtr path = pdef->getSolutionPath();
-		std::cout << "Found solution:" << std::endl;
 
 		// print the path to screen
 		//path->print(std::cout);  // Print as vectors
@@ -189,6 +188,8 @@ void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType pty
 		//og::PathGeometric& pog = static_cast<og::PathGeometric&>(*path); // Transform into geometric path class
 		//pog.printAsMatrix(myfile); // Print as matrix to file
 		//myfile.close();
+
+		std::cout << "Found solution:" << std::endl;
 		solved_bool = true;
 	}
 	else {
@@ -229,7 +230,7 @@ int main(int argn, char ** args) {
 
 	plan_C Plan;
 
-	int mode = 1;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739, 3, 0};
@@ -248,15 +249,15 @@ int main(int argn, char ** args) {
 		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155, 0, 3}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_PCS_3poles_noLC1.txt", ios::app);
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_PCS_3poles_range2.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
+		for (int k = 0; k < 1000; k++) {
 			Plan.plan(c_start, c_goal, runtime, ptype);
 
 			bool verf = Plan.vfc.verify_path();
 			if (!verf) {
 				cout << "Press...\n";
-				cin.ignore();
+				//cin.ignore();
 			}
 			APS << verf << "\t";
 
