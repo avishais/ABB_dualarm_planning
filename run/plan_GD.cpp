@@ -194,11 +194,19 @@ void extract_from_perf_file(ofstream &ToFile) {
 int main(int argn, char ** args) {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 	double runtime;
+	plannerType ptype;
 
-	if (argn == 1)
+	if (argn == 1) {
 		runtime = 1; // sec
+		ptype = PLANNER_BIRRT;
+	}
+	else if (argn == 2) {
+		runtime = atof(args[1]);
+		ptype = PLANNER_BIRRT;
+	}
 	else {
 		runtime = atof(args[1]);
+		ptype = atoi(args[2])==1 ? PLANNER_BIRRT : PLANNER_RRT;
 	}
 
 	plan_C Plan;
@@ -212,7 +220,7 @@ int main(int argn, char ** args) {
 		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
-		Plan.plan(c_start, c_goal, runtime);
+		Plan.plan(c_start, c_goal, runtime, ptype);
 
 		Plan.vfc.verify_path();
 		break;
@@ -222,10 +230,10 @@ int main(int argn, char ** args) {
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_GD_3poles_noLC.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_GD_3poles_range2.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime);
+		for (int k = 0; k < 1000; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype);
 
 			GD << Plan.vfc.verify_path() << "\t";
 
@@ -248,14 +256,12 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_GD_3poles_rangeB.txt", ios::app);
 
-		plannerType uplanner = PLANNER_BIRRT;
-
 		for (int k = 0; k < 1800; k++) {
 
 			for (int j = 0; j < 24; j++) {
 				double maxStep = 0.05 + 0.25*j;
 
-				Plan.plan(c_start, c_goal, runtime, uplanner, maxStep);
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
 				bool verf = Plan.vfc.verify_path();
 

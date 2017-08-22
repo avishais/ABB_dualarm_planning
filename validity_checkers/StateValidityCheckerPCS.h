@@ -98,6 +98,9 @@ public:
 	/** Decouple the two robots joint vectors */
 	void seperate_Vector(Vector, Vector &, Vector &);
 
+	/** Log configuration to path file */
+	void log_q(ob::State *);
+
 	int get_valid_solution_index() {
 		return valid_solution_index;
 	}
@@ -161,7 +164,7 @@ private:
 	Matrix Q;
 	Matrix P;
 
-	bool withObs = false; // Include obstacles?
+	bool withObs = true; // Include obstacles?
 	double RBS_tol = 0.05; // RBS local connection resolution
 	int RBS_max_depth = 150; // Maximum RBS recursion depth
 

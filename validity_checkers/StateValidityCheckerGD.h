@@ -23,7 +23,6 @@
 #define ROBOTS_DISTANCE 900
 #define ROD_LENGTH 300
 
-
 namespace ob = ompl::base;
 using namespace std;
 

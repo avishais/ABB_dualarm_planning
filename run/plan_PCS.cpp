@@ -43,7 +43,30 @@ bool isStateValid(const ob::State *state)
 	return true;
 }
 
-void plan_C::plan(Vector c_start, Vector c_goal, double runtime, double maxStep) {
+ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p_type)
+{
+    switch (p_type)
+    {
+        case PLANNER_BIRRT:
+        {
+            return std::make_shared<og::RRTConnect>(si, maxStep);
+            break;
+        }
+        case PLANNER_RRT:
+        {
+            return std::make_shared<og::RRT>(si);
+            break;
+        }
+        default:
+        {
+            OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
+            return ob::PlannerPtr(); // Address compiler warning re: no return value.
+            break;
+        }
+    }
+}
+
+void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType ptype, double max_step) {
 
 	// construct the state space we are planning inz
 	ob::CompoundStateSpace *cs = new ob::CompoundStateSpace(); // Compound R^12 configuration space
@@ -124,9 +147,10 @@ void plan_C::plan(Vector c_start, Vector c_goal, double runtime, double maxStep)
 	pdef->setStartAndGoalStates(start, goal);
 	pdef->print();
 
+	maxStep = max_step;
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
-	ob::PlannerPtr planner(new og::RRTConnect(si, maxStep));
+	ob::PlannerPtr planner = allocatePlanner(si, ptype);
 
 	// set the problem we are trying to solve for the planner
 	planner->setProblemDefinition(pdef);
@@ -188,16 +212,24 @@ void extract_from_perf_file(ofstream &ToFile) {
 int main(int argn, char ** args) {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 	double runtime;
+	plannerType ptype;
 
-	if (argn == 1)
+	if (argn == 1) {
 		runtime = 1; // sec
+		ptype = PLANNER_BIRRT;
+	}
+	else if (argn == 2) {
+		runtime = atof(args[1]);
+		ptype = PLANNER_BIRRT;
+	}
 	else {
 		runtime = atof(args[1]);
+		ptype = atoi(args[2])==1 ? PLANNER_BIRRT : PLANNER_RRT;
 	}
 
 	plan_C Plan;
 
-	int mode = 2;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
 		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739, 3, 0};
@@ -205,7 +237,7 @@ int main(int argn, char ** args) {
 		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155, 0, 3}; // Robot 2 no backflip - Elbow down
 		//Vector c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
 
-		Plan.plan(c_start, c_goal, runtime);
+		Plan.plan(c_start, c_goal, runtime, ptype);
 
 		Plan.vfc.verify_path();
 
@@ -219,7 +251,7 @@ int main(int argn, char ** args) {
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_PCS_3poles_noLC1.txt", ios::app);
 
 		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime);
+			Plan.plan(c_start, c_goal, runtime, ptype);
 
 			bool verf = Plan.vfc.verify_path();
 			if (!verf) {
@@ -252,7 +284,7 @@ int main(int argn, char ** args) {
 			for (int j = 0; j < 24; j++) {
 				double maxStep = 0.05 + 0.25*j;
 
-				Plan.plan(c_start, c_goal, runtime, maxStep);
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
 				bool verf = Plan.vfc.verify_path();
 

@@ -101,9 +101,12 @@ void ompl::geometric::RRT::freeMemory()
 
 ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTerminationCondition &ptc)
 {
+	int n = get_n();
 	State q(n);
 	initiate_log_parameters();
 	setRange(Range); // Maximum local connection distance *** will need to profile this value
+
+	base::State *start_node = si_->allocState();
 
     checkValidity();
     startTime = clock();
@@ -115,6 +118,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         nn_->add(motion);
+
+        si_->copyState(start_node,st);
     }
 
     if (nn_->size() == 0)
@@ -135,29 +140,45 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
+    goal_s->sampleGoal(rstate);
+    PlanDistance = si_->distance(start_node, rstate);
+
     while (ptc == false)
     {
 
         /* sample random state (with goal biasing) */
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+    	bool gg = false;
+        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample()) {
             goal_s->sampleGoal(rstate);
-        else {
+            gg = true;
+        }
+        else
             sampler_->sampleUniform(rstate);
 
-            //retrieveStateVector(rstate, q);
-            //q[2] =
-        }
 
         /* find closest state in the tree */
         Motion *nmotion = nn_->nearest(rmotion);
         base::State *dstate = rstate;
 
         /* find state to add */
+        bool reach = true;
         double d = si_->distance(nmotion->state, rstate);
         if (d > maxDistance_)
         {
             si_->getStateSpace()->interpolate(nmotion->state, rstate, maxDistance_ / d, xstate);
             dstate = xstate;
+            reach = false;
+        }
+
+        // If not goal, then must project
+        if (!(gg && reach)) {
+        	// Project dstate (which currently is not on the manifold)
+        	if (!IKproject(dstate)) // Collision check is done inside the projection
+        		continue;
+
+        	retrieveStateVector(dstate, q);
+        	updateStateVector(xstate, q);
+        	dstate = xstate;
         }
 
         // Check motion
@@ -226,10 +247,21 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         solved = true;
     }
 
+    if (!solved)
+    {
+    	// Report computation time
+    	total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+
+    	nodes_in_trees = nn_->size();
+    }
+
     si_->freeState(xstate);
     if (rmotion->state)
         si_->freeState(rmotion->state);
     delete rmotion;
+
+    final_solved = solved;
+    LogPerf2file(); // Log planning parameters
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
@@ -332,7 +364,7 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 	}
 }
 
-void ompl::geometric::RRTConnect::LogPerf2file() {
+void ompl::geometric::RRT::LogPerf2file() {
 
 	std::ofstream myfile;
 	myfile.open("./paths/perf_log.txt");

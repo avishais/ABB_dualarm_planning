@@ -564,10 +564,10 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 		for (unsigned int i = 0 ; i < mpath2.size() ; ++i) {
 			retrieveStateVector(mpath2[i]->state, q1, q2);
 			ikfile << mpath2[i]->a_chain << " " << mpath2[i]->ik_q1_active << " " << mpath2[i]->ik_q2_active << endl;
-			for (int j = 0; j<6; j++) {
+			for (int j = 0; j < 6; j++) {
 				myfile << q1[j] << " ";
 			}
-			for (int j = 0; j<6; j++) {
+			for (int j = 0; j < 6; j++) {
 				myfile << q2[j] << " ";
 			}
 			myfile << endl;
@@ -593,13 +593,14 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 			path.push_back(mpath2[i]);
 
 		retrieveStateVector(path[0]->state, q1, q2);
-		for (int j = 0; j<6; j++) {
+		for (int j = 0; j < 6; j++) {
 			myfile << q1[j] << " ";
 		}
-		for (int j = 0; j<6; j++) {
+		for (int j = 0; j < 6; j++) {
 			myfile << q2[j] << " ";
 		}
 		myfile << endl;
+
 		int count = 1;
 		for (int i = 1; i < path.size(); i++) {
 

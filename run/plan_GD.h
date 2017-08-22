@@ -42,7 +42,7 @@ class plan_C
 {
 public:
 
-	void plan(State, State, double, plannerType = PLANNER_RRT, double = 2);
+	void plan(State, State, double, plannerType = PLANNER_BIRRT, double = 2);
 
 	// Construct the planner specified by our command line argument.
 	// This helper function is simply a switch statement.

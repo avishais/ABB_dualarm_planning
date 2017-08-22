@@ -16,8 +16,8 @@
 
 // Modified and custom planners
 #include "../planners/CBiRRT_PCS.h"
+#include "../planners/RRT_PCS.h"
 
-//#include "../validity_checkers/StateValidityCheckerPCS.h"
 #include "../validity_checkers/verification_class.h"
 
 // Standard libraries
@@ -28,6 +28,13 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 using namespace std;
 
+// An enum of available planners
+enum plannerType
+{
+	PLANNER_BIRRT,
+	PLANNER_RRT
+};
+
 bool isStateValid(const ob::State *state);
 
 // Prototypes
@@ -35,11 +42,17 @@ class plan_C //: public StateValidityChecker
 {
 public:
 
-	void plan(Vector, Vector, double, double = 2);
+	void plan(Vector, Vector, double, plannerType = PLANNER_BIRRT, double = 2);
+
+	// Construct the planner specified by our command line argument.
+	// This helper function is simply a switch statement.
+	ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr, plannerType);
 
 	bool solved_bool;
 	double total_runtime;
 	int ode_count;
+
+	double maxStep;
 
 	verification_class vfc;
 };

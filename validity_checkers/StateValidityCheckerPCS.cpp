@@ -575,3 +575,24 @@ void StateValidityChecker::seperate_Vector(Vector q, Vector &q1, Vector &q2) {
 		q2[i] = q[i+q.size()/2];
 	}
 }
+
+void StateValidityChecker::log_q(ob::State *s) {
+
+	Vector q1(6), q2(6);
+	retrieveStateVector(s, q1, q2);
+
+	// Open a_path file
+	std::ofstream myfile;
+	myfile.open("./paths/path.txt");
+
+	myfile << 1 << endl;
+
+	for (int j = 0; j < 6; j++)
+		myfile << q1[j] << " ";
+	for (int j = 0; j < 6; j++)
+		myfile << q2[j] << " ";
+	myfile << endl;
+
+myfile.close();
+
+}
