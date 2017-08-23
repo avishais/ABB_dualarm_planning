@@ -60,6 +60,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::LazyRRT>(si);
             break;
         }
+        case PLANNER_PRM:
+        {
+            return std::make_shared<og::PRM>(si);
+            break;
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -165,7 +170,6 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 		// get the goal representation from the problem definition (not the same as the goal state)
 		// and inquire about the found path
 		//ob::PathPtr path = pdef->getSolutionPath();
-		std::cout << "Found solution:" << std::endl;
 
 		// print the path to screen
 		//path->print(std::cout);  // Print as vectors
@@ -176,6 +180,8 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 		//og::PathGeometric& pog = static_cast<og::PathGeometric&>(*path); // Transform into geometric path class
 		//pog.printAsMatrix(myfile); // Print as matrix to file
 		//myfile.close();
+
+		std::cout << "Found solution:" << std::endl;
 		solved_bool = true;
 	}
 	else {
@@ -221,6 +227,9 @@ int main(int argn, char ** args) {
 		case 3 :
 			ptype = PLANNER_LAZYRRT;
 			break;
+		case 4 :
+			ptype = PLANNER_PRM;
+			break;
 		default :
 			cout << "Error: Requested planner not defined.";
 			exit(1);
@@ -248,9 +257,9 @@ int main(int argn, char ** args) {
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_GD_3poles_range2.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_PRM_GD_3poles.txt", ios::app);
 
-		for (int k = 0; k < 1000; k++) {
+		for (int k = 0; k < 500; k++) {
 			Plan.plan(c_start, c_goal, runtime, ptype);
 
 			GD << Plan.vfc.verify_path() << "\t";

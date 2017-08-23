@@ -31,7 +31,9 @@ disp(['Avg. number of IK solutions: ' num2str(floor(mean(D1(:,5)))) ]);
 
 
 %%
-D2 = load('benchmark_LazyRRT_GD_3poles_range2.txt'); 
+D2 = load('benchmark_PRM_3poles.txt'); 
+D2 = D2(D2(:,2)==1,:);
+
 verf = D2(:,1)==1;
 suc = D2(:,2)==1;
 
@@ -42,7 +44,7 @@ disp(['Plan distance: ' num2str(D2(1,3)) ]);
 disp(['Avg. runtime: ' num2str(mean(D2(:,4))*1e3)  ' +/- ' num2str(std(D2(:,4))/sqrt(size(D2,1))*1e3) ' msec ']);
 disp(['Avg. local-connection time: ' num2str(mean(D2(:,12))*1e3)  ' +/- ' num2str(std(D2(:,12))/sqrt(size(D2,1))*1e3) ' msec ']);
 disp(['Avg. nodes in path: ' num2str(floor(mean(D2(:,10)))) ]);
-disp(['Avg. nodes in trees: ' num2str(floor(mean(D2(:,11)))) ]);
+disp(['Avg. nodes in roadmap: ' num2str(floor(mean(D2(:,11)))) ]);
 disp(['Avg. number of projections: ' num2str(floor(mean(D2(:,5)))) ]);
 
 %%
@@ -78,7 +80,7 @@ xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
 xlim([0 max([T1 T2])]);
-title('LazyRRT');
+title('RRT');
 % set(h, 'Position', [100, 100, 800, 400]);
 
 h = figure(2);

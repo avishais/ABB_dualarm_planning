@@ -297,7 +297,7 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 	State q(n);
 	vector<Motion*> path;
 
-	{
+	{ // Save only milestones
 		// Open a_path file
 		std::ofstream myfile;
 		myfile.open("./paths/path_milestones.txt");

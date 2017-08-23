@@ -436,7 +436,7 @@ protected:
 
     // ***************** My additional functions ************************
     /** \brief Save solution path to two files */
-	void save2file(vector<Motion*>);
+	void save2file(ompl::base::ProblemDefinitionPtr);
 
 	/** \brief Log performance data of the planning to perf_log.txt */
 	void LogPerf2file();
