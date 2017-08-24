@@ -227,7 +227,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		bool validMotion = false;
 		if (nmotion->ik_q1_active == ik[0] && ik[0]!=-1)
 			validMotion = checkMotionRBS(nmotion->state, dstate, 0, nmotion->ik_q1_active);
-		if (!validMotion && nmotion->ik_q2_active == ik[1] && ik[0]!=-1)
+		if (!validMotion && nmotion->ik_q2_active == ik[1] && ik[1]!=-1)
 			validMotion = checkMotionRBS(nmotion->state, dstate, 1, nmotion->ik_q2_active);
 		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
@@ -354,10 +354,10 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 
 		for (int i = mpath.size()-1 ; i >= 0; i--) {
 			retrieveStateVector(mpath[i]->state, q1, q2);
-			for (int j = 0; j<6; j++) {
+			for (int j = 0; j < 6; j++) {
 				myfile << q1[j] << " ";
 			}
-			for (int j = 0; j<6; j++) {
+			for (int j = 0; j < 6; j++) {
 				myfile << q2[j] << " ";
 			}
 			myfile << endl;

@@ -54,23 +54,22 @@ State StateValidityChecker::sample_q() {
 	// c is a 12 dimensional vector composed of [q1 q2]
 
 	State q(12), q1(6), q2(6);
-	for (int i = 0; i < q.size(); i++)
-		q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
 
-	if (!GD(q)) {
-		q[0] = -1000;
+	while (1) {
+		for (int i = 0; i < q.size(); i++)
+			q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
+
+		if (!GD(q))
+			continue;
+
+		q = get_GD_result();
+
+		seperate_Vector(q, q1, q2);
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+			continue;
+
 		return q;
 	}
-
-	q = get_GD_result();
-
-	seperate_Vector(q, q1, q2);
-	if (withObs && collision_state(P, q1, q2)) {
-		q[0] = -1000;
-		return q;
-	}
-
-	return q;
 }
 
 bool StateValidityChecker::IKproject(const ob::State *state) {

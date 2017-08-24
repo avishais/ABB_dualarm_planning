@@ -49,7 +49,7 @@ bool verification_class::verify_path() {
 bool verification_class::verify_path(Matrix M) {
 
 	int m = M.size();
-
+/*
 	// Validate joint limits
 	for (int i = 0; i < m; i++) {
 		if (!check_angle_limits(M[i])) {
@@ -58,7 +58,7 @@ bool verification_class::verify_path(Matrix M) {
 			cout << "@ Node " << i << endl;
 			return false; // Report joint limit breach
 		}
-	}
+	}*/
 
 	// Validate continuity
 	for (int i = 1; i < m; i++) {

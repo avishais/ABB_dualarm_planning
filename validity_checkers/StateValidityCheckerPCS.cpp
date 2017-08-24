@@ -197,10 +197,9 @@ bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain, i
 	}
 }
 
-Vector StateValidityChecker::sample_q() {
-	// c is a 14 dimensional vector composed of [q1 q2 ik]
+bool StateValidityChecker::sample_q(ob::State *st) {
 
-	Vector q1(6), q2(6), ik(2), q1_temp;
+	Vector q(12), q1(6), q2(6), ik(2);
 
 	while (1) {
 		// Random active chain
@@ -213,12 +212,47 @@ Vector StateValidityChecker::sample_q() {
 			q2 = get_IK_solution_q2();
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1 || ik[1]==-1)
+		if (ik[0]==-1 && ik[1]==-1)
 			continue;
+
+		q = join_Vectors(q1, q2);
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+			continue;
+
 		break;
 	}
 
-	return join_Vectors(q1, q2);
+	updateStateVector(st, q1, q2, ik);
+	return true;
+
+}
+
+Vector StateValidityChecker::sample_q() {
+
+	Vector q(12), q1(6), q2(6), ik(2);
+
+	while (1) {
+		// Random active chain
+		for (int i = 0; i < 6; i++)
+			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI - PI;
+
+		int ik_sol = rand() % 8;
+
+		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
+			q2 = get_IK_solution_q2();
+
+		ik = identify_state_ik(q1, q2);
+		if (ik[0]==-1 && ik[1]==-1)
+			continue;
+
+		q = join_Vectors(q1, q2);
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+			continue;
+
+		break;
+	}
+
+	return q;
 }
 
 Vector StateValidityChecker::identify_state_ik(const ob::State *state, Vector ik) {

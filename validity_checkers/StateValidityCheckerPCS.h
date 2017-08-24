@@ -84,6 +84,7 @@ public:
 
 	/** Sample a random configuration */
 	Vector sample_q();
+	bool sample_q(ob::State *st);
 
 	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
 	bool IKproject(Vector &, Vector &, int, int = -1);

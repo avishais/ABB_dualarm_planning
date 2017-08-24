@@ -1,18 +1,18 @@
 % In this experiment I compare the performance of the GD (with KDL) and the
-% PCS while using the LazyRRT planner on one scene with obstacles where the start and goal configurations
+% PCS while using the PRM planner on one scene with obstacles where the start and goal configurations
 % are:
 % State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 % State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 % The maximum step distance is 1.05.
 % With joint limits of the ABB robots
-% last updated: 08/22/17
+% last updated: 08/23/17
 % Maximum step size for both planners: 2
 
 clear all
 clc
 
 %%
-D1 = load('benchmark_LazyRRT_PCS_3poles_range2.txt'); 
+D1 = load('benchmark_PRM_PCS_3poles_range2.txt'); 
 D1 = D1(D1(:,2)==1,:);
 
 verf = D1(:,1)==1;
@@ -31,8 +31,11 @@ disp(['Avg. number of IK solutions: ' num2str(floor(mean(D1(:,5)))) ]);
 
 
 %%
-D2 = load('benchmark_PRM_3poles.txt'); 
-D2 = D2(D2(:,2)==1,:);
+F1 = load('benchmark_PRM_GD1_3poles.txt'); 
+F2 = load('benchmark_PRM_GD2_3poles.txt'); 
+D2 = [F1; F2];
+clear F1 F2
+% D2 = D2(D2(:,2)==1,:);
 
 verf = D2(:,1)==1;
 suc = D2(:,2)==1;

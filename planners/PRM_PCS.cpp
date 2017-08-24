@@ -48,7 +48,7 @@
 #include <thread>
 
 #include "GoalVisitor.hpp"
-#include "PRM_GD.h"
+#include "PRM_PCS.h"
 
 #define foreach BOOST_FOREACH
 
@@ -78,12 +78,12 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
 			successfulConnectionAttemptsProperty_(boost::get(vertex_successful_connection_attempts_t(), g_)),
 			weightProperty_(boost::get(boost::edge_weight, g_)),
 			disjointSets_(boost::get(boost::vertex_rank, g_),
-					boost::get(boost::vertex_predecessor, g_)),
-					userSetConnectionStrategy_(false),
-					addedNewSolution_(false),
-					iterations_(0),
-					bestCost_(std::numeric_limits<double>::quiet_NaN()),
-					StateValidityChecker(si)
+			boost::get(boost::vertex_predecessor, g_)),
+			userSetConnectionStrategy_(false),
+			addedNewSolution_(false),
+			iterations_(0),
+			bestCost_(std::numeric_limits<double>::quiet_NaN()),
+			StateValidityChecker(si)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.approximateSolutions = false;
@@ -317,16 +317,14 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 			unsigned int attempts = 0;
 			do
 			{
-				q_rand = sample_q(); // Use custom sampler
-				found = true; // Success condition
 				//found = sampler_->sample(workState);
+				found = sample_q(workState); // Use custom sampler
 
 				attempts++;
 			} while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);
 		}
 		// add it as a milestone
 		if (found) {
-			updateStateVector(workState, q_rand);
 			addMilestone(si_->cloneState(workState));
 		}
 	}
@@ -510,7 +508,7 @@ void ompl::geometric::PRM::constructRoadmap(const base::PlannerTerminationCondit
 		if (grow)
 			growRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(2.0 * magic::ROADMAP_BUILD_TIME)), xstates[0]);
 		else
-			expandRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
+			//expandRoadmap(base::plannerOrTerminationCondition(ptc, base::timedPlannerTerminationCondition(magic::ROADMAP_BUILD_TIME)), xstates);
 		grow = !grow;
 	}
 
@@ -538,10 +536,18 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 		totalConnectionAttemptsProperty_[m]++;
 		totalConnectionAttemptsProperty_[n]++;
 
-		// Check motion
+		Vector ik1(2), ik2(2);
+		retrieveStateVector(stateProperty_[n], ik1);
+		retrieveStateVector(stateProperty_[m], ik2);
+
+		// Local connection using the Recursive Bi-Section (RBS)
 		clock_t sT = clock();
 		local_connection_count++;
-		bool validMotion = checkMotionRBS(stateProperty_[n], stateProperty_[m]);
+		bool validMotion = false;
+		if (ik1[0] == ik2[0] && ik1[0]!=-1)
+			validMotion = checkMotionRBS(stateProperty_[n], stateProperty_[m], 0, ik1[0]);
+		if (!validMotion && ik1[1] == ik2[1] && ik1[1]!=-1)
+			validMotion = checkMotionRBS(stateProperty_[n], stateProperty_[m], 1, ik1[1]);
 		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
 		if (validMotion)
@@ -645,17 +651,19 @@ void ompl::geometric::PRM::save2file(ompl::base::ProblemDefinitionPtr pdef) {
 
 	const std::vector< ompl::base::State* > &states = Path.getStates();
 
-	Matrix path;
+	Matrix Q1, Q2, IK;
 	ompl::base::State *state;
-	int n = get_n();
-	State q(n);
+
+	State q1(6), q2(6), ik(2), ik1(2), ik2(2);
 	for( size_t i = 0 ; i < states.size( ) ; ++i ) {
 		state = states[i]->as< ob::State >();
-		retrieveStateVector(state, q);
-		path.push_back(q);
+		retrieveStateVector(state, q1, q2, ik);
+		Q1.push_back(q1);
+		Q2.push_back(q2);
+		IK.push_back(ik);
 	}
 
-	nodes_in_path = path.size();
+	nodes_in_path = Q1.size();
 
 	cout << "Logging path to files..." << endl;
 
@@ -664,11 +672,14 @@ void ompl::geometric::PRM::save2file(ompl::base::ProblemDefinitionPtr pdef) {
 		std::ofstream myfile;
 		myfile.open("./paths/path_milestones.txt");
 
-		myfile << path.size() << endl;
+		myfile << Q1.size() << endl;
 
-		for (int i = 0; i < path.size(); i++) {
-			for (int j = 0; j < n; j++) {
-				myfile << q[j] << " ";
+		for (int i = 0; i < Q1.size(); i++) {
+			for (int j = 0; j < 6; j++) {
+				myfile << Q1[i][j] << " ";
+			}
+			for (int j = 0; j < 6; j++) {
+				myfile << Q2[i][j] << " ";
 			}
 			myfile << endl;
 		}
@@ -682,19 +693,33 @@ void ompl::geometric::PRM::save2file(ompl::base::ProblemDefinitionPtr pdef) {
 		std::ifstream myfile1;
 		myfile.open("./paths/temp.txt",ios::out);
 
-		q = path[0];
-		for (int j = 0; j < q.size(); j++) {
-			myfile << q[j] << " ";
+		for (int j = 0; j < 6; j++) {
+			myfile << Q1[0][j] << " ";
+		}
+		for (int j = 0; j < 6; j++) {
+			myfile << Q2[0][j] << " ";
 		}
 		myfile << endl;
 
 		int count = 1;
-		for (int i = 1; i < path.size(); i++) {
+		for (int i = 1; i < Q1.size(); i++) {
+
+			ik1 = identify_state_ik(Q1[i-1], Q2[i-1]);
+			ik2 = identify_state_ik(Q1[i], Q2[i]);
 
 			Matrix M;
-			M.push_back(path[i-1]);
-			M.push_back(path[i]);
-			bool valid = reconstructRBS(path[i-1], path[i], M, 0, 1, 1);
+			M.push_back(join_Vectors(Q1[i-1], Q2[i-1]));
+			M.push_back(join_Vectors(Q1[i], Q2[i]));
+
+			bool valid = false;
+			if (ik1[0] == ik2[0])
+				valid = reconstructRBS(Q1[i-1], Q2[i-1], Q1[i], Q2[i], 0, ik1[0], M, 0, 1, 1);
+			if (!valid && ik1[1] == ik2[1]) {
+				M.clear();
+				M.push_back(join_Vectors(Q1[i-1], Q2[i-1]));
+				M.push_back(join_Vectors(Q1[i], Q2[i]));
+				valid = reconstructRBS(Q1[i-1], Q2[i-1], Q1[i], Q2[i], 1, ik1[1], M, 0, 1, 1);
+			}
 
 			if (!valid) {
 				cout << "Error in reconstructing...\n";
