@@ -56,10 +56,9 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, dou
 	Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
 	connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 
-	defaultSettings(); // Avishai
+	defaultSettings();
 
 	Range = maxStep; // Maximum local connection distance
-
 }
 
 ompl::geometric::RRTConnect::~RRTConnect()

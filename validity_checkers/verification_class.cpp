@@ -80,7 +80,7 @@ bool verification_class::verify_path(Matrix M) {
 			return false;
 		}
 	}
-
+/*
 	// Validate collisions
 	State q1(M[0].size()/2), q2(M[0].size()/2);
 	for (int i = 0; i < m; i++) {
@@ -92,7 +92,7 @@ bool verification_class::verify_path(Matrix M) {
 			return false;
 		}
 	}
-
+*/
 	return true; // No errors
 }
 

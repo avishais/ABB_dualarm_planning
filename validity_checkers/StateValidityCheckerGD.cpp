@@ -72,12 +72,12 @@ State StateValidityChecker::sample_q() {
 	}
 }
 
-bool StateValidityChecker::IKproject(const ob::State *state) {
+bool StateValidityChecker::IKproject(const ob::State *state, bool includeObs) {
 
 	State q(12);
 	retrieveStateVector(state, q);
 
-	if (!IKproject(q))
+	if (!IKproject(q, includeObs))
 		return false;
 
 	updateStateVector(state, q);
@@ -86,7 +86,7 @@ bool StateValidityChecker::IKproject(const ob::State *state) {
 }
 
 
-bool StateValidityChecker::IKproject(State &q) {
+bool StateValidityChecker::IKproject(State &q, bool includeObs) {
 
 	if (!GD(q))
 		return false;
@@ -95,7 +95,7 @@ bool StateValidityChecker::IKproject(State &q) {
 
 	State q1(6), q2(6);
 	seperate_Vector(q, q1, q2);
-	if (withObs && collision_state(P, q1, q2))
+	if (includeObs && withObs && collision_state(P, q1, q2))
 		return false;
 
 	return true;

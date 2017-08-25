@@ -79,8 +79,8 @@ public:
 	double MaxAngleDistance(State, State);
 
 	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
-	bool IKproject(const ob::State *);
-	bool IKproject(State &);
+	bool IKproject(const ob::State *, bool = true);
+	bool IKproject(State &, bool = true);
 
 	/** Sample a random configuration */
 	State sample_q();
