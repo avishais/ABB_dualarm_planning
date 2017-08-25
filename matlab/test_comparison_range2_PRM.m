@@ -12,7 +12,7 @@ clear all
 clc
 
 %%
-D1 = load('benchmark_PRM_PCS_3poles_range2.txt'); 
+D1 = load('benchmark_PRM_PCS_3poles.txt'); 
 D1 = D1(D1(:,2)==1,:);
 
 verf = D1(:,1)==1;
@@ -31,11 +31,8 @@ disp(['Avg. number of IK solutions: ' num2str(floor(mean(D1(:,5)))) ]);
 
 
 %%
-F1 = load('benchmark_PRM_GD1_3poles.txt'); 
-F2 = load('benchmark_PRM_GD2_3poles.txt'); 
-D2 = [F1; F2];
-clear F1 F2
-% D2 = D2(D2(:,2)==1,:);
+D2 = load('benchmark_PRM_GD_3poles.txt'); 
+D2 = D2(D2(:,2)==1,:);
 
 verf = D2(:,1)==1;
 suc = D2(:,2)==1;
