@@ -7,7 +7,8 @@ clc
 
 
 %%
-D1 = load('benchmark_SBL_GD_3poles_range2.txt'); 
+F = load('benchmark_SBL_GD_3poles_rangeB.txt'); 
+D1 = F(F(:,1)==0.8, 2:end);
 verf = D1(:,1)==1;
 suc = D1(:,2)==1;
 
@@ -37,23 +38,10 @@ disp(['Avg. nodes in trees: ' num2str(floor(mean(D2(:,11)))) ]);
 disp(['Avg. number of projections: ' num2str(floor(mean(D2(:,5)))) ]);
 
 %%
-D3 = load('benchmark_SBL_GD_3poles_range0.5.txt'); 
-verf = D3(:,1)==1;
-suc = D3(:,2)==1;
+D = D1;
 
-disp('GD:');
-disp(['Results of ' num2str(size(D3,1)) ' queries.']);
-disp(['Percent of successful queries verified: ' num2str(sum(verf & suc)/sum(suc)*100) '%']);
-disp(['Plan distance: ' num2str(D3(1,3)) ]);
-disp(['Avg. runtime: ' num2str(mean(D3(:,4))*1e3)  ' +/- ' num2str(std(D3(:,4))/sqrt(size(D3,1))*1e3) ' msec ']);
-disp(['Avg. local-connection time: ' num2str(mean(D3(:,12)./D3(:,13))*1e3)  ' +/- ' num2str(std(D3(:,12)./D3(:,13))/sqrt(size(D3,1))*1e3) ' msec ']);
-disp(['Avg. nodes in path: ' num2str(floor(mean(D3(:,10)))) ]);
-disp(['Avg. nodes in trees: ' num2str(floor(mean(D3(:,11)))) ]);
-disp(['Avg. number of projections: ' num2str(floor(mean(D3(:,5)))) ]);
-
-%%
 % GD
-tg = D1(:,4);
+tg = D(:,4);
 maxT = max(tg);
 T1 = linspace(0,maxT,1000);
 T1 = T1(2:end);
