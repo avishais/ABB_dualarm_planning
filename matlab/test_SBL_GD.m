@@ -7,9 +7,13 @@
 clear all
 clc
 
+File = 'benchmark_SBL_GD_3poles_rangeB.txt'; % Not checking collision for the milestones
+% File = 'benchmark_SBL_GD_3poles_rangeB_IKobsCheck.txt'; % With checking collision for the milestones.
+
+
 %%
-D1 = load('benchmark_SBL_GD_3poles_rangeB.txt'); 
-D1(D1(:,1)==0.05 | D1(:,1)>=3.05,:) = [];
+D1 = load(File); 
+% D1(D1(:,1)==0.05 | D1(:,1)>=3.05,:) = [];
 verf = D1(:,2)==1;
 suc = D1(:,3)==1;
 
@@ -53,7 +57,7 @@ xlim([0 max(rg)]);
 
 %% 
 %%
-F = load('benchmark_SBL_GD_3poles_rangeB.txt'); 
+F = load(File); 
 D1 = F(F(:,1)==rg(ig), 2:end);
 verf = D1(:,1)==1;
 suc = D1(:,2)==1;
@@ -84,9 +88,9 @@ end
 %%
 h = figure(2);
 clf
-plot(T1,Mg*100,'--k','linewidth',2);
+plot(T1,Mg*100,'-k','linewidth',2);
 xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 xlim([0 max([T1 T1])]);
-title('RRT');
+title('SBL');
 % set(h, 'Position', [100, 100, 800, 400]);

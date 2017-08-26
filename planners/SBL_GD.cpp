@@ -169,7 +169,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
 			continue;
 
-		if (!IKproject(xstate, false)) // Projection without collision check (lazy)
+		if (!IKproject(xstate, true)) // Projection without collision check (lazy)
 			continue;
 
 		/* create a motion */

@@ -295,7 +295,7 @@ int main(int argn, char ** args) {
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_GD_3poles_rangeB.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_GD_3poles_rangeB_IKobsCheck.txt", ios::app);
 
 		for (int k = 0; k < 1000; k++) {
 
