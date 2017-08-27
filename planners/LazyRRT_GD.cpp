@@ -41,7 +41,7 @@
 
 #include "LazyRRT_GD.h"
 
-ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyRRT"), StateValidityChecker(si)
+ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "LazyRRT"), StateValidityChecker(si)
 {
     specs_.directed = true;
     goalBias_ = 0.05;
@@ -53,7 +53,7 @@ ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si) : base::P
     Planner::declareParam<double>("range", this, &LazyRRT::setRange, &LazyRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &LazyRRT::setGoalBias, &LazyRRT::getGoalBias, "0.:.05:1.");
 
-    Range = 2;
+    Range = maxStep;
 }
 
 ompl::geometric::LazyRRT::~LazyRRT()
