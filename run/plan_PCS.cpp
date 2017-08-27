@@ -67,6 +67,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         	return std::make_shared<og::PRM>(si);
         	break;
         }
+        case PLANNER_SBL:
+        {
+        	return std::make_shared<og::SBL>(si);
+        	break;
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -248,6 +253,9 @@ int main(int argn, char ** args) {
 		case 4 :
 			ptype = PLANNER_PRM;
 			break;
+		case 5 :
+			ptype = PLANNER_SBL;
+			break;
 		default :
 			cout << "Error: Requested planner not defined.";
 			exit(1);
@@ -256,7 +264,7 @@ int main(int argn, char ** args) {
 
 	plan_C Plan;
 
-	int mode = 2;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
 		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739, 3, 0};

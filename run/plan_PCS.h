@@ -19,6 +19,7 @@
 #include "../planners/RRT_PCS.h"
 #include "../planners/LazyRRT_PCS.h"
 #include "../planners/PRM_PCS.h"
+#include "../planners/SBL_PCS.h"
 
 #include "../validity_checkers/verification_class.h"
 
@@ -36,7 +37,8 @@ enum plannerType
 	PLANNER_BIRRT,
 	PLANNER_RRT,
 	PLANNER_LAZYRRT,
-	PLANNER_PRM
+	PLANNER_PRM,
+	PLANNER_SBL
 };
 
 bool isStateValid(const ob::State *state);
