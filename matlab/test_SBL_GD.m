@@ -7,8 +7,8 @@
 clear all
 clc
 
-File = 'benchmark_SBL_GD_3poles_rangeB.txt'; % Not checking collision for the milestones
-% File = 'benchmark_SBL_GD_3poles_rangeB_IKobsCheck.txt'; % With checking collision for the milestones.
+% File = 'benchmark_SBL_GD_3poles_rangeB.txt'; % Not checking collision for the milestones
+File = 'benchmark_SBL_GD_3poles_rangeB_IKobsCheck.txt'; % With checking collision for the milestones.
 
 
 %%

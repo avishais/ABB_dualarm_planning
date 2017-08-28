@@ -22,92 +22,37 @@ void StateValidityChecker::defaultSettings()
 
 void StateValidityChecker::retrieveStateVector(const ob::State *state, Vector &q1, Vector &q2) {
 	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
+	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
 
 	for (unsigned i = 0; i < 6; i++) {
 		q1[i] = Q->values[i]; // Set state of robot1
 		q2[i] = Q->values[i+6]; // Set state of robot1
 	}
-}
-
-void StateValidityChecker::retrieveStateVector(const ob::State *state, Vector &q1, Vector &q2, Vector &ik) {
-	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
-	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
-
-	for (unsigned i = 0; i < 6; i++) {
-		q1[i] = Q->values[i]; // Set state of robot1
-		q2[i] = Q->values[i+6]; // Set state of robot1
-	}
-
-	ik[0] = IK->values[0];
-	ik[1] = IK->values[1];
-}
-
-void StateValidityChecker::retrieveStateVector(const ob::State *state, Vector &ik) {
-	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
-
-	ik[0] = IK->values[0];
-	ik[1] = IK->values[1];
 }
 
 void StateValidityChecker::updateStateVector(const ob::State *state, State q1, State q2) {
 	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
+	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
 
 	for (unsigned i = 0; i < 6; i++) {
 		Q->values[i] = q1[i];
 		Q->values[i+6]= q2[i];
 	}
-}
-
-void StateValidityChecker::updateStateVector(const ob::State *state, State ik) {
-	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
-
-	IK->values[0] = ik[0];
-	IK->values[1] = ik[1];
-}
-
-void StateValidityChecker::updateStateVector(const ob::State *state, State q1, State q2, State ik) {
-	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
-	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
-
-	for (unsigned i = 0; i < 6; i++) {
-		Q->values[i] = q1[i];
-		Q->values[i+6]= q2[i];
-	}
-	IK->values[0] = ik[0];
-	IK->values[1] = ik[1];
 }
 
 void StateValidityChecker::printStateVector(const ob::State *state) {
 	// cast the abstract state type to the type we expect
-	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
-	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
-	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
+	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
 
-	Vector q1(6), q2(6), ik(2);
+	Vector q1(6), q2(6);
 
 	for (unsigned i = 0; i < 6; i++) {
 		q1[i] = Q->values[i]; // Set state of robot1
 		q2[i] = Q->values[i+6]; // Set state of robot1
 	}
 
-	ik[0] = IK->values[0];
-	ik[1] = IK->values[1];
-
 	cout << "q1: "; printVector(q1);
 	cout << "q2: "; printVector(q2);
-	cout << "IK: "; printVector(ik);
 }
 
 
@@ -115,7 +60,7 @@ bool StateValidityChecker::close_chain(const ob::State *state, int q1_active_ik_
 	// c is a 14 dimensional vector composed of [q1 q2 ik]
 
 	Vector q1(6), q2(6), ik(2), q1_temp;
-	retrieveStateVector(state, q1, q2, ik);
+	retrieveStateVector(state, q1, q2);
 
 	FKsolve_rob(q1, 1);
 	Matrix T2 = MatricesMult(get_FK_solution_T1(), getQ()); // Returns the opposing required matrix of the rods tip at robot 2
@@ -143,7 +88,6 @@ bool StateValidityChecker::close_chain(const ob::State *state, int q1_active_ik_
 	if (i==8)
 		return false;
 
-	updateStateVector(state, q1, q2, ik);
 	return true;
 }
 
@@ -222,7 +166,7 @@ bool StateValidityChecker::sample_q(ob::State *st) {
 		break;
 	}
 
-	updateStateVector(st, q1, q2, ik);
+	updateStateVector(st, q1, q2);
 	return true;
 
 }
@@ -321,7 +265,8 @@ bool StateValidityChecker::isValid(const ob::State *state) {
 	isValid_counter++;
 
 	State q1(6), q2(6), ik(2);
-	retrieveStateVector(state, q1, q2, ik);
+	retrieveStateVector(state, q1, q2);
+	ik = identify_state_ik(state);
 
 	// q1 is the active chain
 	if (calc_specific_IK_solution_R1(Q, q1, ik[0])) {

@@ -115,7 +115,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 	while (const base::State *st = pis_.nextStart())
 	{
 		ik = identify_state_ik(st);
-		updateStateVector(st, ik);
 		Motion *motion = new Motion(si_);
 		si_->copyState(motion->state, st);
 		motion->ik_q1_active = ik[0];
@@ -215,7 +214,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 			}
 
 			ik = identify_state_ik(q1, q2, ik);
-			updateStateVector(xstate, q1, q2, ik);
+			updateStateVector(xstate, q1, q2);
 			dstate = xstate;
 		}
 		else  // check if can connect to the goal
@@ -237,7 +236,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 			Motion *motion = new Motion(si_);
 			motion->ik_q1_active = ik[0];
 			motion->ik_q2_active = ik[1];
-			updateStateVector(dstate, ik);
 			si_->copyState(motion->state, dstate);
 			motion->a_chain = active_chain;
 			motion->parent = nmotion;

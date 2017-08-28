@@ -62,14 +62,14 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::LazyRRT>(si, maxStep);
             break;
         }
-        case PLANNER_PRM:
+        /*case PLANNER_PRM:
         {
         	return std::make_shared<og::PRM>(si);
         	break;
-        }
+        }*/
         case PLANNER_SBL:
         {
-        	return std::make_shared<og::SBL>(si);
+        	return std::make_shared<og::SBL>(si, maxStep);
         	break;
         }
         default:
@@ -84,11 +84,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType ptype, double max_step) {
 
 	// construct the state space we are planning inz
-	ob::CompoundStateSpace *cs = new ob::CompoundStateSpace(); // Compound R^12 configuration space
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
-	ob::StateSpacePtr IK(new ob::RealVectorStateSpace(2)); // Additional IK information
-	cs->addSubspace(Q, 1.0);
-	cs->addSubspace(IK, 0.0);
 
 	// set the bounds for the Q=R^12 part of 'Cspace'
 	ob::RealVectorBounds Qbounds(12);
@@ -117,19 +113,11 @@ void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType pty
 	Qbounds.setLow(11, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it
 	Qbounds.setHigh(11, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
 
-	// set the bounds for the A=R^6
-	ob::RealVectorBounds IKbounds(2);
-	IKbounds.setLow(0, 0);
-	IKbounds.setHigh(0, 11);
-	IKbounds.setLow(1, 0);
-	IKbounds.setHigh(1, 11);
-
 	// set the bound for the compound space
-	cs->as<ob::RealVectorStateSpace>(0)->setBounds(Qbounds);
-	cs->as<ob::RealVectorStateSpace>(1)->setBounds(IKbounds);
+	Q->as<ob::RealVectorStateSpace>()->setBounds(Qbounds);
 
 	// construct a compound state space using the overloaded operator+
-	ob::StateSpacePtr Cspace(cs);
+	ob::StateSpacePtr Cspace(Q);
 
 	// construct an instance of  space information from this state space
 	ob::SpaceInformationPtr si(new ob::SpaceInformation(Cspace));
@@ -140,20 +128,16 @@ void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType pty
 	si->setStateValidityCheckingResolution(0.02); // 3% ???
 
 	// create start state
-	ob::ScopedState<ob::CompoundStateSpace> start(Cspace);
+	ob::ScopedState<ob::RealVectorStateSpace> start(Cspace);
 	for (int i = 0; i < 12; i++) {
-		start->as<ob::RealVectorStateSpace::StateType>(0)->values[i] = c_start[i]; // Access the first component of the start a-state
+		start->as<ob::RealVectorStateSpace::StateType>()->values[i] = c_start[i]; // Access the first component of the start a-state
 	}
-	start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = c_start[12];//ik_sol;
-	start->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = c_start[13];//8;
 
 	// create goal state
-	ob::ScopedState<ob::CompoundStateSpace> goal(Cspace);
+	ob::ScopedState<ob::RealVectorStateSpace> goal(Cspace);
 	for (int i = 0; i < 12; i++) {
-		goal->as<ob::RealVectorStateSpace::StateType>(0)->values[i] = c_goal[i]; // Access the first component of the goal a-state
+		goal->as<ob::RealVectorStateSpace::StateType>()->values[i] = c_goal[i]; // Access the first component of the goal a-state
 	}
-	goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = c_goal[12];//3;
-	goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = c_goal[13];//8;
 
 	// create a problem instance
 	ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
@@ -267,9 +251,9 @@ int main(int argn, char ** args) {
 	int mode = 3;
 	switch (mode) {
 	case 1: {
-		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739, 3, 0};
+		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 		//Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015, 8, 3}; // Robot 2 backfilp - Elbow down
-		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155, 0, 3}; // Robot 2 no backflip - Elbow down
+		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 		//Vector c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
 
 		Plan.plan(c_start, c_goal, runtime, ptype);
@@ -279,8 +263,8 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739, 3, 0};
-		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155, 0, 3}; // Robot 2 no backflip - Elbow down
+		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_PRM_PCS_3poles_range2.txt", ios::app);
@@ -307,17 +291,17 @@ int main(int argn, char ** args) {
 		APS.close();
 		break;
 	}
-	case 3 : { // Benchmark maximum step size
-		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739, 3, 0};
-		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155, 0, 3}; // Robot 2 no backflip - Elbow down
+	case 3 : { // Benchmark maximum step size while benchmarking the step size
+		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_PCS_3poles_rangeB.txt", ios::app);
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_PCS_3poles_rangeB.txt", ios::app);
 
 		int N = 2000;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 8; j++) {
-				double maxStep = 0.6 + 0.2*j;
+			for (int j = 0; j < 11; j++) {
+				double maxStep = 0.3 + 0.25*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

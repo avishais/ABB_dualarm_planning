@@ -59,13 +59,9 @@ public:
 
 	/** Retrieve state from ob::State to vector<double> */
 	void retrieveStateVector(const ob::State *, Vector &, Vector &);
-	void retrieveStateVector(const ob::State *, Vector &, Vector &, Vector &);
-	void retrieveStateVector(const ob::State *, Vector &);
 
 	/** Update state to ob::State from vector<double> */
 	void updateStateVector(const ob::State *, Vector, Vector);
-	void updateStateVector(const ob::State *, Vector, Vector, Vector);
-	void updateStateVector(const ob::State *, Vector);
 
 	/** Print ob::State to console */
 	void printStateVector(const ob::State *);

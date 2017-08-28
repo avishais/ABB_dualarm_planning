@@ -111,7 +111,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 			OMPL_ERROR("%s: Start state not feasible!", getName().c_str());
 			return base::PlannerStatus::INVALID_START;
 		}
-		updateStateVector(st, ik);
 
 		Motion *motion = new Motion(si_);
 		si_->copyState(motion->state, st);
@@ -166,7 +165,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 					OMPL_ERROR("%s: Start state not feasible!", getName().c_str());
 					return base::PlannerStatus::INVALID_START;
 				}
-				updateStateVector(st, ik);
 
 				Motion *motion = new Motion(si_);
 				si_->copyState(motion->state, st);
@@ -284,6 +282,9 @@ bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &o
 	if (cell && !cell->data.empty())
 	{
 		Motion *connectOther = cell->data[rng_.uniformInt(0, cell->data.size() - 1)];
+
+		if (connectOther->ik_q1_active != motion->ik_q1_active && connectOther->ik_q2_active != motion->ik_q2_active)
+			return false;
 
 		// Check if a connection is even possible considering connected components
 		if ( connectOther->ik_q1_active != motion->ik_q1_active && connectOther->ik_q2_active != motion->ik_q2_active )

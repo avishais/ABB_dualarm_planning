@@ -230,7 +230,8 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 			ik = identify_state_ik(dstate, ik);
 		}
 		else { // Handle configurations that belong to the opposite tree - satisfy the closure constraint
-			retrieveStateVector(dstate, ik);
+			ik[0] = tmotion->ik_q1_active;
+			ik[1] = tmotion->ik_q2_active;
 			if (nmotion->ik_q1_active==ik[0])
 				active_chain = 0;
 			else if (nmotion->ik_q2_active==ik[1])
@@ -261,7 +262,6 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 			Motion *motion = new Motion(si_);
 			motion->ik_q1_active = ik[0];
 			motion->ik_q2_active = ik[1];
-			updateStateVector(dstate, ik);
 			si_->copyState(motion->state, dstate);
 			motion->parent = nmotion;
 			motion->root = nmotion->root;
@@ -310,7 +310,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 			OMPL_ERROR("%s: Start state not feasible!", getName().c_str());
 			return base::PlannerStatus::INVALID_START;
 		}
-		updateStateVector(st, ik);
 
 		Motion *motion = new Motion(si_);
 		si_->copyState(motion->state, st);
@@ -368,7 +367,6 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 					OMPL_ERROR("%s: Start state not feasible!", getName().c_str());
 					return base::PlannerStatus::INVALID_START;
 				}
-				updateStateVector(st, ik);
 
 				Motion *motion = new Motion(si_);
 				si_->copyState(motion->state, st);
