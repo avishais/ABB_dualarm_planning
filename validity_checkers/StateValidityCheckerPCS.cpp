@@ -93,52 +93,59 @@ bool StateValidityChecker::close_chain(const ob::State *state, int q1_active_ik_
 
 bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain, int ik_sol) {
 
-	if (ik_sol > -1) { // Try to project to a specific ik solution
+	bool valid = true;
+	IK_counter++;
+	clock_t sT = clock();
+
+	if (!active_chain) {
+		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
+			q2 = get_IK_solution_q2();
+		else
+			valid = false;
+	}
+	else {
+		if (calc_specific_IK_solution_R2(Q, q2, ik_sol))
+			q1 = get_IK_solution_q1();
+		else
+			valid = false;
+	}
+
+	IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+
+	return valid;
+}
+
+
+bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain) {
+
+	// Try to project to all IK solutions
+	int i;
+	vector<int> IKsol = {0,1,2,3,4,5,6,7};
+	std::random_shuffle( IKsol.begin(), IKsol.end() );
+
+	for (i = 0; i < IKsol.size(); i++) {
 		if (!active_chain) {
-			if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
+			if (calc_specific_IK_solution_R1(Q, q1, IKsol[i]))
 				q2 = get_IK_solution_q2();
 			else
-				return false;
-		}
-		else {
-			if (calc_specific_IK_solution_R2(Q, q2, ik_sol))
-				q1 = get_IK_solution_q1();
-			else
-				return false;
-		}
-
-		Vector ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1 || ik[1]==-1)
-			return false;
-		return true;
-	}
-	else { // Try to project to all IK solutions
-		int i;
-		vector<int> IKsol = {0,1,2,3,4,5,6,7};
-		std::random_shuffle( IKsol.begin(), IKsol.end() );
-
-		for (i = 0; i < IKsol.size(); i++) {
-			if (!active_chain) {
-				if (calc_specific_IK_solution_R1(Q, q1, IKsol[i]))
-					q2 = get_IK_solution_q2();
-				else
-					continue;
-			}
-			else {
-				if (calc_specific_IK_solution_R2(Q, q2, IKsol[i]))
-					q1 = get_IK_solution_q1();
-				else
-					continue;
-			}
-			Vector ik = identify_state_ik(q1, q2);
-			if (ik[0]==-1 || ik[1]==-1)
 				continue;
 		}
-		if (i==8) // Failed
-			return false;
-		else
-			return true;
+		else {
+			if (calc_specific_IK_solution_R2(Q, q2, IKsol[i]))
+				q1 = get_IK_solution_q1();
+			else
+				continue;
+		}
+		Vector ik = identify_state_ik(q1, q2);
+		if (ik[0]==-1 || ik[1]==-1)
+			continue;
 	}
+	if (i==8) // Failed
+			return false;
+	else
+		return true;
+
 }
 
 bool StateValidityChecker::sample_q(ob::State *st) {
@@ -201,15 +208,21 @@ Vector StateValidityChecker::sample_q() {
 
 Vector StateValidityChecker::identify_state_ik(const ob::State *state, Vector ik) {
 
+	clock_t sT = clock();
 	Vector q1(6), q2(6), q_temp(6);
 	retrieveStateVector(state, q1, q2);
 
-	return identify_state_ik(q1, q2, ik);
+	ik = identify_state_ik(q1, q2, ik);
+
+	clock_t eT = clock();
+	iden +=  double(eT - sT) / CLOCKS_PER_SEC;
+
+	return ik;
 }
 
 Vector StateValidityChecker::identify_state_ik(Vector q1, Vector q2, Vector ik) {
 
-	clock_t sT = clock();
+
 
 	if (ik[0] == -1) { // Compute only if the ik index for the active chain 0 is unknown
 		// q1 is the active chain
@@ -248,9 +261,6 @@ Vector StateValidityChecker::identify_state_ik(Vector q1, Vector q2, Vector ik) 
 			}
 		}
 	}
-
-	clock_t eT = clock();
-	iden +=  double(eT - sT) / CLOCKS_PER_SEC;
 
 	return ik;
 }
@@ -396,25 +406,12 @@ bool StateValidityChecker::isValidRBS(Vector &q1, Vector &q2, int active_chain, 
 
 	isValid_counter++;
 
-	switch (active_chain) {
-	case 0:
-		if (calc_specific_IK_solution_R1(Q, q1, IK_sol)) {
-			q2 = get_IK_solution_q2();
-			if (!withObs || !collision_state(P, q1, q2))
-				return true;
-		}
-		else
-			return false;
-		break;
-	case 1:
-		if (calc_specific_IK_solution_R2(Q, q2, IK_sol)) {
-			q1 = get_IK_solution_q1();
-			if (!withObs || !collision_state(P, q1, q2))
-				return true;
-		}
-		else
-			return false;
-	}
+	if (!IKproject(q1, q2, active_chain, IK_sol))
+		return false;
+
+	if (!withObs || !collision_state(P, q1, q2))
+		return true;
+
 	return false;
 }
 

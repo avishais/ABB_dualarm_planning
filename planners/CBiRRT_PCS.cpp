@@ -194,6 +194,8 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 
 			ik = {-1, -1};
 
+			IK_counter++;
+			clock_t sT = clock();
 			// Project dstate (currently not on the manifold)
 			if (!active_chain) {
 				if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active)) {
@@ -221,6 +223,7 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 					ik[1] =  nmotion->ik_q2_active;
 				}
 			}
+			IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
 			if (collision_state(getPMatrix(), q1, q2))
 				return nmotion;
 
@@ -531,6 +534,83 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
 	data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
 
+void ompl::geometric::RRTConnect::timeMinPath(vector<Motion*> path) {
+
+	IK_counter = 0;
+	IK_time = 0;
+	local_connection_time = 0;
+	local_connection_count = 0;
+
+	Vector q1(6), q2(6);
+
+	clock_t st = clock();
+	for (int i = 1; i < path.size(); i++) {
+
+		Vector ik1 = identify_state_ik(path[i-1]->state);
+		Vector ik2 = identify_state_ik(path[i]->state);
+
+		retrieveStateVector(path[i]->state, q1, q2);
+		IKproject(q1, q2, 0, ik2[0]);
+
+		clock_t stLC = clock();
+		bool valid = false;
+		if (ik1[0] == ik2[0] && ik2[0] != -1) {
+			local_connection_count++;
+			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 0, ik1[0]);
+		}
+		if (!valid && ik1[1] == ik2[1] && ik2[1] != -1) {
+			local_connection_count++;
+			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 1, ik1[1]);
+		}
+		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;
+
+		/*retrieveStateVector(path[i]->state, q1, q2);
+		IKproject(q1, q2, 0, path[i]->ik_q1_active);
+
+		bool valid = false;
+		if (path[i-1]->ik_q1_active == path[i]->ik_q1_active && path[i]->ik_q1_active != -1)
+			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 0, path[i]->ik_q1_active);
+		if (!valid && path[i-1]->ik_q2_active == path[i]->ik_q2_active && path[i]->ik_q2_active != -1) {
+			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 1, path[i]->ik_q2_active);
+		}*/
+	}
+	minPathtime = double(clock() - st) / CLOCKS_PER_SEC;
+
+}
+
+void ompl::geometric::RRTConnect::smoothPath(vector<Motion*> &path) {
+
+	int orgSize = path.size();
+	int s, c = 30;
+	do {
+		s = path.size();
+		int i1, i2;
+		do {
+			i1 = rand() % path.size();
+			i2 = rand() % path.size();
+		} while (abs(i1-i2) < 2);
+
+		bool valid = false;
+		if (path[i1]->ik_q1_active == path[i2]->ik_q1_active && path[i2]->ik_q1_active != -1)
+			valid =  checkMotionRBS(path[i1]->state, path[i2]->state, 0, path[i1]->ik_q1_active);
+		if (!valid && path[i1]->ik_q2_active == path[i2]->ik_q2_active && path[i2]->ik_q2_active != -1) {
+			valid =  checkMotionRBS(path[i1]->state, path[i2]->state, 1, path[i1]->ik_q2_active);
+		}
+
+		if (valid)
+			path.erase(path.begin()+min(i1,i2)+1, path.begin()+max(i1,i2));
+
+		if (path.size() == s)
+			c--;
+		else
+			c = 30;
+	} while (c > 0);
+
+	cout << "Reduce path size from " << orgSize << " milestones to " << path.size() << " milestones." << endl;
+
+	nodes_in_path = path.size();
+}
+
 void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {
 
 	cout << "Logging path to files..." << endl;
@@ -590,6 +670,8 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 		for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
 			path.push_back(mpath2[i]);
 
+		smoothPath(path);
+
 		retrieveStateVector(path[0]->state, q1, q2);
 		for (int j = 0; j < 6; j++) {
 			myfile << q1[j] << " ";
@@ -616,8 +698,9 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 				return;
 			}
 
-			for (int k = 1; k<M.size(); k++) {
-				for (int j = 0; j<M[k].size(); j++) {
+			for (int k = 1; k < M.size(); k++) {
+				pathLength += normDistance(M[k], M[k-1]);
+				for (int j = 0; j < M[k].size(); j++) {
 					myfile << M[k][j] << " ";
 				}
 				myfile << endl;
@@ -638,6 +721,8 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 		myfile1.close();
 		fp.close();
 		std::remove("./paths/temp.txt");
+
+		timeMinPath(path);
 	}
 
 }
@@ -657,7 +742,10 @@ void ompl::geometric::RRTConnect::LogPerf2file() {
 	myfile << get_isValid_counter() << endl; // How many nodes checked 9
 	myfile << nodes_in_path << endl; // Nodes in path 10
 	myfile << nodes_in_trees << endl; // 11
-	myfile << local_connection_time/local_connection_count << endl;
+	myfile << local_connection_time << endl;
+	myfile << local_connection_count << endl;
+	myfile << minPathtime << endl;
+	myfile << pathLength << endl;
 
 	myfile.close();
 }

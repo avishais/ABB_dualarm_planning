@@ -248,7 +248,7 @@ int main(int argn, char ** args) {
 
 	srand (time(NULL));
 
-	int mode = 3;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
@@ -265,10 +265,10 @@ int main(int argn, char ** args) {
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_GD_3poles_range0.5.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_BiRRT_GD_3poles_minCpath.txt", ios::app);
 
 		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype);
+			Plan.plan(c_start, c_goal, runtime, ptype, 2.55);
 
 			bool verf = Plan.vfc.verify_path();
 			if (!verf) {

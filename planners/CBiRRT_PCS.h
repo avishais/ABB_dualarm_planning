@@ -117,6 +117,8 @@ namespace ompl
             int local_connection_count; // Log number of LC attempts
             int grow_iterations; // Total number of iterations in the growTree
             int grow_calls; // Number of calls to the growTree function
+            double minPathtime;
+            double pathLength;
 
             /** Reset log paprameters */
             void initiate_log_parameters() {
@@ -131,6 +133,9 @@ namespace ompl
             	local_connection_count = 0;
             	grow_iterations = 0;
             	grow_calls = 0;
+            	minPathtime = 0;
+            	iden = 0;
+            	pathLength = 0;
             }
 
             // Maximum local-connection distance
@@ -236,6 +241,11 @@ namespace ompl
 
             /** \brief Log performance data of the planning to perf_log.txt */
             void LogPerf2file();
+
+            void timeMinPath(vector<Motion*>);
+
+            // Smooth the solution path
+            void smoothPath(vector<Motion*> &path);
 
         };
 
