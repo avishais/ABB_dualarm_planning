@@ -546,11 +546,11 @@ void ompl::geometric::RRTConnect::timeMinPath(vector<Motion*> path) {
 	clock_t st = clock();
 	for (int i = 1; i < path.size(); i++) {
 
-		Vector ik1 = identify_state_ik(path[i-1]->state);
+		/*Vector ik1 = identify_state_ik(path[i-1]->state);
 		Vector ik2 = identify_state_ik(path[i]->state);
 
-		retrieveStateVector(path[i]->state, q1, q2);
-		IKproject(q1, q2, 0, ik2[0]);
+		//retrieveStateVector(path[i]->state, q1, q2);
+		//IKproject(q1, q2, 0, ik2[0]);
 
 		clock_t stLC = clock();
 		bool valid = false;
@@ -562,17 +562,22 @@ void ompl::geometric::RRTConnect::timeMinPath(vector<Motion*> path) {
 			local_connection_count++;
 			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 1, ik1[1]);
 		}
-		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;
+		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;*/
 
-		/*retrieveStateVector(path[i]->state, q1, q2);
-		IKproject(q1, q2, 0, path[i]->ik_q1_active);
+		//retrieveStateVector(path[i]->state, q1, q2);
+		//IKproject(q1, q2, 0, path[i]->ik_q1_active);
 
+		clock_t stLC = clock();
 		bool valid = false;
-		if (path[i-1]->ik_q1_active == path[i]->ik_q1_active && path[i]->ik_q1_active != -1)
+		if (path[i-1]->ik_q1_active == path[i]->ik_q1_active && path[i]->ik_q1_active != -1) {
+			local_connection_count++;
 			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 0, path[i]->ik_q1_active);
+		}
 		if (!valid && path[i-1]->ik_q2_active == path[i]->ik_q2_active && path[i]->ik_q2_active != -1) {
+			local_connection_count++;
 			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 1, path[i]->ik_q2_active);
-		}*/
+		}
+		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;
 	}
 	minPathtime = double(clock() - st) / CLOCKS_PER_SEC;
 

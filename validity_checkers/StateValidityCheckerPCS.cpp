@@ -222,8 +222,6 @@ Vector StateValidityChecker::identify_state_ik(const ob::State *state, Vector ik
 
 Vector StateValidityChecker::identify_state_ik(Vector q1, Vector q2, Vector ik) {
 
-
-
 	if (ik[0] == -1) { // Compute only if the ik index for the active chain 0 is unknown
 		// q1 is the active chain
 		FKsolve_rob(q1, 1);

@@ -114,8 +114,6 @@ int two_robots::get_countSolutions() {
 bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 	Vector q(6);
 
-	IK_counter++;
-
 	double q1_add_sol[NUM_IK_SOLUTIONS] = { 0, 0, 0, 0, PI, PI, PI, PI};
 	double q2_sign[NUM_IK_SOLUTIONS] = { -1, -1, -1, -1,  1,  1,  1,  1};
 	double q3_sign[NUM_IK_SOLUTIONS] = { 1, -1,  1, -1,  1, -1,  1, -1};
@@ -250,8 +248,6 @@ bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 // Returns the number of existing solutions
 int two_robots::calc_all_IK_solutions_1(Matrix T) {
 
-	clock_t begin = clock();
-
 	int countSolutions = 0;
 	for (int i = 0; i < NUM_IK_SOLUTIONS; i++) {
 		if (IKsolve_rob(T, 1, i)) {
@@ -260,8 +256,6 @@ int two_robots::calc_all_IK_solutions_1(Matrix T) {
 			countSolutions++;
 		}
 	}
-	clock_t end = clock();
-	IK_time += double(end - begin) / CLOCKS_PER_SEC;
 
 	return countSolutions;
 }
@@ -269,8 +263,6 @@ int two_robots::calc_all_IK_solutions_1(Matrix T) {
 // Computes all the IK solutions to 'Q_IK_solutions_2' matrix.
 // Returns the number of existing solutions
 int two_robots::calc_all_IK_solutions_2(Matrix T) {
-
-	clock_t begin = clock();
 
 	int countSolutions = 0;
 	for (int i = 0; i < NUM_IK_SOLUTIONS; i++) {
@@ -280,9 +272,6 @@ int two_robots::calc_all_IK_solutions_2(Matrix T) {
 			countSolutions++;
 		}
 	}
-
-	clock_t end = clock();
-	IK_time += double(end - begin) / CLOCKS_PER_SEC;
 
 	return countSolutions;
 }
@@ -368,8 +357,6 @@ bool two_robots::calc_specific_IK_solution_R1(Matrix T, Vector q1, int IKsol) {
 	// T - Trans. matrix for the end of the rod while its start is at the origin
 	// q - angles of robot 1.
 
-	clock_t begin = clock();
-
 	FKsolve_rob(q1, 1);
 	T2 = MatricesMult(get_FK_solution_T1(), T); // Returns the opposing required matrix of the rods tip at robot 2
 	T2 = MatricesMult(T2, {{-1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}); // Returns the REQUIRED matrix of the rods tip at robot 2
@@ -377,9 +364,6 @@ bool two_robots::calc_specific_IK_solution_R1(Matrix T, Vector q1, int IKsol) {
 	bool result = false;
 	if (IKsolve_rob(T2, 2, IKsol))
 		result = true;
-
-	clock_t end = clock();
-	IK_time += double(end - begin) / CLOCKS_PER_SEC;
 
 	return result;
 }
@@ -389,8 +373,6 @@ bool two_robots::calc_specific_IK_solution_R1(Matrix T, Vector q1, int IKsol) {
 bool two_robots::calc_specific_IK_solution_R2(Matrix T, Vector q2, int IKsol) {
 	// T - Trans. matrix for the end of the rod while its start is in the origin
 	// q - angles of robot 1.
-
-	clock_t begin = clock();
 
 	Matrix Tinv = T;
 	InvertMatrix(T, Tinv); // Invert matrix
@@ -402,9 +384,6 @@ bool two_robots::calc_specific_IK_solution_R2(Matrix T, Vector q2, int IKsol) {
 	bool result = false;
 	if (IKsolve_rob(T1, 1, IKsol))
 		result = true;
-
-	clock_t end = clock();
-	IK_time += double(end - begin) / CLOCKS_PER_SEC;
 
 	return result;
 }
