@@ -12,7 +12,7 @@ clear all
 clc
 
 %%
-D1 = load('benchmark_RRT_PCS_3poles_rangeB.txt'); 
+D1 = load('benchmark_RRT_PCS_3poles_rangeB_newNN.txt'); 
 
 %%
 D2 = load('benchmark_RRT_GD_3poles_rangeB.txt'); 

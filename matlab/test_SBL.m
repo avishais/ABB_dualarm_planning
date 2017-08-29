@@ -132,4 +132,4 @@ xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
 xlim([0 max(T2)]);
-title('LazyRRT');
+title('SBL');

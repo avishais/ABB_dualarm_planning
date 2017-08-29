@@ -91,6 +91,52 @@ bool StateValidityChecker::close_chain(const ob::State *state, int q1_active_ik_
 	return true;
 }
 
+bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, Vector &ik, int &active_chain, Vector ik_nn) {
+
+	ik = {-1, -1};
+	IK_counter++;
+	bool valid = true;
+	clock_t sT = clock();
+
+	if (!active_chain) {
+		if (!calc_specific_IK_solution_R1(Q, q1, ik_nn[0])) {
+			if (!calc_specific_IK_solution_R2(Q, q2, ik_nn[1]))
+				valid = false;
+			else {
+				active_chain = !active_chain;
+				q1 = get_IK_solution_q1();
+				ik[1] =  ik_nn[1];
+			}
+		}
+		else {
+			q2 = get_IK_solution_q2();
+			ik[0] =  ik_nn[0];
+		}
+	}
+	else {
+		if (!calc_specific_IK_solution_R2(Q, q2, ik_nn[0])) {
+			if (!calc_specific_IK_solution_R1(Q, q1, ik_nn[1]))
+				valid = false;
+			else {
+				active_chain = !active_chain;
+				q2 = get_IK_solution_q2();
+				ik[0] =  ik_nn[0];
+			}
+		}
+		else {
+			q1 = get_IK_solution_q1();
+			ik[1] =  ik_nn[1];
+		}
+	}
+
+	IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+	if (valid && withObs && collision_state(getPMatrix(), q1, q2))
+		valid = false;
+
+	return valid;
+}
+
 bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain, int ik_sol) {
 
 	bool valid = true;

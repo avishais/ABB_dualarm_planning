@@ -1,12 +1,16 @@
 /*
- * veification_class.cpp
+ * verification_class.cpp
  *
  *  Created on: Aug 1, 2017
- *      Author: avishai
+ *      Author: Avishai Sintov
  */
 
+#ifdef PCS
 #include "StateValidityCheckerPCS.h"
-//#include "StateValidityCheckerGD.h"
+#endif
+#ifdef GD
+#include "StateValidityCheckerGD.h"
+#endif
 
 //#include <stdio.h>
 #include <iostream>

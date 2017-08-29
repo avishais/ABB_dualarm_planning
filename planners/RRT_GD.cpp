@@ -179,6 +179,10 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         	retrieveStateVector(dstate, q);
         	updateStateVector(xstate, q);
         	dstate = xstate;
+
+			// Find a closer neighbor
+			si_->copyState(rmotion->state, dstate);
+			nmotion = nn_->nearest(rmotion);
         }
 
         // Check motion

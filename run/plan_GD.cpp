@@ -47,7 +47,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     {
         case PLANNER_BIRRT:
         {
-            return std::make_shared<og::RRTConnect>(si, maxStep);
+            return std::make_shared<og::CBiRRT>(si, maxStep);
             break;
         }
         case PLANNER_RRT:
@@ -70,6 +70,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::SBL>(si, maxStep);
             break;
         }
+        /*case PLANNER_RRTC:
+        {
+            return std::make_shared<og::RRTConnect>(si, maxStep);
+            break;
+        }*/
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -238,6 +243,9 @@ int main(int argn, char ** args) {
 		case 5 :
 			ptype = PLANNER_SBL;
 			break;
+		case 6 :
+			ptype = PLANNER_RRTC;
+			break;
 		default :
 			cout << "Error: Requested planner not defined.";
 			exit(1);
@@ -255,7 +263,7 @@ int main(int argn, char ** args) {
 		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
-		Plan.plan(c_start, c_goal, runtime, ptype);
+		Plan.plan(c_start, c_goal, runtime, ptype, 1);
 
 		Plan.vfc.verify_path();
 		break;
@@ -296,7 +304,7 @@ int main(int argn, char ** args) {
 
 		ofstream GD;
 		//GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_GD_3poles_rangeB.txt", ios::app);
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/test_LazyRRT_GD_3poles_rangeB.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/test_RRT_GD_3poles_rangeB_newNN.txt", ios::app);
 
 		for (int k = 0; k < 1000; k++) {
 

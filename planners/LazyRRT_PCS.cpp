@@ -213,13 +213,14 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 					ik[1] =  nmotion->ik_q2_active;
 				}
 			}
-
 			if (collision_state(getPMatrix(), q1, q2))
 				continue;
 
 			ik = identify_state_ik(q1, q2, ik);
 			updateStateVector(xstate, q1, q2);
 			dstate = xstate;
+
+
 		}
 		else { // check if can connect to the goal
 			ik = ik_goal;

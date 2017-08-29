@@ -62,15 +62,15 @@ namespace ompl
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
         */
 
-        /** \brief RRT-Connect (RRTConnect) */
-        class RRTConnect : public base::Planner, public StateValidityChecker  // Avishai
+        /** \brief RRT-Connect (CBiRRT) */
+        class CBiRRT : public base::Planner, public StateValidityChecker  // Avishai
         {
         public:
 
             /** \brief Constructor */
-            RRTConnect(const base::SpaceInformationPtr &si, double = 2);
+            CBiRRT(const base::SpaceInformationPtr &si, double = 2);
 
-            virtual ~RRTConnect();
+            virtual ~CBiRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 

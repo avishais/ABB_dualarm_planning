@@ -85,6 +85,7 @@ public:
 	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
 	bool IKproject(Vector &, Vector &, int, int);
 	bool IKproject(Vector &, Vector &, int);
+	bool IKproject(Vector &, Vector &, Vector &, int&, Vector);
 
 	/** Identify the IK solutions of a configuration using two passive chains */
 	Vector identify_state_ik(const ob::State *, Vector = {-1, -1});
