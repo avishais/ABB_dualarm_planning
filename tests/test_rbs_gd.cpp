@@ -49,7 +49,7 @@ int main() {
 			Matrix path;
 			path.push_back(q1);
 			path.push_back(q2);
-			svc.reconstructRBS(q1, q2, path, 1, 1);
+			svc.reconstructRBS(q1, q2, path, 0, 1, 1);
 
 			bool path_valid = vfc.verify_path(path);
 

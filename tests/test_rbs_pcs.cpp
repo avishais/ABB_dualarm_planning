@@ -26,7 +26,7 @@ int main() {
 	State q1(n), q2(n), q1a(n/2), q1b(n/2), q2a(n/2), q2b(n/2);
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/pcs_rbs_verification1.txt", ios::app);
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/pcs_rbs_verification_withObs.txt", ios::app);
 
 	int N = 1e5, i = 0;
 	while (i < N) {
@@ -52,7 +52,6 @@ int main() {
 		double rbs_time;
 		clock_t begin = clock();
 		if (ik1[0]==ik2[0]) {
-
 			vsuc = svc.checkMotionRBS(q1a, q1b, q2a, q2b, 0, ik1[0], 0, 0);
 			active_chain = 0;
 		}
@@ -61,7 +60,6 @@ int main() {
 			active_chain = 1;
 		}
 		rbs_time = double(clock() - begin) / CLOCKS_PER_SEC;
-
 
 		if (vsuc) {
 			//cout << "Found LC." << endl;

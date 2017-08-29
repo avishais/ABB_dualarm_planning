@@ -57,7 +57,7 @@ errorbar(rg,tg,tg_ste,'--k','linewidth',2);
 hold off
 ylabel('mean runtime [msec]');
 xlabel('max. local-connection distance');
-% legend('PCS','GD');
+legend('PCS','GD');
 % xlim([0 6]);
 xlim([min(rd) max(rd)]);
 
