@@ -26,7 +26,7 @@ int main() {
 	State q1(n), q2(n);
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/gd_rbs_verification.txt", ios::app);
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/gd_rbs_verification_withObs.txt", ios::app);
 
 	int N = 0.5e6, i = 0;
 	while (i < N) {

@@ -41,7 +41,7 @@
 
 #include "RRT_PCS.h"
 
-ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(si, "RRT"), StateValidityChecker(si)
+ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "RRT"), StateValidityChecker(si)
 {
 	specs_.approximateSolutions = true;
 	specs_.directed = true;
@@ -55,7 +55,7 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si) : base::Planner(s
 	Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange, "0.:1.:10000.");
 	Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
 
-	Range = 2;
+	Range = maxStep;
 }
 
 ompl::geometric::RRT::~RRT()

@@ -608,7 +608,7 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 		for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
 			path.push_back(mpath2[i]);
 
-		smoothPath(path);
+		//smoothPath(path);
 
 		retrieveStateVector(path[0]->state, q);
 		for (int j = 0; j < q.size(); j++) {
@@ -652,7 +652,7 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 		fp.close();
 		std::remove("./paths/temp.txt");
 
-		timeMinPath(path);
+		//timeMinPath(path);
 	}
 }
 
@@ -673,8 +673,8 @@ void ompl::geometric::RRTConnect::LogPerf2file() {
 	myfile << nodes_in_trees << endl; // 11
 	myfile << local_connection_time << endl;
 	myfile << local_connection_count << endl;
-	myfile << minPathtime << endl;
-	myfile << pathLength << endl;
+	//myfile << minPathtime << endl;
+	//myfile << pathLength << endl;
 
 	myfile.close();
 }

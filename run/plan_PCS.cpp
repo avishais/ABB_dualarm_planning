@@ -54,7 +54,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         }
         case PLANNER_RRT:
         {
-            return std::make_shared<og::RRT>(si);
+            return std::make_shared<og::RRT>(si, maxStep);
             break;
         }
         case PLANNER_LAZYRRT:
@@ -248,7 +248,7 @@ int main(int argn, char ** args) {
 
 	plan_C Plan;
 
-	int mode = 2;
+	int mode = 3;
 	switch (mode) {
 	case 1: {
 		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
@@ -296,12 +296,12 @@ int main(int argn, char ** args) {
 		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_PCS_3poles_rangeB.txt", ios::app);
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_PCS_3poles_rangeB.txt", ios::app);
 
-		int N = 2000;
+		int N = 1000;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 11; j++) {
-				double maxStep = 0.3 + 0.25*j;
+			for (int j = 0; j < 16; j++) {
+				double maxStep = 0.5 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
