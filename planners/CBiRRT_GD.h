@@ -224,7 +224,7 @@ namespace ompl
             double activeDistance(const Motion *a, const Motion *b);
 
             /** \brief Grow a tree towards a random state */
-            Motion* growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, int, int);
+            Motion* growTree(TreeData &tree, TreeGrowingInfo &, Motion *, Motion *, Motion *, int, int);
 
             /** \brief Computes the minimum distance between files !!! Do not use in actual planning - very inefficient !!! */
             double distanceBetweenTrees(TreeData &tree1, TreeData &tree2);

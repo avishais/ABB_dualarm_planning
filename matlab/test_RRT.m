@@ -15,7 +15,7 @@ clc
 D1 = load('benchmark_RRT_PCS_3poles_rangeB_newNN.txt'); 
 
 %%
-D2 = load('benchmark_RRT_GD_3poles_rangeB.txt'); 
+D2 = load('benchmark_RRT_GD_3poles_rangeB_newNN.txt'); 
 D2 = D2(D2(:,1) > 0.6,:);
 
 %%

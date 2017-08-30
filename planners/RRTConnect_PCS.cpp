@@ -32,41 +32,35 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Avishai Sintov */
+/* Author: Ioan Sucan */
 
-//#include "ompl/geometric/planners/rrt/CBiRRT.h"
+#include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-#include "CBiRRT_GD.h"
+#include "RRTConnect_PCS.h"
 
-// Debugging tool
-template <class T>
-void o(T a) {
-	cout << a << endl;
-}
-
-ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
+ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "RRTConnect"), StateValidityChecker(si)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
 
+	defaultSettings(); // Avishai
+
 	maxDistance_ = 0.0;
 
-	Planner::declareParam<double>("range", this, &CBiRRT::setRange, &CBiRRT::getRange, "0.:1.:10000.");
+	Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
 	connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 
-	defaultSettings();
-
-	Range = maxStep; // Maximum local connection distance
+	Range = maxStep;
 }
 
-ompl::geometric::CBiRRT::~CBiRRT()
+ompl::geometric::RRTConnect::~RRTConnect()
 {
 	freeMemory();
 }
 
-void ompl::geometric::CBiRRT::setup()
+void ompl::geometric::RRTConnect::setup()
 {
 	Planner::setup();
 	tools::SelfConfig sc(si_, getName());
@@ -76,11 +70,11 @@ void ompl::geometric::CBiRRT::setup()
 		tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
 	if (!tGoal_)
 		tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-	tStart_->setDistanceFunction(std::bind(&CBiRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
-	tGoal_->setDistanceFunction(std::bind(&CBiRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+	tStart_->setDistanceFunction(std::bind(&RRTConnect::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+	tGoal_->setDistanceFunction(std::bind(&RRTConnect::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void ompl::geometric::CBiRRT::freeMemory()
+void ompl::geometric::RRTConnect::freeMemory()
 {
 	std::vector<Motion*> motions;
 
@@ -107,7 +101,7 @@ void ompl::geometric::CBiRRT::freeMemory()
 	}
 }
 
-void ompl::geometric::CBiRRT::clear()
+void ompl::geometric::RRTConnect::clear()
 {
 	Planner::clear();
 	sampler_.reset();
@@ -119,122 +113,119 @@ void ompl::geometric::CBiRRT::clear()
 	connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
-double ompl::geometric::CBiRRT::distanceBetweenTrees(TreeData &tree1, TreeData &tree2) {
-
-	std::vector<Motion*> motions;
-	tree1->list(motions);
-
-	min_state1.resize(12);
-	min_state2.resize(12);
-
-	Motion *nmotion;
-	double minD = 1e10, curD;
-	for (unsigned int i = 0 ; i < motions.size() ; ++i)
-	{
-		nmotion = tree2->nearest(motions[i]);
-		curD = distanceFunction(nmotion, motions[i]);
-		if (curD < minD) {
-			minD = curD;
-			retrieveStateVector(motions[i]->state, min_state1);
-			retrieveStateVector(nmotion->state, min_state2);
-		}
-	}
-	return minD;
-}
-
-State ompl::geometric::CBiRRT::random_q() {
-	base::State *state = si_->allocState();
-	sampler_->sampleUniform(state);
-
-	State q(12);
-	retrieveStateVector(state, q);
-
-	return q;
-}
-
-ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, Motion *rmotion, int mode, int count_iterations)
-// tmotion - target
-// nmotion - nearest
-// mode = 1 -> extend, mode = 2 -> connect.
+ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion, int mode)
 {
-	State q(12);
+	/* find closest state in the tree */
+	Motion *nmotion = tree->nearest(rmotion);
 
-	bool reach = false;
-	growTree_reached = false;
+	/* assume we can reach the state we go towards */
+	bool reach = true;
 
-	//int count_iterations = 500;
-	while (count_iterations >= 0) {
-		count_iterations--;
+	/* find state to add */
+	base::State *dstate = rmotion->state;
+	double d = si_->distance(nmotion->state, rmotion->state);
+	if (d > maxDistance_)
+	{
+		si_->getStateSpace()->interpolate(nmotion->state, rmotion->state, maxDistance_ / d, tgi.xstate);
+		dstate = tgi.xstate;
+		reach = false;
+	}
 
-		// find state to add
-		base::State *dstate = tmotion->state;
-		double d = distanceFunction(nmotion, tmotion);
+	// If trying to connect to the other tree and not reached, then must project
+	if (!(mode == 2 && reach)) {
+		retrieveStateVector(dstate, q1, q2);
+		Matrix T = getQ();
 
-		if (d > maxDistance_)
-		{
-			si_->getStateSpace()->interpolate(nmotion->state, tmotion->state, maxDistance_ / d, tgi.xstate);
-			dstate = tgi.xstate;
-			reach = false;
-		}
-		else
-			reach = true;
+		ik = {-1, -1};
 
-		// If trying to reach a point that does not satisfy the closure constraint - needs to be projected
-		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
-
-			// Project dstate (which currently is not on the manifold)
-			if (!IKproject(dstate)) // Collision check is done inside the projection
-				return nmotion;
-
-			retrieveStateVector(dstate, q);
-			updateStateVector(tgi.xstate, q);
-			dstate = tgi.xstate;
-
-			// Find a closer neighbor
-			si_->copyState(rmotion->state, dstate);
-			nmotion = tree->nearest(rmotion);
-		}
-
-		// Check motion
+		IK_counter++;
 		clock_t sT = clock();
-		local_connection_count++;
-		//bool validMotion = checkMotion(nmotion->state, dstate);
-		bool validMotion = checkMotionRBS(nmotion->state, dstate);
-		//bool validMotion = checkMotionSew(nmotion->state, dstate);
-		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
-
-		if (validMotion)
-		{
-			// Update advanced motion
-			Motion *motion = new Motion(si_);
-			si_->copyState(motion->state, dstate);
-			motion->parent = nmotion;
-			motion->root = nmotion->root;
-			tgi.xmotion = motion;
-			tree->add(motion);
-
-			nmotion = motion;
-
-			if (reach) {
-				growTree_reached = true;
-				return nmotion;
+		// Project dstate (currently not on the manifold)
+		if (!active_chain) {
+			if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active)) {
+				if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active))
+					return nmotion;
+				active_chain = !active_chain;
+				q1 = get_IK_solution_q1();
+				ik[1] =  nmotion->ik_q2_active;
+			}
+			else {
+				q2 = get_IK_solution_q2();
+				ik[0] =  nmotion->ik_q1_active;
 			}
 		}
 		else {
-			tgi.xmotion = nmotion;
-			return nmotion;
+			if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active)) {
+				if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active))
+					return nmotion;
+				active_chain = !active_chain;
+				q2 = get_IK_solution_q2();
+				ik[0] =  nmotion->ik_q1_active;
+			}
+			else {
+				q1 = get_IK_solution_q1();
+				ik[1] =  nmotion->ik_q2_active;
+			}
 		}
+		IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		if (collision_state(getPMatrix(), q1, q2))
+			return nmotion;
+
+		updateStateVector(tgi.xstate, q1, q2);
+		dstate = tgi.xstate;
+
+		ik = identify_state_ik(dstate, ik);
 	}
-	return nmotion;
+	else { // Handle configurations that belong to the opposite tree - satisfy the closure constraint
+		ik[0] = rmotion->ik_q1_active;
+		ik[1] = rmotion->ik_q2_active;
+		if (nmotion->ik_q1_active==ik[0])
+			active_chain = 0;
+		else if (nmotion->ik_q2_active==ik[1])
+			active_chain = 1;
+		else
+			return nmotion;
+	}
+
+	// Local connection using the Recursive Bi-Section (RBS)
+	clock_t sT = clock();
+	local_connection_count++;
+	bool validMotion = false;
+	if (nmotion->ik_q1_active == ik[0])
+		validMotion = checkMotionRBS(nmotion->state, dstate, 0, nmotion->ik_q1_active);
+	if (!validMotion && nmotion->ik_q2_active == ik[1])
+		validMotion = checkMotionRBS(nmotion->state, dstate, 1, nmotion->ik_q2_active);
+	local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+	if (validMotion)
+	{
+		/* create a motion */
+		Motion *motion = new Motion(si_);
+		motion->ik_q1_active = ik[0];
+		motion->ik_q2_active = ik[1];
+		si_->copyState(motion->state, dstate);
+		motion->parent = nmotion;
+		motion->root = nmotion->root;
+		motion->a_chain = active_chain;
+		tgi.xmotion = motion;
+
+		tree->add(motion);
+		if (reach)
+			return REACHED;
+		else
+			return ADVANCED;
+	}
+	else
+		return TRAPPED;
 }
 
-ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
 {
 	initiate_log_parameters();
-	base::State *start_node = si_->allocState();
 	setRange(Range); // Maximum local connection distance *** will need to profile this value
 
-	State q(12);
+	base::State *start_node = si_->allocState();
+	Vector ik(2);
 
 	checkValidity();
 	startTime = clock();
@@ -248,16 +239,14 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 
 	while (const base::State *st = pis_.nextStart())
 	{
-		if (0) {
-			OMPL_ERROR("%s: Start state not feasible!", getName().c_str());
-			return base::PlannerStatus::INVALID_START;
-		}
+		ik = identify_state_ik(st);
 		Motion *motion = new Motion(si_);
 		si_->copyState(motion->state, st);
 		motion->root = motion->state;
+		motion->ik_q1_active = ik[0];
+		motion->ik_q2_active = ik[1];
+		motion->a_chain = 0;
 		tStart_->add(motion);
-
-		o("Start: "); printStateVector(st);
 
 		si_->copyState(start_node,st);
 	}
@@ -282,13 +271,10 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	TreeGrowingInfo tgi;
 	tgi.xstate = si_->allocState();
 
-	Motion   *tmotion   = new Motion(si_);
-	base::State *rstate = tmotion->state;
+	Motion   *rmotion   = new Motion(si_);
+	base::State *rstate = rmotion->state;
 	bool startTree      = true;
 	bool solved         = false;
-
-	Motion   *rmotion   = new Motion(si_);
-	rmotion->state = si_->allocState();
 
 	while (ptc == false)
 	{
@@ -302,18 +288,16 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			const base::State *st = tGoal_->size() == 0 ? pis_.nextGoal(ptc) : pis_.nextGoal();
 			if (st)
 			{
-				if (0) {
-					OMPL_ERROR("%s: Goal state not feasible!", getName().c_str());
-					printStateVector(st);
-					return base::PlannerStatus::INVALID_GOAL;
-				}
+				ik = identify_state_ik(st);
 				Motion *motion = new Motion(si_);
 				si_->copyState(motion->state, st);
 				motion->root = motion->state;
+				motion->ik_q1_active = ik[0];
+				motion->ik_q2_active = ik[1];
+				motion->a_chain = 0;
 				tGoal_->add(motion);
-				PlanDistance = si_->distance(start_node, st);
 
-				o("Goal: "); printStateVector(st);
+				PlanDistance = si_->distance(start_node, st);
 			}
 
 			if (tGoal_->size() == 0)
@@ -323,86 +307,81 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			}
 		}
 
-		//cout << "Trees size: " << tStart_->size() << ", " << tGoal_->size() << endl;
-		//cout << "Current trees distance: " << distanceBetweenTrees(tree, otherTree) << endl << endl;
-
-		//===============================================
-
-		Motion* reached_motion;
-		// sample random state
+		/* sample random state */
 		sampler_->sampleUniform(rstate);
 
-		// Grow tree
-		Motion *nmotion = tree->nearest(tmotion); // NN over the active distance
-		reached_motion = growTree(tree, tgi, nmotion, tmotion, rmotion, 1, 100);
+		GrowState gs = growTree(tree, tgi, rmotion, 1);
 
-		// remember which motion was just added
-		Motion *addedMotion = reached_motion;
+		if (gs != TRAPPED)
+		{
+			/* remember which motion was just added */
+			Motion *addedMotion = tgi.xmotion;
 
-		// Grow otherTree toward reached_motion in tree <-connect
-		tgi.xmotion = nullptr;
+			/* attempt to connect trees */
 
-		nmotion = otherTree->nearest(reached_motion); // NN over the active distance
-		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, rmotion, 2, 500);
+			/* if reached, it means we used rstate directly, no need to copy again */
+			if (gs != REACHED)
+				si_->copyState(rstate, tgi.xstate);
 
-		Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
-		Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
+			GrowState gsc = ADVANCED;
+			tgi.start = startTree;
+			while (gsc == ADVANCED)
+				gsc = growTree(otherTree, tgi, rmotion, 2);
 
-		// if we connected the trees in a valid way (start and goal pair is valid)
-		if (growTree_reached) {
+			Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
+			Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
 
-			// Report computation time
-			endTime = clock();
-			total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
-			cout << "Solved in " << total_runtime << "s." << endl;
-
-			// it must be the case that either the start tree or the goal tree has made some progress
-			// so one of the parents is not nullptr. We go one step 'back' to avoid having a duplicate state
-			// on the solution path
-			if (startMotion->parent)
-				startMotion = startMotion->parent;
-			else
-				goalMotion = goalMotion->parent;
-
-			connectionPoint_ = std::make_pair(startMotion->state, goalMotion->state);
-
-			// construct the solution path
-			Motion *solution = startMotion;
-			std::vector<Motion*> mpath1;
-			while (solution != nullptr)
+			/* if we connected the trees in a valid way (start and goal pair is valid)*/
+			if (gsc == REACHED && goal->isStartGoalPairValid(startMotion->root, goalMotion->root))
 			{
-				mpath1.push_back(solution);
-				solution = solution->parent;
+				total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
+				cout << "Solved in " << total_runtime << "s." << endl;
+
+				// it must be the case that either the start tree or the goal tree has made some progress
+				// so one of the parents is not nullptr. We go one step 'back' to avoid having a duplicate state
+				// on the solution path
+				if (startMotion->parent)
+					startMotion = startMotion->parent;
+				else
+					goalMotion = goalMotion->parent;
+
+				connectionPoint_ = std::make_pair(startMotion->state, goalMotion->state);
+
+				/* construct the solution path */
+				Motion *solution = startMotion;
+				std::vector<Motion*> mpath1;
+				while (solution != nullptr)
+				{
+					mpath1.push_back(solution);
+					solution = solution->parent;
+				}
+
+				solution = goalMotion;
+				std::vector<Motion*> mpath2;
+				while (solution != nullptr)
+				{
+					mpath2.push_back(solution);
+					solution = solution->parent;
+				}
+
+				cout << "Path from tree 1 size: " << mpath1.size() << ", path from tree 2 size: " << mpath2.size() << endl;
+				nodes_in_path = mpath1.size() + mpath2.size();
+				nodes_in_trees = tStart_->size() + tGoal_->size();
+
+				PathGeometric *path = new PathGeometric(si_);
+				path->getStates().reserve(mpath1.size() + mpath2.size());
+				for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
+					path->append(mpath1[i]->state);
+				for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
+					path->append(mpath2[i]->state);
+
+				save2file(mpath1, mpath2);
+
+				pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
+				solved = true;
+				break;
 			}
-
-			solution = goalMotion;
-			std::vector<Motion*> mpath2;
-			while (solution != nullptr)
-			{
-				mpath2.push_back(solution);
-				solution = solution->parent;
-			}
-
-			cout << "Path from tree 1 size: " << mpath1.size() << ", path from tree 2 size: " << mpath2.size() << endl;
-			nodes_in_path = mpath1.size() + mpath2.size();
-			nodes_in_trees = tStart_->size() + tGoal_->size();
-
-			PathGeometric *path = new PathGeometric(si_);
-			path->getStates().reserve(mpath1.size() + mpath2.size());
-			for (int i = mpath1.size() - 1 ; i >= 0 ; --i)
-				path->append(mpath1[i]->state);
-			for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
-				path->append(mpath2[i]->state);
-
-			save2file(mpath1, mpath2);
-			//check_path(mpath1, mpath2);
-
-			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
-			solved = true;
-			break;
 		}
-
-		//====================================================
 	}
 
 	if (!solved)
@@ -416,8 +395,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 
 	si_->freeState(tgi.xstate);
 	si_->freeState(rstate);
-	si_->freeState(rmotion->state);
-	delete tmotion;
 	delete rmotion;
 
 	OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
@@ -428,7 +405,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-void ompl::geometric::CBiRRT::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
 {
 	Planner::getPlannerData(data);
 
@@ -467,80 +444,7 @@ void ompl::geometric::CBiRRT::getPlannerData(base::PlannerData &data) const
 	data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
 
-bool ompl::geometric::CBiRRT::check_path(vector<Motion*> mpath1, vector<Motion*> mpath2) {
-
-	int j = 1;
-	bool validMotion = true;
-	for (int i = mpath1.size() - 2 ; i >= 0 ; --i) {
-
-		printStateVector(mpath1[i+1]->state);
-		printStateVector(mpath1[i]->state);
-
-		validMotion = checkMotionRBS(mpath1[i+1]->state, mpath1[i]->state);
-
-		cout << "Connection " << j << " and " << j+1;
-		if (validMotion)
-			cout << " succeeded.\n";
-		else {
-			validMotion = false;
-			cout << " failed.\n";
-		}
-
-		j++;
-	}
-
-	{
-		validMotion = checkMotionRBS(mpath1[0]->state, mpath2[0]->state);
-
-		cout << "Connection " << j << " and " << j+1;
-		if (validMotion)
-			cout << " succeeded.\n";
-		else {
-			validMotion = false;
-			cout << " failed.\n";
-		}
-		j++;
-	}
-
-	for (unsigned int i = 0 ; i < mpath2.size()-1 ; ++i) {
-		validMotion = checkMotionRBS(mpath2[i+1]->state, mpath2[i]->state);
-
-		cout << "Connection " << j << " and " << j+1;
-		if (validMotion)
-			cout << " succeeded.\n";
-		else {
-			validMotion = false;
-			cout << " failed.\n";
-		}
-
-		j++;
-	}
-
-	return validMotion;
-}
-
-void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
-
-	IK_counter = 0;
-	IK_time = 0;
-	local_connection_time = 0;
-	local_connection_count = 0;
-
-	Matrix M;
-	clock_t st = clock();
-	for (int i = 1; i < path.size(); i++) {
-		//IKproject(path[i]->state);
-
-		clock_t stLC = clock();
-		local_connection_count++;
-		checkMotionRBS(path[i-1]->state, path[i]->state);
-		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;
-	}
-	minPathtime = double(clock() - st) / CLOCKS_PER_SEC;
-
-}
-
-void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
+void ompl::geometric::RRTConnect::smoothPath(vector<Motion*> &path) {
 
 	int orgSize = path.size();
 	int s, c = 30;
@@ -552,7 +456,14 @@ void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 			i2 = rand() % path.size();
 		} while (abs(i1-i2) < 2);
 
-		if (checkMotionRBS(path[i1]->state, path[i2]->state))
+		bool valid = false;
+		if (path[i1]->ik_q1_active == path[i2]->ik_q1_active && path[i2]->ik_q1_active != -1)
+			valid =  checkMotionRBS(path[i1]->state, path[i2]->state, 0, path[i1]->ik_q1_active);
+		if (!valid && path[i1]->ik_q2_active == path[i2]->ik_q2_active && path[i2]->ik_q2_active != -1) {
+			valid =  checkMotionRBS(path[i1]->state, path[i2]->state, 1, path[i1]->ik_q2_active);
+		}
+
+		if (valid)
 			path.erase(path.begin()+min(i1,i2)+1, path.begin()+max(i1,i2));
 
 		if (path.size() == s)
@@ -566,41 +477,49 @@ void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 	nodes_in_path = path.size();
 }
 
-
-void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {
-
+void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {
 	cout << "Logging path to files..." << endl;
 
-	State q(12);
+	Vector q1(6), q2(6), ik(2);
+	int active_chain, ik_sol;
 
 	{ // Log only milestones
 
 		// Open a_path file
-		std::ofstream myfile;
-		myfile.open("./paths/path_milestones.txt");
+		std::ofstream myfile, ikfile;
+		myfile.open("../paths/path_milestones.txt");
+		ikfile.open("../paths/ik_path.txt");
 
 		myfile << mpath1.size() + mpath2.size() << endl;
 
+		Vector temp;
 		for (int i = mpath1.size() - 1 ; i >= 0 ; --i) {
-			retrieveStateVector(mpath1[i]->state, q);
-			for (int j = 0; j<12; j++) {
-				myfile << q[j] << " ";
+			retrieveStateVector(mpath1[i]->state, q1, q2);
+			ikfile << mpath1[i]->a_chain << " " << mpath1[i]->ik_q1_active << " " << mpath1[i]->ik_q2_active << endl;
+			for (int j = 0; j<6; j++) {
+				myfile << q1[j] << " ";
+			}
+			for (int j = 0; j<6; j++) {
+				myfile << q2[j] << " ";
 			}
 			myfile << endl;
 		}
 		for (unsigned int i = 0 ; i < mpath2.size() ; ++i) {
-			retrieveStateVector(mpath2[i]->state, q);
-			for (int j = 0; j<12; j++) {
-				myfile << q[j] << " ";
+			retrieveStateVector(mpath2[i]->state, q1, q2);
+			ikfile << mpath2[i]->a_chain << " " << mpath2[i]->ik_q1_active << " " << mpath2[i]->ik_q2_active << endl;
+			for (int j = 0; j < 6; j++) {
+				myfile << q1[j] << " ";
+			}
+			for (int j = 0; j < 6; j++) {
+				myfile << q2[j] << " ";
 			}
 			myfile << endl;
 		}
-
 		myfile.close();
+		ikfile.close();
 	}
 
 	{ // Reconstruct RBS
-
 		// Open a_path file
 		std::ofstream fp, myfile;
 		std::ifstream myfile1;
@@ -618,9 +537,12 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 		//smoothPath(path);
 
-		retrieveStateVector(path[0]->state, q);
-		for (int j = 0; j < q.size(); j++) {
-			myfile << q[j] << " ";
+		retrieveStateVector(path[0]->state, q1, q2);
+		for (int j = 0; j < 6; j++) {
+			myfile << q1[j] << " ";
+		}
+		for (int j = 0; j < 6; j++) {
+			myfile << q2[j] << " ";
 		}
 		myfile << endl;
 
@@ -629,7 +551,12 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 			Matrix M;
 			bool valid = false;
-			valid =  reconstructRBS(path[i-1]->state, path[i]->state, M);
+			if (path[i]->ik_q1_active == path[i-1]->ik_q1_active)
+				valid =  reconstructRBS(path[i-1]->state, path[i]->state, M, 0, path[i-1]->ik_q1_active);
+			if (!valid && path[i]->ik_q2_active == path[i-1]->ik_q2_active) {
+				M.clear();
+				valid =  reconstructRBS(path[i-1]->state, path[i]->state, M, 1, path[i-1]->ik_q2_active);
+			}
 
 			if (!valid) {
 				cout << "Error in reconstructing...\n";
@@ -662,9 +589,10 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 		//timeMinPath(path);
 	}
+
 }
 
-void ompl::geometric::CBiRRT::LogPerf2file() {
+void ompl::geometric::RRTConnect::LogPerf2file() {
 
 	std::ofstream myfile;
 	myfile.open("./paths/perf_log.txt");

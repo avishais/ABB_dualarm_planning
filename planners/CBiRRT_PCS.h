@@ -62,15 +62,15 @@ namespace ompl
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
         */
 
-        /** \brief RRT-Connect (RRTConnect) */
-        class RRTConnect : public base::Planner, public StateValidityChecker  // Avishai
+        /** \brief RRT-Connect (CBiRRT) */
+        class CBiRRT : public base::Planner, public StateValidityChecker  // Avishai
         {
         public:
 
             /** \brief Constructor */
-            RRTConnect(const base::SpaceInformationPtr &si, double = 2);
+            CBiRRT(const base::SpaceInformationPtr &si, double = 2);
 
-            virtual ~RRTConnect();
+            virtual ~CBiRRT();
 
             virtual void getPlannerData(base::PlannerData &data) const;
 
@@ -231,7 +231,7 @@ namespace ompl
             double activeDistance(const Motion *a, const Motion *b);
 
             /** \brief Grow a tree towards a random state */
-            Motion* growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, int, int);
+            Motion* growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, Motion *, int, int);
 
             /** \brief Computes the minimum distance between files !!! Do not use in actual planning - very inefficient !!! */
             double distanceBetweenTrees(TreeData &tree1, TreeData &tree2);

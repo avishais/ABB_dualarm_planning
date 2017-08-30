@@ -220,8 +220,8 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 			dstate = xstate;
 
 			// Find a closer neighbor
-			si_->copyState(rmotion->state, dstate);
-			nmotion = nn_->nearest(rmotion);
+			//si_->copyState(rmotion->state, dstate);
+			//nmotion = nn_->nearest(rmotion);
 		}
 		else  // check if can connect to the goal
 			ik = ik_goal;

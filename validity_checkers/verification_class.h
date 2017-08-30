@@ -8,7 +8,7 @@
 #ifdef PCS
 #include "StateValidityCheckerPCS.h"
 #endif
-#ifdef GD
+#ifdef PGD
 #include "StateValidityCheckerGD.h"
 #endif
 

@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan, Avishai Sintov */
 
-//#include "ompl/geometric/planners/rrt/RRTConnect.h"
+//#include "ompl/geometric/planners/rrt/CBiRRT.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
@@ -46,14 +46,14 @@ void o(T a) {
 	cout << a << endl;
 }
 
-ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "RRTConnect"), StateValidityChecker(si)
+ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
 
 	maxDistance_ = 0.0;
 
-	Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
+	Planner::declareParam<double>("range", this, &CBiRRT::setRange, &CBiRRT::getRange, "0.:1.:10000.");
 	connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 
 	defaultSettings(); // Avishai
@@ -61,12 +61,12 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, dou
 	Range = maxStep; // Maximum local connection distance *** will need to profile this value
 }
 
-ompl::geometric::RRTConnect::~RRTConnect()
+ompl::geometric::CBiRRT::~CBiRRT()
 {
 	freeMemory();
 }
 
-void ompl::geometric::RRTConnect::setup()
+void ompl::geometric::CBiRRT::setup()
 {
 	Planner::setup();
 	tools::SelfConfig sc(si_, getName());
@@ -76,11 +76,11 @@ void ompl::geometric::RRTConnect::setup()
 		tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
 	if (!tGoal_)
 		tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion*>(this));
-	tStart_->setDistanceFunction(std::bind(&RRTConnect::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
-	tGoal_->setDistanceFunction(std::bind(&RRTConnect::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+	tStart_->setDistanceFunction(std::bind(&CBiRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
+	tGoal_->setDistanceFunction(std::bind(&CBiRRT::distanceFunction, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void ompl::geometric::RRTConnect::freeMemory()
+void ompl::geometric::CBiRRT::freeMemory()
 {
 	std::vector<Motion*> motions;
 
@@ -107,7 +107,7 @@ void ompl::geometric::RRTConnect::freeMemory()
 	}
 }
 
-void ompl::geometric::RRTConnect::clear()
+void ompl::geometric::CBiRRT::clear()
 {
 	Planner::clear();
 	sampler_.reset();
@@ -119,7 +119,7 @@ void ompl::geometric::RRTConnect::clear()
 	connectionPoint_ = std::make_pair<base::State*, base::State*>(nullptr, nullptr);
 }
 
-double ompl::geometric::RRTConnect::activeDistance(const Motion *a, const Motion *b) {
+double ompl::geometric::CBiRRT::activeDistance(const Motion *a, const Motion *b) {
 
 	Vector qa(6), qa_dummy(6);
 	Vector qb(6), qb_dummy(6);
@@ -139,7 +139,7 @@ double ompl::geometric::RRTConnect::activeDistance(const Motion *a, const Motion
 	return sqrt(sum);
 }
 
-double ompl::geometric::RRTConnect::distanceBetweenTrees(TreeData &tree1, TreeData &tree2) {
+double ompl::geometric::CBiRRT::distanceBetweenTrees(TreeData &tree1, TreeData &tree2) {
 
 	std::vector<Motion*> motions;
 	tree1->list(motions);
@@ -157,7 +157,7 @@ double ompl::geometric::RRTConnect::distanceBetweenTrees(TreeData &tree1, TreeDa
 	return minD;
 }
 
-ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, int mode, int count_iterations)
+ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, Motion *rmotion, int mode, int count_iterations)
 // tmotion - target
 // nmotion - nearest
 // mode = 1 -> extend, mode = 2 -> connect.
@@ -231,6 +231,10 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 			dstate = tgi.xstate;
 
 			ik = identify_state_ik(dstate, ik);
+
+			// Find a closer neighbor
+			si_->copyState(rmotion->state, dstate);
+			nmotion = tree->nearest(rmotion);
 		}
 		else { // Handle configurations that belong to the opposite tree - satisfy the closure constraint
 			ik[0] = tmotion->ik_q1_active;
@@ -287,7 +291,7 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 	return nmotion;
 }
 
-ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::PlannerTerminationCondition &ptc)
+ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
 	initiate_log_parameters();
 	base::State *start_node = si_->allocState();
@@ -347,10 +351,13 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 	TreeGrowingInfo tgi;
 	tgi.xstate = si_->allocState();
 
-	Motion   *rmotion   = new Motion(si_);
-	base::State *rstate = rmotion->state;
+	Motion   *tmotion   = new Motion(si_);
+	base::State *rstate = tmotion->state;
 	bool startTree      = true;
 	bool solved         = false;
+
+	Motion   *rmotion   = new Motion(si_);
+	rmotion->state = si_->allocState();
 
 	while (ptc == false)
 	{
@@ -400,8 +407,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 		sampler_->sampleUniform(rstate);
 
 		// Grow tree
-		Motion *nmotion = tree->nearest(rmotion); // NN over the active distance
-		reached_motion = growTree(tree, tgi, nmotion, rmotion, 1, 100);
+		Motion *nmotion = tree->nearest(tmotion); // NN over the active distance
+		reached_motion = growTree(tree, tgi, nmotion, tmotion, rmotion, 1, 100);
 
 		// remember which motion was just added
 		Motion *addedMotion = reached_motion;
@@ -410,7 +417,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 		tgi.xmotion = nullptr;
 
 		nmotion = otherTree->nearest(reached_motion); // NN over the active distance
-		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, 2, 500);
+		reached_motion = growTree(otherTree, tgi, nmotion, reached_motion, rmotion, 2, 500);
 
 		Motion *startMotion = startTree ? tgi.xmotion : addedMotion;
 		Motion *goalMotion  = startTree ? addedMotion : tgi.xmotion;
@@ -481,6 +488,8 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
 	si_->freeState(tgi.xstate);
 	si_->freeState(rstate);
+	si_->freeState(rmotion->state);
+	delete tmotion;
 	delete rmotion;
 
 	OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
@@ -495,7 +504,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
-void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
+void ompl::geometric::CBiRRT::getPlannerData(base::PlannerData &data) const
 {
 	Planner::getPlannerData(data);
 
@@ -534,7 +543,7 @@ void ompl::geometric::RRTConnect::getPlannerData(base::PlannerData &data) const
 	data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
 
-void ompl::geometric::RRTConnect::timeMinPath(vector<Motion*> path) {
+void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 
 	IK_counter = 0;
 	IK_time = 0;
@@ -583,7 +592,7 @@ void ompl::geometric::RRTConnect::timeMinPath(vector<Motion*> path) {
 
 }
 
-void ompl::geometric::RRTConnect::smoothPath(vector<Motion*> &path) {
+void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 
 	int orgSize = path.size();
 	int s, c = 30;
@@ -616,7 +625,7 @@ void ompl::geometric::RRTConnect::smoothPath(vector<Motion*> &path) {
 	nodes_in_path = path.size();
 }
 
-void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {
+void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> mpath2) {
 
 	cout << "Logging path to files..." << endl;
 
@@ -732,7 +741,7 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 
 }
 
-void ompl::geometric::RRTConnect::LogPerf2file() {
+void ompl::geometric::CBiRRT::LogPerf2file() {
 
 	std::ofstream myfile;
 	myfile.open("./paths/perf_log.txt");
