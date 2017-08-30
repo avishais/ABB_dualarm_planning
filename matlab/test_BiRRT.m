@@ -12,10 +12,10 @@ clear all
 clc
 
 %%
-D1 = load('benchmark_BiRRT_PCS_3poles_rangeB.txt'); 
+D1 = load('benchmark_BiRRT_PCS_3poles_rangeB_newNN.txt'); 
 
 %%
-D2 = load('benchmark_BiRRT_GD_3poles_rangeB.txt'); 
+D2 = load('benchmark_BiRRT_GD_3poles_rangeB_newNN.txt'); 
 D2 = D2(D2(:,1) > 0.6,:);
 
 %%
@@ -133,4 +133,4 @@ xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
 xlim([0 max([T1 T2])]);
-title('RRT');
+title('CBiRRT');

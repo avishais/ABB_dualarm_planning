@@ -59,7 +59,7 @@ ylabel('mean runtime [msec]');
 xlabel('max. local-connection distance');
 legend('PCS','GD');
 % xlim([0 6]);
-xlim([min(rd) max(rd)]);
+xlim([min([rd; rg]) max([rd; rg])]);
 
 %% 
 D1 = D1(D1(:,1)==rd(id), 2:end);
@@ -132,5 +132,5 @@ hold off
 xlabel('maximum runtime [sec]');
 ylabel('failure rate [%]');
 legend('PCS','GD');
-xlim([0 max(T2)]);
+xlim([0 max([T1 T2])]);
 title('LazyRRT');

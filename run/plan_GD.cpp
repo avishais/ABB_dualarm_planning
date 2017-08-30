@@ -296,11 +296,11 @@ int main(int argn, char ** args) {
 
 		ofstream GD;
 		//GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_GD_3poles_rangeB.txt", ios::app);
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_GD_3poles_rangeB_newNN.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/test_RRT_GD_3poles_rangeB_goalBias.txt", ios::app);
 
-		for (int k = 0; k < 100; k++) {
-			for (int j = 0; j < 11; j++) {
-				double maxStep = 1 + 0.2*j;
+		for (int k = 0; k < 10; k++) {
+			for (int j = 0; j < 15; j++) {
+				double maxStep = 0.05 + 0.05*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

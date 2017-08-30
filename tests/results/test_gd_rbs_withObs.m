@@ -43,6 +43,7 @@ end
 td(1) = 0;
 
 figure(1)
+clf
 hist(Dd, 40);
 hold on
 [hAx,hLine1,hLine2] = plotyy(0,0,d, td*1000);
