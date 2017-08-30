@@ -269,7 +269,7 @@ int main(int argn, char ** args) {
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_BiRRT_PCS_3poles_minCpath.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
+		for (int k = 0; k < 250; k++) {
 			Plan.plan(c_start, c_goal, runtime, ptype, 0.8);
 
 			bool verf = Plan.vfc.verify_path();
@@ -296,12 +296,12 @@ int main(int argn, char ** args) {
 		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_BiRRT_PCS_3poles_rangeB_newNN.txt", ios::app);
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_PCS_3poles_rangeB_newNN.txt", ios::app);
 
 		int N = 100;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 16; j++) {
-				double maxStep = 0.5 + 0.2*j;
+			for (int j = 0; j < 6; j++) {
+				double maxStep = 1 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

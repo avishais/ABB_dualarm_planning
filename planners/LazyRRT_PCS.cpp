@@ -220,7 +220,9 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 			updateStateVector(xstate, q1, q2);
 			dstate = xstate;
 
-
+			// Find a closer neighbor
+			si_->copyState(rmotion->state, dstate);
+			nmotion = nn_->nearest(rmotion);
 		}
 		else { // check if can connect to the goal
 			ik = ik_goal;

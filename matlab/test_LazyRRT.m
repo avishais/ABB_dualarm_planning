@@ -12,11 +12,11 @@ clear all
 clc
 
 %%
-D1 = load('benchmark_LazyRRT_PCS_3poles_rangeB.txt'); 
+D1 = load('benchmark_LazyRRT_PCS_3poles_rangeB_newNN.txt'); 
 D1 = D1(D1(:,1)>0.5, :);
 
 %%
-D2 = load('benchmark_LazyRRT_GD_3poles_rangeB.txt'); 
+D2 = load('benchmark_LazyRRT_GD_3poles_rangeB_newNN.txt'); 
 
 %%
 % PCS

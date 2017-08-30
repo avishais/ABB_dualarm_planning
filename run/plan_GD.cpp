@@ -70,11 +70,6 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::SBL>(si, maxStep);
             break;
         }
-        /*case PLANNER_RRTC:
-        {
-            return std::make_shared<og::RRTConnect>(si, maxStep);
-            break;
-        }*/
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -243,9 +238,6 @@ int main(int argn, char ** args) {
 		case 5 :
 			ptype = PLANNER_SBL;
 			break;
-		case 6 :
-			ptype = PLANNER_RRTC;
-			break;
 		default :
 			cout << "Error: Requested planner not defined.";
 			exit(1);
@@ -304,11 +296,11 @@ int main(int argn, char ** args) {
 
 		ofstream GD;
 		//GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_RRT_GD_3poles_rangeB.txt", ios::app);
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_BiRRT_GD_3poles_rangeB_newNN.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_GD_3poles_rangeB_newNN.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			for (int j = 0; j < 16; j++) {
-				double maxStep = 0.5 + 0.2*j;
+			for (int j = 0; j < 11; j++) {
+				double maxStep = 1 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

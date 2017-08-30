@@ -38,8 +38,7 @@ enum plannerType
 	PLANNER_RRT,
 	PLANNER_LAZYRRT,
 	PLANNER_PRM,
-	PLANNER_SBL,
-	PLANNER_RRTC
+	PLANNER_SBL
 };
 
 bool isStateValid(const ob::State *state);
