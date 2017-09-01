@@ -189,10 +189,6 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 
 		// If trying to reach a point that does not satisfy the closure constraint - needs to be projected
 		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
-			retrieveStateVector(dstate, q1, q2);
-			Matrix T = getQ();
-
-			ik = {-1, -1};
 
 			// Project dstate (which currently is not on the manifold)
 			if (!IKproject(dstate)) // Collision check is done inside the projection

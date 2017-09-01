@@ -124,8 +124,8 @@ bool StateValidityChecker::IKproject(State &q, bool includeObs) {
 bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain, int ik_sol) {
 
 	bool valid = true;
-	//IK_counter++;
-	//clock_t sT = clock();
+	two_robots::IK_counter++;
+	clock_t sT = clock();
 
 	if (!active_chain) {
 		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
@@ -140,7 +140,7 @@ bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain, int
 			valid = false;
 	}
 
-	//IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+	two_robots::IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
 	return valid;
 }

@@ -191,8 +191,8 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			dstate = tgi.xstate;
 
 			// Find a closer neighbor
-			si_->copyState(rmotion->state, dstate);
-			nmotion = tree->nearest(rmotion);
+			//si_->copyState(rmotion->state, dstate);
+			//nmotion = tree->nearest(rmotion);
 		}
 
 		// Check motion

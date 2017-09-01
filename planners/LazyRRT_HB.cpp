@@ -39,7 +39,7 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include <cassert>
 
-#include "LazyRRT_PCS.h"
+#include "LazyRRT_HB.h"
 
 ompl::geometric::LazyRRT::LazyRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "LazyRRT"), StateValidityChecker(si)
 {
@@ -181,43 +181,13 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
 		// If not goal, then must project
 		if (!(gg && reach)) {
-			retrieveStateVector(dstate, q1, q2);
-			Matrix T = getQ();
-
-			ik = {-1, -1};
 
 			// Project dstate (currently not on the manifold)
-			if (!active_chain) {
-				if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active)) {
-					if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active))
-						continue;
-					active_chain = !active_chain;
-					q1 = get_IK_solution_q1();
-					ik[1] =  nmotion->ik_q2_active;
-				}
-				else {
-					q2 = get_IK_solution_q2();
-					ik[0] =  nmotion->ik_q1_active;
-				}
-			}
-			else {
-				if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active)) {
-					if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active))
-						continue;
-					active_chain = !active_chain;
-					q2 = get_IK_solution_q2();
-					ik[0] =  nmotion->ik_q1_active;
-				}
-				else {
-					q1 = get_IK_solution_q1();
-					ik[1] =  nmotion->ik_q2_active;
-				}
-			}
-			if (collision_state(getPMatrix(), q1, q2))
+			if (!IKproject(dstate)) // Collision check is done inside the projection
 				continue;
 
-			ik = identify_state_ik(q1, q2, ik);
-			updateStateVector(xstate, q1, q2);
+			ik = identify_state_ik(q1, q2);
+			si_->copyState(xstate, dstate);
 			dstate = xstate;
 
 			// Find a closer neighbor
@@ -471,8 +441,8 @@ void ompl::geometric::LazyRRT::LogPerf2file() {
 	myfile << final_solved << endl;
 	myfile << PlanDistance << endl; // Distance between nodes 1
 	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << get_IK_counter() << endl; // How many IK checks? 5
-	myfile << get_IK_time() << endl; // IK computation time 6
+	myfile << two_robots::get_IK_counter() << endl; // How many IK checks? 5
+	myfile << two_robots::get_IK_time() << endl; // IK computation time 6
 	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
 	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
 	myfile << get_isValid_counter() << endl; // How many nodes checked 9

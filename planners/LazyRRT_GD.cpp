@@ -180,8 +180,8 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
         	dstate = xstate;
 
 			// Find a closer neighbor
-			si_->copyState(rmotion->state, dstate);
-			nmotion = nn_->nearest(rmotion);
+			//si_->copyState(rmotion->state, dstate);
+			//nmotion = nn_->nearest(rmotion);
         }
 
         /* create a motion */

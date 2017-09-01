@@ -233,8 +233,8 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			ik = identify_state_ik(dstate, ik);
 
 			// Find a closer neighbor
-			si_->copyState(rmotion->state, dstate);
-			nmotion = tree->nearest(rmotion);
+			//si_->copyState(rmotion->state, dstate);
+			//nmotion = tree->nearest(rmotion);
 		}
 		else { // Handle configurations that belong to the opposite tree - satisfy the closure constraint
 			ik[0] = tmotion->ik_q1_active;
