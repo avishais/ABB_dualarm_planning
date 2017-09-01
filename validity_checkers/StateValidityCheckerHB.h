@@ -36,30 +36,40 @@ public:
 		kdl(ROBOTS_DISTANCE, ROD_LENGTH),
 		two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH),
 		collisionDetection(ROBOTS_DISTANCE,0,0,0)
-			{q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
+			{
+		q_prev.resize(12);
+		q_temp.resize(6);
+		setQ();
+		setP();
+			}; //Constructor // Avishai
 
 	StateValidityChecker() :
 		kdl(ROBOTS_DISTANCE, ROD_LENGTH),
 		two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH),
 		collisionDetection(ROBOTS_DISTANCE,0,0,0)
-			{q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
+			{
+		q_prev.resize(12);
+		q_temp.resize(6);
+		setQ();
+		setP();
+			}; //Constructor // Avishai
 
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
 
 	/** Validity check for a vector<double> type  */
-	bool isValidRBS(State&);
+	bool isValidRBS(State&, State&, int, int);
 
 	/** Serial local connection check  */
 	bool checkMotion(const ob::State *, const ob::State *);
 
 	/** Recursive Bi-Section local connection check  */
-	bool checkMotionRBS(const ob::State *, const ob::State *);
-	bool checkMotionRBS(State, State, int, int);
+	bool checkMotionRBS(const ob::State *, const ob::State *, int, int);
+	bool checkMotionRBS(State, State, State, State, int, int, int, int);
 
 	/** Reconstruct a local connection using RBS for post-processing  */
-	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &);
-	bool reconstructRBS(State, State, Matrix &, int, int, int);
+	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &, int, int);
+	bool reconstructRBS(State, State, State, State, int, int, Matrix &, int, int, int);
 
 	/** Sewing local connection check */
 	bool isValidSew(State&);
@@ -71,11 +81,15 @@ public:
 
 	/** Retrieve state from ob::State to vector<double> */
 	void retrieveStateVector(const ob::State *, State &);
-	void retrieveStateVector(const ob::State *, Vector &, Vector &);
+	void retrieveStateVector(const ob::State *, State &, State &);
 
 	/** Update state to ob::State from vector<double> */
 	void updateStateVector(const ob::State *, State);
-	void updateStateVector(const ob::State *, Vector, Vector);
+	void updateStateVector(const ob::State *, State, State);
+
+	/** Identify the IK solutions of a configuration using two passive chains */
+	State identify_state_ik(const ob::State *, State = {-1, -1});
+	State identify_state_ik(State, State, State = {-1, -1});
 
 	/** Print ob::State ro console */
 	void printStateVector(const ob::State *state);
@@ -87,6 +101,12 @@ public:
 	double normDistance(State, State);
 	double stateDistance(const ob::State*, const ob::State*);
 
+	/** Norm distance of 2 vectors while each is separated */
+	double normDistanceDuo(State, State, State, State);
+
+	/** Return mid-point of two vectors for the RBS */
+	void midpoint(State, State, State, State, State &, State&);
+
 	/** Max distance between two vectors */
 	double maxDistance(State, State);
 	double MaxAngleDistance(State, State);
@@ -94,12 +114,14 @@ public:
 	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
 	bool IKproject(const ob::State *, bool = true);
 	bool IKproject(State &, bool = true);
+	bool IKproject(State &, State &, int, int);
 
 	/** Sample a random configuration */
 	State sample_q();
 
 	/** Join the two robots joint vectors */
 	void Join_States(State&, State, State);
+	State join_Vectors(State, State);
 
 	/** Decouple the two robots joint vectors */
 	void seperate_Vector(State, State &, State &);
@@ -173,6 +195,7 @@ private:
 	ob::SpaceInformation    *mysi_;
 	int valid_solution_index;
 	State q_prev;
+	State q_temp;
 
 	double L = ROD_LENGTH;
 	Matrix Q;

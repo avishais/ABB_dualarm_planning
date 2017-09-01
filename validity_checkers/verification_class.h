@@ -11,6 +11,9 @@
 #ifdef PGD
 #include "StateValidityCheckerGD.h"
 #endif
+#ifdef HB
+#include "StateValidityCheckerHB.h"
+#endif
 
 //#include <stdio.h>
 #include <iostream>
@@ -25,12 +28,18 @@ class verification_class : public StateValidityChecker
 public:
 	verification_class() {
 		cout << "Initiated verification module." << endl;
-		continuity_tol = get_RBS_tol() * 1.1;;
+		continuity_tol = get_RBS_tol() * 1.1;
 
+		#ifdef HB
+		two_robots::initMatrix(Tsd, 4, 4);
+		State Pr = two_robots::get_robots_properties();
+		#else
 		initMatrix(Tsd, 4, 4);
+		State Pr = get_robots_properties();
+		#endif
+
 		Tsd = {{1, 0, 0, r2x-r1x}, {0, 1, 0, r2y-r1y}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
-		State Pr = get_robots_properties();
 		b = Pr[0]; l1 = Pr[1]; l2 = Pr[2]; l3a = Pr[3]; l3b = Pr[4]; l4 = Pr[5]; l5 = Pr[6]; lee = Pr[7];
 	}
 
