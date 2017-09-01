@@ -20,7 +20,7 @@ void StateValidityChecker::defaultSettings()
 		OMPL_ERROR("No state space for motion validator");
 }
 
-void StateValidityChecker::retrieveStateVector(const ob::State *state, Vector &q1, Vector &q2) {
+void StateValidityChecker::retrieveStateVector(const ob::State *state, State &q1, State &q2) {
 	// cast the abstract state type to the type we expect
 	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
 
@@ -44,7 +44,7 @@ void StateValidityChecker::printStateVector(const ob::State *state) {
 	// cast the abstract state type to the type we expect
 	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
 
-	Vector q1(6), q2(6);
+	State q1(6), q2(6);
 
 	for (unsigned i = 0; i < 6; i++) {
 		q1[i] = Q->values[i]; // Set state of robot1
@@ -59,7 +59,7 @@ void StateValidityChecker::printStateVector(const ob::State *state) {
 bool StateValidityChecker::close_chain(const ob::State *state, int q1_active_ik_sol) {
 	// c is a 14 dimensional vector composed of [q1 q2 ik]
 
-	Vector q1(6), q2(6), ik(2), q1_temp;
+	State q1(6), q2(6), ik(2), q1_temp;
 	retrieveStateVector(state, q1, q2);
 
 	FKsolve_rob(q1, 1);
@@ -91,7 +91,7 @@ bool StateValidityChecker::close_chain(const ob::State *state, int q1_active_ik_
 	return true;
 }
 
-bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, Vector &ik, int &active_chain, Vector ik_nn) {
+bool StateValidityChecker::IKproject(State &q1, State &q2, State &ik, int &active_chain, State ik_nn) {
 
 	ik = {-1, -1};
 	IK_counter++;
@@ -137,7 +137,7 @@ bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, Vector &ik, int &ac
 	return valid;
 }
 
-bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain, int ik_sol) {
+bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain, int ik_sol) {
 
 	bool valid = true;
 	IK_counter++;
@@ -163,7 +163,7 @@ bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain, i
 }
 
 
-bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain) {
+bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain) {
 
 	// Try to project to all IK solutions
 	int i;
@@ -183,7 +183,7 @@ bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain) {
 			else
 				continue;
 		}
-		Vector ik = identify_state_ik(q1, q2);
+		State ik = identify_state_ik(q1, q2);
 		if (ik[0]==-1 || ik[1]==-1)
 			continue;
 	}
@@ -196,7 +196,7 @@ bool StateValidityChecker::IKproject(Vector &q1, Vector &q2, int active_chain) {
 
 bool StateValidityChecker::sample_q(ob::State *st) {
 
-	Vector q(12), q1(6), q2(6), ik(2);
+	State q(12), q1(6), q2(6), ik(2);
 
 	while (1) {
 		// Random active chain
@@ -224,9 +224,9 @@ bool StateValidityChecker::sample_q(ob::State *st) {
 
 }
 
-Vector StateValidityChecker::sample_q() {
+State StateValidityChecker::sample_q() {
 
-	Vector q(12), q1(6), q2(6), ik(2);
+	State q(12), q1(6), q2(6), ik(2);
 
 	while (1) {
 		// Random active chain
@@ -252,10 +252,10 @@ Vector StateValidityChecker::sample_q() {
 	return q;
 }
 
-Vector StateValidityChecker::identify_state_ik(const ob::State *state, Vector ik) {
+State StateValidityChecker::identify_state_ik(const ob::State *state, State ik) {
 
 	clock_t sT = clock();
-	Vector q1(6), q2(6), q_temp(6);
+	State q1(6), q2(6), q_temp(6);
 	retrieveStateVector(state, q1, q2);
 
 	ik = identify_state_ik(q1, q2, ik);
@@ -266,7 +266,7 @@ Vector StateValidityChecker::identify_state_ik(const ob::State *state, Vector ik
 	return ik;
 }
 
-Vector StateValidityChecker::identify_state_ik(Vector q1, Vector q2, Vector ik) {
+State StateValidityChecker::identify_state_ik(State q1, State q2, State ik) {
 
 	if (ik[0] == -1) { // Compute only if the ik index for the active chain 0 is unknown
 		// q1 is the active chain
@@ -324,7 +324,7 @@ bool StateValidityChecker::isValid(const ob::State *state) {
 
 	// q1 is the active chain
 	if (calc_specific_IK_solution_R1(Q, q1, ik[0])) {
-		Vector q_IK = get_IK_solution_q2();
+		State q_IK = get_IK_solution_q2();
 		if (normDistance(q2, q_IK) > 0.5e-1)
 			return false;
 		if (withObs && collision_state(P, q1, q_IK))
@@ -335,14 +335,14 @@ bool StateValidityChecker::isValid(const ob::State *state) {
 
 	// q2 is the active chain
 	if (calc_specific_IK_solution_R2(Q, q2, ik[1])) {
-		Vector q_IK = get_IK_solution_q1();
+		State q_IK = get_IK_solution_q1();
 		if (normDistance(q1, q_IK) > 0.12)
 			return false;
 		if (withObs && collision_state(P, q_IK, q2))
 			return false;
 	}
 	else {
-		Vector q_IK = get_IK_solution_q1();
+		State q_IK = get_IK_solution_q1();
 		printVector(q_IK);
 		return false;
 	}
@@ -361,7 +361,7 @@ bool StateValidityChecker::isValid(const ob::State *state, int active_chain, int
 	switch (active_chain) {
 	case 0:
 		if (calc_specific_IK_solution_R1(Q, q1, IK_sol)) {
-			Vector q_IK = get_IK_solution_q2();
+			State q_IK = get_IK_solution_q2();
 			if (!withObs || !collision_state(P, q1, q_IK))
 				return true;
 		}
@@ -370,7 +370,7 @@ bool StateValidityChecker::isValid(const ob::State *state, int active_chain, int
 		break;
 	case 1:
 		if (calc_specific_IK_solution_R2(Q, q2, IK_sol)) {
-			Vector q_IK = get_IK_solution_q1();
+			State q_IK = get_IK_solution_q1();
 			if (!withObs || !collision_state(P, q_IK, q2))
 				return true;
 		}
@@ -425,7 +425,7 @@ bool StateValidityChecker::checkMotion(const ob::State *s1, const ob::State *s2,
 	return result;
 }
 
-double StateValidityChecker::normDistance(Vector a1, Vector a2) {
+double StateValidityChecker::normDistance(State a1, State a2) {
 	double sum = 0;
 	for (int i=0; i < a1.size(); i++)
 		sum += pow(a1[i]-a2[i], 2);
@@ -433,7 +433,7 @@ double StateValidityChecker::normDistance(Vector a1, Vector a2) {
 }
 
 double StateValidityChecker::stateDistance(const ob::State * s1, const ob::State * s2) {
-	Vector qa1(6), qa2(6), qb1(6), qb2(6);
+	State qa1(6), qa2(6), qb1(6), qb2(6);
 	retrieveStateVector(s1, qa1, qa2);
 	retrieveStateVector(s2, qb1, qb2);
 
@@ -446,7 +446,7 @@ double StateValidityChecker::stateDistance(const ob::State * s1, const ob::State
 // ------------------------------------ RBS -------------------------------------------
 
 // Validates a state by computing the passive chain based on a specific IK solution (input) and checking collision
-bool StateValidityChecker::isValidRBS(Vector &q1, Vector &q2, int active_chain, int IK_sol) {
+bool StateValidityChecker::isValidRBS(State &q1, State &q2, int active_chain, int IK_sol) {
 
 	isValid_counter++;
 
@@ -466,7 +466,7 @@ bool StateValidityChecker::checkMotionRBS(const ob::State *s1, const ob::State *
 	// We assume motion starts and ends in a valid configuration - due to projection
 	bool result = true;
 
-	Vector qa1(6), qa2(6), qb1(6), qb2(6);
+	State qa1(6), qa2(6), qb1(6), qb2(6);
 	retrieveStateVector(s1, qa1, qa2);
 	retrieveStateVector(s2, qb1, qb2);
 
@@ -477,9 +477,9 @@ bool StateValidityChecker::checkMotionRBS(const ob::State *s1, const ob::State *
 
 
 // Implements local-connection using Recursive Bi-Section Technique (Hauser)
-bool StateValidityChecker::checkMotionRBS(Vector qa1, Vector qa2, Vector qb1, Vector qb2, int active_chain, int ik_sol, int recursion_depth, int non_decrease_count) {
+bool StateValidityChecker::checkMotionRBS(State qa1, State qa2, State qb1, State qb2, int active_chain, int ik_sol, int recursion_depth, int non_decrease_count) {
 
-	Vector q1(6), q2(6);
+	State q1(6), q2(6);
 
 	// Check if reached the required resolution
 	double d = normDistanceDuo(qa1, qa2, qb1, qb2);
@@ -507,14 +507,14 @@ bool StateValidityChecker::checkMotionRBS(Vector qa1, Vector qa2, Vector qb1, Ve
 		return false;
 }
 
-double StateValidityChecker::normDistanceDuo(Vector qa1, Vector qa2, Vector qb1, Vector qb2) {
+double StateValidityChecker::normDistanceDuo(State qa1, State qa2, State qb1, State qb2) {
 	double sum = 0;
 	for (int i=0; i < qa1.size(); i++)
 		sum += pow(qa1[i]-qb1[i], 2) + pow(qa2[i]-qb2[i], 2);
 	return sqrt(sum);
 }
 
-void StateValidityChecker::midpoint(Vector qa1, Vector qa2, Vector qb1, Vector qb2, Vector &q1, Vector &q2) {
+void StateValidityChecker::midpoint(State qa1, State qa2, State qb1, State qb2, State &q1, State &q2) {
 
 	for (int i = 0; i < 6; i++) {
 		q1[i] = (qa1[i]+qb1[i])/2;
@@ -527,7 +527,7 @@ void StateValidityChecker::midpoint(Vector qa1, Vector qa2, Vector qb1, Vector q
 // Reconstruct local connection with the Recursive Bi-Section algorithm (Hauser)
 bool StateValidityChecker::reconstructRBS(const ob::State *s1, const ob::State *s2, Matrix &Confs, int active_chain, int ik_sol)
 {
-	Vector qa1(6), qa2(6), qb1(6), qb2(6);
+	State qa1(6), qa2(6), qb1(6), qb2(6);
 	retrieveStateVector(s1, qa1, qa2);
 	retrieveStateVector(s2, qb1, qb2);
 
@@ -537,11 +537,11 @@ bool StateValidityChecker::reconstructRBS(const ob::State *s1, const ob::State *
 	return reconstructRBS(qa1, qa2, qb1, qb2, active_chain, ik_sol, Confs, 0, 1, 1);
 }
 
-bool StateValidityChecker::reconstructRBS(Vector qa1, Vector qa2, Vector qb1, Vector qb2, int active_chain, int ik_sol, Matrix &M, int iteration, int last_index, int firstORsecond) {
+bool StateValidityChecker::reconstructRBS(State qa1, State qa2, State qb1, State qb2, int active_chain, int ik_sol, Matrix &M, int iteration, int last_index, int firstORsecond) {
 	// firstORsecond - tells if the iteration is from the first or second call for the recursion (in the last iteration).
 	// last_index - the last index that was added to M.
 
-	Vector q1(6), q2(6);
+	State q1(6), q2(6);
 	iteration++;
 
 	// Check if reached the required resolution
@@ -576,9 +576,9 @@ bool StateValidityChecker::reconstructRBS(Vector qa1, Vector qa2, Vector qb1, Ve
 
 // ----------------------------------------------------------------------------------
 
-Vector StateValidityChecker::join_Vectors(Vector q1, Vector q2) {
+State StateValidityChecker::join_Vectors(State q1, State q2) {
 
-	Vector q(q1.size()+q2.size());
+	State q(q1.size()+q2.size());
 
 	for (int i = 0; i < q1.size(); i++) {
 		q[i] = q1[i];
@@ -588,7 +588,7 @@ Vector StateValidityChecker::join_Vectors(Vector q1, Vector q2) {
 	return q;
 }
 
-void StateValidityChecker::seperate_Vector(Vector q, Vector &q1, Vector &q2) {
+void StateValidityChecker::seperate_Vector(State q, State &q1, State &q2) {
 
 	for (int i = 0; i < q.size()/2; i++) {
 		q1[i] = q[i];
@@ -598,7 +598,7 @@ void StateValidityChecker::seperate_Vector(Vector q, Vector &q1, Vector &q2) {
 
 void StateValidityChecker::log_q(ob::State *s) {
 
-	Vector q1(6), q2(6);
+	State q1(6), q2(6);
 	retrieveStateVector(s, q1, q2);
 
 	// Open a_path file

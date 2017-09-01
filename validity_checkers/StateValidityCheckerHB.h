@@ -15,6 +15,7 @@
 #include "ompl/base/State.h"
 #include <ompl/config.h>
 
+#include "kdl_class.h"
 #include "apc_class.h"
 #include "collisionDetection.h"
 
@@ -26,79 +27,82 @@
 namespace ob = ompl::base;
 using namespace std;
 
-class StateValidityChecker : public two_robots, public collisionDetection
+class StateValidityChecker : public collisionDetection, public kdl, public two_robots
 {
 public:
 	/** Constructors */
-	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
-	StateValidityChecker() : two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
+	StateValidityChecker(const ob::SpaceInformationPtr &si) :
+		mysi_(si.get()),
+		kdl(ROBOTS_DISTANCE, ROD_LENGTH),
+		two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH),
+		collisionDetection(ROBOTS_DISTANCE,0,0,0)
+			{q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
+
+	StateValidityChecker() :
+		kdl(ROBOTS_DISTANCE, ROD_LENGTH),
+		two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH),
+		collisionDetection(ROBOTS_DISTANCE,0,0,0)
+			{q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
 
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
-	bool isValid(const ob::State *, int, int);
 
 	/** Validity check for a vector<double> type  */
-	bool isValidRBS(State&, State&, int, int);
+	bool isValidRBS(State&);
 
 	/** Serial local connection check  */
-	bool checkMotion(const ob::State *, const ob::State *, int, int);
+	bool checkMotion(const ob::State *, const ob::State *);
 
 	/** Recursive Bi-Section local connection check  */
-	bool checkMotionRBS(const ob::State *, const ob::State *, int, int);
-	bool checkMotionRBS(State, State, State, State, int, int, int, int);
+	bool checkMotionRBS(const ob::State *, const ob::State *);
+	bool checkMotionRBS(State, State, int, int);
 
 	/** Reconstruct a local connection using RBS for post-processing  */
-	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &, int, int);
-	bool reconstructRBS(State, State, State, State, int, int, Matrix &, int, int, int);
+	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &);
+	bool reconstructRBS(State, State, Matrix &, int, int, int);
 
-	/** Norm distance of 2 vectors while each is separated */
-	double normDistanceDuo(State, State, State, State);
+	/** Sewing local connection check */
+	bool isValidSew(State&);
+	bool checkMotionSew(const ob::State *, const ob::State *);
 
-	/** Return mid-point of two vectors for the RBS */
-	void midpoint(State, State, State, State, State &, State&);
+	/** Reconstruct a local connection using Sewing strategy for post-processing  */
+	bool reconstructSew(const ob::State *, const ob::State *, Matrix &);
+	bool reconstructSew(State, State, Matrix &);
 
 	/** Retrieve state from ob::State to vector<double> */
-	void retrieveStateVector(const ob::State *, State &, State &);
+	void retrieveStateVector(const ob::State *, State &);
+	void retrieveStateVector(const ob::State *, Vector &, Vector &);
 
 	/** Update state to ob::State from vector<double> */
-	void updateStateVector(const ob::State *, State, State);
+	void updateStateVector(const ob::State *, State);
+	void updateStateVector(const ob::State *, Vector, Vector);
 
-	/** Print ob::State to console */
-	void printStateVector(const ob::State *);
+	/** Print ob::State ro console */
+	void printStateVector(const ob::State *state);
 
 	/** Set default OMPL setting */
 	void defaultSettings();
 
 	/** Calculate norm distance between two vectors */
 	double normDistance(State, State);
+	double stateDistance(const ob::State*, const ob::State*);
 
-	/** Calculate norm distance between two ob::State's */
-	double stateDistance(const ob::State *, const ob::State *);
+	/** Max distance between two vectors */
+	double maxDistance(State, State);
+	double MaxAngleDistance(State, State);
 
-	/** Close chain (project) */
-	bool close_chain(const ob::State *, int);
+	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
+	bool IKproject(const ob::State *, bool = true);
+	bool IKproject(State &, bool = true);
 
 	/** Sample a random configuration */
 	State sample_q();
-	bool sample_q(ob::State *st);
-
-	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
-	bool IKproject(State &, State &, int, int);
-	bool IKproject(State &, State &, int);
-	bool IKproject(State &, State &, State &, int&, State);
-
-	/** Identify the IK solutions of a configuration using two passive chains */
-	State identify_state_ik(const ob::State *, State = {-1, -1});
-	State identify_state_ik(State, State, State = {-1, -1});
 
 	/** Join the two robots joint vectors */
-	State join_Vectors(State, State);
+	void Join_States(State&, State, State);
 
 	/** Decouple the two robots joint vectors */
 	void seperate_Vector(State, State &, State &);
-
-	/** Log configuration to path file */
-	void log_q(ob::State *);
 
 	int get_valid_solution_index() {
 		return valid_solution_index;
@@ -150,24 +154,35 @@ public:
 		return iden;
 	}
 
-	double get_RBS_tol(){
+	int get_n() {
+		return n;
+	}
+	double get_RBS_tol() {
 		return RBS_tol;
 	}
+
+	void set_q_prev(State q) {
+		for (int i = 0; i < q.size(); i++)
+			q_prev[i] = q[i];
+	}
+
+	void log_q(State q, bool New);
+
 private:
 	ob::StateSpace *stateSpace_;
 	ob::SpaceInformation    *mysi_;
-	State q_temp;
 	int valid_solution_index;
+	State q_prev;
 
 	double L = ROD_LENGTH;
 	Matrix Q;
 	Matrix P;
 
+	double dq = 0.05; // Serial local connection resolution
 	bool withObs = true; // Include obstacles?
 	double RBS_tol = 0.05; // RBS local connection resolution
 	int RBS_max_depth = 150; // Maximum RBS recursion depth
-
-
+	int n = 12; // Dimension of system
 };
 
 

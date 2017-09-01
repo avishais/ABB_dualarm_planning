@@ -123,8 +123,8 @@ void ompl::geometric::RRTConnect::clear()
 
 double ompl::geometric::RRTConnect::activeDistance(const Motion *a, const Motion *b) {
 
-	Vector qa(6), qa_dummy(6);
-	Vector qb(6), qb_dummy(6);
+	State qa(6), qa_dummy(6);
+	State qb(6), qb_dummy(6);
 
 	if (!active_chain) {
 		retrieveStateVector(a->state, qa, qa_dummy);
@@ -166,7 +166,7 @@ ompl::geometric::RRTConnect::Motion* ompl::geometric::RRTConnect::growTree(TreeD
 {
 	grow_calls++;
 
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 
 	// Choose active chain
 	active_chain = rand() % 2; // 0 - (q1,a) is the active chain, 1 - (q2,a) is the active chain
@@ -306,7 +306,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 	base::State *start_node = si_->allocState();
 	setRange(Range);
 
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 
 	checkValidity();
 	startTime = clock();
@@ -553,7 +553,7 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 
 	cout << "Logging path to files..." << endl;
 
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 	int active_chain, ik_sol;
 
 	{ // Log only milestones
@@ -565,7 +565,7 @@ void ompl::geometric::RRTConnect::save2file(vector<Motion*> mpath1, vector<Motio
 
 		myfile << mpath1.size() + mpath2.size() << endl;
 
-		Vector temp;
+		State temp;
 		for (int i = mpath1.size() - 1 ; i >= 0 ; --i) {
 			retrieveStateVector(mpath1[i]->state, q1, q2);
 			ikfile << mpath1[i]->a_chain << " " << mpath1[i]->ik_q1_active << " " << mpath1[i]->ik_q2_active << endl;

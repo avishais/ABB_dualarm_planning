@@ -86,7 +86,7 @@ void ompl::geometric::SBL::freeGridMotions(Grid<MotionInfo> &grid)
 
 ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTerminationCondition &ptc)
 {
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 
 	initiate_log_parameters();
 	setRange(Range); // Maximum local connection distance *** will need to profile this value
@@ -518,7 +518,7 @@ void ompl::geometric::SBL::save2file(vector<Motion*> mpath1, vector<Motion*> mpa
 
 	cout << "Logging path to files..." << endl;
 
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 	int active_chain, ik_sol;
 
 	{ // Log only milestones
@@ -530,7 +530,7 @@ void ompl::geometric::SBL::save2file(vector<Motion*> mpath1, vector<Motion*> mpa
 
 		myfile << mpath1.size() + mpath2.size() << endl;
 
-		Vector temp;
+		State temp;
 		for (int i = mpath1.size() - 1 ; i >= 0 ; --i) {
 			retrieveStateVector(mpath1[i]->state, q1, q2);
 			ikfile << mpath1[i]->a_chain << " " << mpath1[i]->ik_q1_active << " " << mpath1[i]->ik_q2_active << endl;

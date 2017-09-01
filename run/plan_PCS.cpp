@@ -81,7 +81,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     }
 }
 
-void plan_C::plan(Vector c_start, Vector c_goal, double runtime, plannerType ptype, double max_step) {
+void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step) {
 
 	// construct the state space we are planning inz
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
@@ -248,13 +248,13 @@ int main(int argn, char ** args) {
 
 	plan_C Plan;
 
-	int mode = 3;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
-		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		//Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015, 8, 3}; // Robot 2 backfilp - Elbow down
-		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
-		//Vector c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
+		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015, 8, 3}; // Robot 2 backfilp - Elbow down
+		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
+		//State c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
 
 		Plan.plan(c_start, c_goal, runtime, ptype, 1.5);
 
@@ -263,8 +263,8 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
+		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_BiRRT_PCS_3poles_minCpath.txt", ios::app);
@@ -292,8 +292,8 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 3 : { // Benchmark maximum step size while benchmarking the step size
-		Vector c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		Vector c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
+		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_LazyRRT_PCS_3poles_rangeB_newNN.txt", ios::app);

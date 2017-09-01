@@ -72,6 +72,7 @@ disp(['Minimum avg. runtime for PCS is ' num2str(tdmin) 'msec with d = ' num2str
 disp(['Percent of successful queries verified: ' num2str(sum(verf & suc)/sum(suc)*100) '%']);
 disp(['Plan distance: ' num2str(D1(1,3)) ]);
 disp(['Avg. runtime: ' num2str(mean(D1(:,4))*1e3)  ' +/- ' num2str(std(D1(:,4))/sqrt(size(D1,1))*1e3) ' msec ']);
+disp(['Min. runtime: ' num2str(min(D1(:,4))*1e3) 'msec']);
 disp(['Avg. local-connection time: ' num2str(mean(D1(:,12))*1e3)  ' +/- ' num2str(std(D1(:,12))/sqrt(size(D1,1))*1e3) ' msec ']);
 disp(['Avg. nodes in path: ' num2str(floor(mean(D1(:,10)))) ]);
 disp(['Avg. nodes in trees: ' num2str(floor(mean(D1(:,11)))) ]);
@@ -88,6 +89,7 @@ disp(['Minimum avg. runtime for GD is ' num2str(tgmin) 'msec with d = ' num2str(
 disp(['Percent of successful queries verified: ' num2str(sum(verf & suc)/sum(suc)*100) '%']);
 disp(['Plan distance: ' num2str(D2(1,3)) ]);
 disp(['Avg. runtime: ' num2str(mean(D2(:,4))*1e3)  ' +/- ' num2str(std(D2(:,4))/sqrt(size(D2,1))*1e3) ' msec ']);
+disp(['Min. runtime: ' num2str(min(D2(:,4))*1e3) 'msec']);
 disp(['Avg. local-connection time: ' num2str(mean(D2(:,12))*1e3)  ' +/- ' num2str(std(D2(:,12))/sqrt(size(D2,1))*1e3) ' msec ']);
 disp(['Avg. nodes in path: ' num2str(floor(mean(D2(:,10)))) ]);
 disp(['Avg. nodes in trees: ' num2str(floor(mean(D2(:,11)))) ]);

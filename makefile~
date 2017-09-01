@@ -33,7 +33,7 @@ CPP_P_GD = ${INC_RUN}plan_GD.cpp ${INC_PLANNERS}CBiRRT_GD.cpp ${INC_PLANNERS}RRT
 CPP_P_GD_s = ${INC_RUN}plan_GD.cpp ${INC_PLANNERS}CBiRRT_GD_s.cpp
 
 all:
-	$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
+	#$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 	#$(CXX) ${CPP_P_PCS_s} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcss $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
 	$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11

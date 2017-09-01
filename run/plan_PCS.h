@@ -48,7 +48,7 @@ class plan_C //: public StateValidityChecker
 {
 public:
 
-	void plan(Vector, Vector, double, plannerType = PLANNER_BIRRT, double = 2);
+	void plan(State, State, double, plannerType = PLANNER_BIRRT, double = 2);
 
 	// Construct the planner specified by our command line argument.
 	// This helper function is simply a switch statement.

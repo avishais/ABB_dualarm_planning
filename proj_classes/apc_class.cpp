@@ -1,7 +1,7 @@
 #include "apc_class.h"
 
 // Constructor for the robots
-two_robots::two_robots(Vector pose_1, Vector pose_2, double rod_length) {
+two_robots::two_robots(State pose_1, State pose_2, double rod_length) {
 	b = 166; // Height of base
 	l1 = 124; // Distance from top facet of base to axis of link 1.
 	l2 = 270; // Length between axes of link 2.
@@ -48,7 +48,7 @@ two_robots::two_robots(Vector pose_1, Vector pose_2, double rod_length) {
 // -----FK-------
 
 // Solves the FK of one robot
-void two_robots::FKsolve_rob(Vector q, int robot_num) {
+void two_robots::FKsolve_rob(State q, int robot_num) {
 
 	if (robot_num == 1)
 		V_pose = V_pose_rob_1_o;
@@ -83,7 +83,7 @@ Matrix two_robots::get_FK_solution_T1() {
 }
 
 // Get the FK solution (only pose) of robot 1
-Vector two_robots::get_FK_solution_p1() {
+State two_robots::get_FK_solution_p1() {
 
 	return p_fk_solution_1;
 }
@@ -97,7 +97,7 @@ Matrix two_robots::get_FK_solution_T2() {
 }
 
 // Get the FK solution (only pose) of robot 2
-Vector two_robots::get_FK_solution_p2() {
+State two_robots::get_FK_solution_p2() {
 
 	//printVector(p_fk_solution_2);
 
@@ -112,13 +112,13 @@ int two_robots::get_countSolutions() {
 
 // Solves the IK problem of robot given the transformation matrix, robot number and required IK soluion index
 bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
-	Vector q(6);
+	State q(6);
 
 	double q1_add_sol[NUM_IK_SOLUTIONS] = { 0, 0, 0, 0, PI, PI, PI, PI};
 	double q2_sign[NUM_IK_SOLUTIONS] = { -1, -1, -1, -1,  1,  1,  1,  1};
 	double q3_sign[NUM_IK_SOLUTIONS] = { 1, -1,  1, -1,  1, -1,  1, -1};
 	double sign456[NUM_IK_SOLUTIONS] = { 1, -1, -1,  1, -1,  1,  1, -1};
-	Vector V_pose(3);
+	State V_pose(3);
 
 	if (robot_num == 1)
 		V_pose = V_pose_rob_1_o;
@@ -129,12 +129,12 @@ bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 	{ cos(V_pose[2])*T[1][0] - sin(V_pose[2])*T[0][0] - cos(V_pose[2])*T[3][0] * V_pose[1] + sin(V_pose[2])*T[3][0] * V_pose[0], cos(V_pose[2])*T[1][1] - sin(V_pose[2])*T[0][1] - cos(V_pose[2])*T[3][1] * V_pose[1] + sin(V_pose[2])*T[3][1] * V_pose[0], cos(V_pose[2])*T[1][2] - sin(V_pose[2])*T[0][2] - cos(V_pose[2])*T[3][2] * V_pose[1] + sin(V_pose[2])*T[3][2] * V_pose[0] },
 	{ T[2][0], T[2][1], T[2][2] } };
 
-	Vector p = { cos(V_pose[2])*T[0][3] + sin(V_pose[2])*T[1][3] - cos(V_pose[2])*T[3][3] * V_pose[0] - sin(V_pose[2])*T[3][3] * V_pose[1],
+	State p = { cos(V_pose[2])*T[0][3] + sin(V_pose[2])*T[1][3] - cos(V_pose[2])*T[3][3] * V_pose[0] - sin(V_pose[2])*T[3][3] * V_pose[1],
 		cos(V_pose[2])*T[1][3] - sin(V_pose[2])*T[0][3] - cos(V_pose[2])*T[3][3] * V_pose[1] + sin(V_pose[2])*T[3][3] * V_pose[0],
 		T[2][3] };
 
-	Vector x6 = { R[0][0], R[1][0], R[2][0] };
-	Vector p5 = { p[0] - x6[0] * (l5 + lee), p[1] - x6[1] * (l5 + lee), p[2] - x6[2] * (l5 + lee) };
+	State x6 = { R[0][0], R[1][0], R[2][0] };
+	State p5 = { p[0] - x6[0] * (l5 + lee), p[1] - x6[1] * (l5 + lee), p[2] - x6[2] * (l5 + lee) };
 	
 	//q1
 	{
@@ -276,19 +276,19 @@ int two_robots::calc_all_IK_solutions_2(Matrix T) {
 	return countSolutions;
 }
 
-Vector two_robots::get_all_IK_solutions_1(int num_sol) {
+State two_robots::get_all_IK_solutions_1(int num_sol) {
 	return Q_IK_solutions_1[num_sol];
 }
 
-Vector two_robots::get_all_IK_solutions_2(int num_sol) {
+State two_robots::get_all_IK_solutions_2(int num_sol) {
 	return Q_IK_solutions_2[num_sol];
 }
 
-Vector two_robots::get_IK_solution_q1() {
+State two_robots::get_IK_solution_q1() {
 	return q_IK_solution_1;
 }
 
-Vector two_robots::get_IK_solution_q2() {
+State two_robots::get_IK_solution_q2() {
 	return q_IK_solution_2;
 }
 
@@ -301,7 +301,7 @@ int two_robots::get_valid_IK_solutions_indices_2(int i) {
 
 // -----------------------
 
-bool two_robots::check_angle_limits(Vector q) {
+bool two_robots::check_angle_limits(State q) {
 	// Returns true if all angles are within the joint limits
 
 	if (fabs(q[0]) > q1minmax)
@@ -335,7 +335,7 @@ bool two_robots::check_angle_limits(Vector q) {
 
 //------------------------
 
-double two_robots::normDistance(Vector q_a, Vector q_b) {
+double two_robots::normDistance(State q_a, State q_b) {
 
 	double max = 0, cur;
 	for (int i=0; i<q_a.size(); i++) {
@@ -353,7 +353,7 @@ double two_robots::normDistance(Vector q_a, Vector q_b) {
 
 // Compute a specific IK solution when q1 is the active chain
 // Checks that IK exists for Robot 2
-bool two_robots::calc_specific_IK_solution_R1(Matrix T, Vector q1, int IKsol) {
+bool two_robots::calc_specific_IK_solution_R1(Matrix T, State q1, int IKsol) {
 	// T - Trans. matrix for the end of the rod while its start is at the origin
 	// q - angles of robot 1.
 
@@ -370,7 +370,7 @@ bool two_robots::calc_specific_IK_solution_R1(Matrix T, Vector q1, int IKsol) {
 
 // Compute a specific IK solution when q2 is the active chain
 // Checks that IK exists for Robot 1
-bool two_robots::calc_specific_IK_solution_R2(Matrix T, Vector q2, int IKsol) {
+bool two_robots::calc_specific_IK_solution_R2(Matrix T, State q2, int IKsol) {
 	// T - Trans. matrix for the end of the rod while its start is in the origin
 	// q - angles of robot 1.
 
@@ -390,7 +390,7 @@ bool two_robots::calc_specific_IK_solution_R2(Matrix T, Vector q2, int IKsol) {
 
 // Check the feasibility of the state with no other information
 // Checks that IK exists for the IK solition of Robot 1
-bool two_robots::IsRobotsFeasible_R1(Matrix T, Vector q) {
+bool two_robots::IsRobotsFeasible_R1(Matrix T, State q) {
 	// T - Trans. matrix for the end of the rod while its start is in the origin
 	// q - angles of robot 1.
 
@@ -408,7 +408,7 @@ bool two_robots::IsRobotsFeasible_R1(Matrix T, Vector q) {
 
 // Check the feasibility of the state with no other information
 // Checks that IK exists for the FK solution of Robot 2
-bool two_robots::IsRobotsFeasible_R2(Matrix T, Vector q) {
+bool two_robots::IsRobotsFeasible_R2(Matrix T, State q) {
 	// T - Trans. matrix for the end of the rod while its start is in the origin
 	// q - angles of robot 2.
 
@@ -437,7 +437,7 @@ Matrix two_robots::MatricesMult(Matrix M1, Matrix M2) {
 
 // 4x4 matrix invertion
 bool two_robots::InvertMatrix(Matrix M, Matrix &Minv) {
-	Vector m(16),  inv(16);
+	State m(16),  inv(16);
 
 	int k = 0;
 	for (int i = 0; i < 4; i++)
@@ -583,8 +583,8 @@ void two_robots::initMatrix(Matrix &M, int n, int m) {
 		M[i].resize(m);
 }
 
-// Initialize Vector
-void two_robots::initVector(Vector &V, int n) {
+// Initialize State
+void two_robots::initVector(State &V, int n) {
 	V.resize(n);
 }
 
@@ -603,7 +603,7 @@ void two_robots::printMatrix(Matrix M) {
 }
 
 // Print vector data to console
-void two_robots::printVector(Vector p) {
+void two_robots::printVector(State p) {
 	cout << "[";
 	for (unsigned i = 0; i < p.size(); i++)
 		cout << p[i] << " ";

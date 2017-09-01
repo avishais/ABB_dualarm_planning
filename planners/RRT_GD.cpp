@@ -48,14 +48,14 @@ ompl::geometric::RRT::RRT(const base::SpaceInformationPtr &si, double maxStep) :
 
     defaultSettings(); // Avishai
 
-    goalBias_ = maxStep;//0.05;
+    goalBias_ = 0.05;
     maxDistance_ = 0.0;
     lastGoalMotion_ = nullptr;
 
     Planner::declareParam<double>("range", this, &RRT::setRange, &RRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &RRT::setGoalBias, &RRT::getGoalBias, "0.:.05:1.");
 
-    Range = 2.7;//maxStep;
+    Range = maxStep;
 }
 
 ompl::geometric::RRT::~RRT()

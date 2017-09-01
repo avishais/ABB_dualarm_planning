@@ -121,8 +121,8 @@ void ompl::geometric::CBiRRT::clear()
 
 double ompl::geometric::CBiRRT::activeDistance(const Motion *a, const Motion *b) {
 
-	Vector qa(6), qa_dummy(6);
-	Vector qb(6), qb_dummy(6);
+	State qa(6), qa_dummy(6);
+	State qb(6), qb_dummy(6);
 
 	if (!active_chain) {
 		retrieveStateVector(a->state, qa, qa_dummy);
@@ -162,7 +162,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 // nmotion - nearest
 // mode = 1 -> extend, mode = 2 -> connect.
 {
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 
 	// Choose active chain
 	active_chain = rand() % 2; // 0 - (q1,a) is the active chain, 1 - (q2,a) is the active chain
@@ -297,7 +297,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	base::State *start_node = si_->allocState();
 	setRange(Range);
 
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 
 	checkValidity();
 	startTime = clock();
@@ -550,13 +550,13 @@ void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 	local_connection_time = 0;
 	local_connection_count = 0;
 
-	Vector q1(6), q2(6);
+	State q1(6), q2(6);
 
 	clock_t st = clock();
 	for (int i = 1; i < path.size(); i++) {
 
-		/*Vector ik1 = identify_state_ik(path[i-1]->state);
-		Vector ik2 = identify_state_ik(path[i]->state);
+		/*State ik1 = identify_state_ik(path[i-1]->state);
+		State ik2 = identify_state_ik(path[i]->state);
 
 		//retrieveStateVector(path[i]->state, q1, q2);
 		//IKproject(q1, q2, 0, ik2[0]);
@@ -629,7 +629,7 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 	cout << "Logging path to files..." << endl;
 
-	Vector q1(6), q2(6), ik(2);
+	State q1(6), q2(6), ik(2);
 	int active_chain, ik_sol;
 
 	{ // Log only milestones
@@ -641,7 +641,7 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 
 		myfile << mpath1.size() + mpath2.size() << endl;
 
-		Vector temp;
+		State temp;
 		for (int i = mpath1.size() - 1 ; i >= 0 ; --i) {
 			retrieveStateVector(mpath1[i]->state, q1, q2);
 			ikfile << mpath1[i]->a_chain << " " << mpath1[i]->ik_q1_active << " " << mpath1[i]->ik_q2_active << endl;

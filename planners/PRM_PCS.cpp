@@ -536,7 +536,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 		totalConnectionAttemptsProperty_[m]++;
 		totalConnectionAttemptsProperty_[n]++;
 
-		Vector ik1(2), ik2(2);
+		State ik1(2), ik2(2);
 		retrieveStateVector(stateProperty_[n], ik1);
 		retrieveStateVector(stateProperty_[m], ik2);
 

@@ -13,7 +13,6 @@
 using namespace std;
 
 typedef vector<double> State;
-typedef vector< double > Vector;
 typedef vector<vector< double >> Matrix;
 
 class two_robots
@@ -22,75 +21,75 @@ private:
 	double b, l1, l2, l3a, l3b, l4, l5, l6, lee; // ABB link lengths
 	double L; // Length of grasped rod
 	double q1minmax, q2minmax, q3min, q3max, q4minmax, q5minmax, q6minmax; // Joint limits
-	Vector V_pose_rob_1_o; // The vector [x,y,theta] that describes the position and orientation of robot 1 relative to origin (assume on the same x-y plane)
-	Vector V_pose_rob_2_o; // The vector [x,y,theta] that describes the position and orientation of robot 2 relative to origin (assume on the same x-y plane)
+	State V_pose_rob_1_o; // The vector [x,y,theta] that describes the position and orientation of robot 1 relative to origin (assume on the same x-y plane)
+	State V_pose_rob_2_o; // The vector [x,y,theta] that describes the position and orientation of robot 2 relative to origin (assume on the same x-y plane)
 	// FK parameters
 	Matrix T_fk_solution_1; // FK solution of robot 1
-	Vector p_fk_solution_1; // FK solution of robot 1
+	State p_fk_solution_1; // FK solution of robot 1
 	Matrix T_fk_solution_2; // FK solution of robot 2
-	Vector p_fk_solution_2; // FK solution of robot 2
+	State p_fk_solution_2; // FK solution of robot 2
 	// IK parameters
-	Vector q_IK_solution_1; // IK solution of robot 1
-	Vector q_IK_solution_2; // IK solution of robot 2
+	State q_IK_solution_1; // IK solution of robot 1
+	State q_IK_solution_2; // IK solution of robot 2
 	Matrix Q_IK_solutions_1; // All IK solutions of robot 1
 	Matrix Q_IK_solutions_2; // All IK solutions of robot 2
-	Vector valid_IK_solutions_indices_1; // Indices of the IK solutions to use in the IK_solve function for robot 1
-	Vector valid_IK_solutions_indices_2; // Indices of the IK solutions to use in the IK_solve function for robot 2
+	State valid_IK_solutions_indices_1; // Indices of the IK solutions to use in the IK_solve function for robot 1
+	State valid_IK_solutions_indices_2; // Indices of the IK solutions to use in the IK_solve function for robot 2
 	int IK_number;
 	int countSolutions;
 
 	// Temp variable for time efficiency
 	Matrix T_fk_temp;
-	Vector p_fk_temp;
-	Vector V_pose;
+	State p_fk_temp;
+	State V_pose;
 	Matrix T1, T2, T_mult_temp;
 
 public:
 	/** Constructor */
-	two_robots(Vector, Vector, double);
+	two_robots(State, State, double);
 
 	/** Forward kinematics */
-	void FKsolve_rob(Vector, int);
+	void FKsolve_rob(State, int);
 	Matrix get_FK_solution_T1();
-	Vector get_FK_solution_p1();
+	State get_FK_solution_p1();
 	Matrix get_FK_solution_T2();
-	Vector get_FK_solution_p2();
+	State get_FK_solution_p2();
 
 	/** Inverse kinematics */
 	bool IKsolve_rob(Matrix, int, int);
-	Vector get_IK_solution_q1();
-	Vector get_IK_solution_q2();
+	State get_IK_solution_q1();
+	State get_IK_solution_q2();
 	int get_countSolutions();
-	bool calc_specific_IK_solution_R1(Matrix, Vector, int);
-	bool calc_specific_IK_solution_R2(Matrix, Vector, int);
+	bool calc_specific_IK_solution_R1(Matrix, State, int);
+	bool calc_specific_IK_solution_R2(Matrix, State, int);
 
 	/** Is robots configurations feasible? */
-	bool IsRobotsFeasible_R1(Matrix, Vector);
-	bool IsRobotsFeasible_R2(Matrix, Vector);
+	bool IsRobotsFeasible_R1(Matrix, State);
+	bool IsRobotsFeasible_R2(Matrix, State);
 	int calc_all_IK_solutions_1(Matrix);
 	int calc_all_IK_solutions_2(Matrix);
 
 	/** Check the angles limits of the ABB */
-	bool check_angle_limits(Vector q);
+	bool check_angle_limits(State q);
 
 	// Getters
 	int get_IK_number();
 	Matrix get_T2();
-	Vector get_all_IK_solutions_1(int);
-	Vector get_all_IK_solutions_2(int);
+	State get_all_IK_solutions_1(int);
+	State get_all_IK_solutions_2(int);
 	int get_valid_IK_solutions_indices_1(int);
 	int get_valid_IK_solutions_indices_2(int);
 
 	// Misc
-	void initVector(Vector &, int);
+	void initVector(State &, int);
 	void initMatrix(Matrix &, int, int);
 	double deg2rad(double);
 	void printMatrix(Matrix);
-	void printVector(Vector);
+	void printVector(State);
 	Matrix MatricesMult(Matrix, Matrix);
 	bool InvertMatrix(Matrix M, Matrix &Minv); // Inverse of a 4x4 matrix
 	void clearMatrix(Matrix &);
-	double normDistance(Vector, Vector);
+	double normDistance(State, State);
 
 	Matrix Q;
 	Matrix P;
@@ -101,8 +100,8 @@ public:
 		return Q;
 	}
 
-	Vector get_robots_properties() {
-		Vector E = {b, l1, l2, l3a, l3b, l4, l5, lee};
+	State get_robots_properties() {
+		State E = {b, l1, l2, l3a, l3b, l4, l5, lee};
 		return E;
 	}
 
