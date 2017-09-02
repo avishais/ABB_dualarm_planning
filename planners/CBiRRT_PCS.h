@@ -115,6 +115,7 @@ namespace ompl
             bool final_solved; // Planning query solved?
             double local_connection_time; // Log LC total time
             int local_connection_count; // Log number of LC attempts
+            int local_connection_success_count; // Log number of LC success
             int grow_iterations; // Total number of iterations in the growTree
             int grow_calls; // Number of calls to the growTree function
             double minPathtime;
@@ -131,6 +132,7 @@ namespace ompl
             	nodes_in_trees = 0;
             	local_connection_time = 0;
             	local_connection_count = 0;
+            	local_connection_success_count = 0;
             	grow_iterations = 0;
             	grow_calls = 0;
             	minPathtime = 0;
@@ -238,9 +240,6 @@ namespace ompl
 
             /** \brief Save solution path to two files */
             void save2file(vector<Motion*>, vector<Motion*>);
-
-            /** \brief Log performance data of the planning to perf_log.txt */
-            void LogPerf2file();
 
             void timeMinPath(vector<Motion*>);
 

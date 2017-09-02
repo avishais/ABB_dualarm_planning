@@ -84,6 +84,7 @@ D1 = D1(D1(:,1)==rd(id), 2:end);
 verf = D1(:,1)==1;
 suc = D1(:,2)==1;
 
+disp('------------------------------------');
 disp('PCS:');
 disp(['Results of ' num2str(size(D1,1)) ' queries.']);
 disp(['Minimum avg. runtime for PCS is ' num2str(tdmin) 'msec with d = ' num2str(rd(id)) ]);
@@ -101,6 +102,7 @@ D2 = D2(D2(:,1)==rg(ig), 2:end);
 verf = D2(:,1)==1;
 suc = D2(:,2)==1;
 
+disp('------------------------------------');
 disp('GD:');
 disp(['Results of ' num2str(size(D2,1)) ' queries.']);
 disp(['Minimum avg. runtime for GD is ' num2str(tgmin) 'msec with d = ' num2str(rg(ig)) ]);
@@ -118,6 +120,7 @@ D3 = D3(D3(:,1)==rb(ib), 2:end);
 verf = D3(:,1)==1;
 suc = D3(:,2)==1;
 
+disp('------------------------------------');
 disp('HB:');
 disp(['Results of ' num2str(size(D3,1)) ' queries.']);
 disp(['Minimum avg. runtime for HB is ' num2str(tbmin) 'msec with d = ' num2str(rb(ib)) ]);

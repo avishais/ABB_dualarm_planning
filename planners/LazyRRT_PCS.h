@@ -138,29 +138,6 @@ public:
 	virtual void setup();
 
 	// ******************** My additions *********************
-	// Performance parameters and handle
-	double total_runtime; // Total planning time
-	clock_t startTime; // Start clock
-	clock_t endTime; // End clock
-	int nodes_in_path; // Log nodes in path
-	int nodes_in_trees; // Log nodes in both trees
-	double PlanDistance; // Norm distance from start to goal configurations
-	bool final_solved; // Planning query solved?
-	double local_connection_time; // Log LC total time
-	int local_connection_count; // Log number of LC attempts
-
-	/** Reset log paprameters */
-	void initiate_log_parameters() {
-		IK_counter = 0;
-		IK_time = 0;
-		collisionCheck_counter = 0;
-		collisionCheck_time = 0;
-		isValid_counter = 0;
-		nodes_in_path = 0;
-		nodes_in_trees = 0;
-		local_connection_time = 0;
-		local_connection_count = 0;
-	}
 
 	// Maximum local connection distance
 	double Range;
@@ -235,9 +212,6 @@ protected:
     // ***************** My additional functions ************************
     /** \brief Save solution path to two files */
 	void save2file(vector<Motion*>);
-
-	/** \brief Log performance data of the planning to perf_log.txt */
-	void LogPerf2file();
 
 };
 

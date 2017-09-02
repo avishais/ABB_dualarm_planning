@@ -166,9 +166,6 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 		assert(nmotion != rmotion);
 		base::State *dstate = rstate;
 
-		// Choose active chain
-		active_chain = rand() % 2; // 0 - (q1,a) is the active chain, 1 - (q2,a) is the active chain
-
 		/* find state to add */
 		bool reach = true;
 		double d = si_->distance(nmotion->state, rstate);
@@ -186,23 +183,20 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 			if (!IKproject(dstate)) // Collision check is done inside the projection
 				continue;
 
-			ik = identify_state_ik(q1, q2);
+			ik = identify_state_ik(dstate);
 			si_->copyState(xstate, dstate);
 			dstate = xstate;
-
+			
 			// Find a closer neighbor
 			//si_->copyState(rmotion->state, dstate);
 			//nmotion = nn_->nearest(rmotion);
 		}
-		else { // check if can connect to the goal
+		else  // check if can connect to the goal
 			ik = ik_goal;
-			if (nmotion->ik_q1_active==ik[0])
-				active_chain = 0;
-			else if (nmotion->ik_q2_active==ik[1])
-				active_chain = 1;
-			else
-				continue;
-		}
+		
+		// Check if connection is possible
+		if (nmotion->ik_q1_active != ik[0] && nmotion->ik_q2_active != ik[1])
+			continue;
 
 		/* create a motion */
 		Motion *motion = new Motion(si_);
@@ -211,7 +205,6 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 		si_->copyState(motion->state, dstate);
 		motion->parent = nmotion;
 		nmotion->children.push_back(motion);
-		motion->a_chain = active_chain;
 		nn_->add(motion);
 
 		double dist = 0.0;
@@ -245,8 +238,10 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 1, nmotion->ik_q2_active);
 					local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
-					if (validMotion)
+					if (validMotion) {
+						local_connection_success_count++;
 						mpath[i]->valid = true;
+					}
 					else
 					{
 						removeMotion(mpath[i]);
@@ -431,25 +426,5 @@ void ompl::geometric::LazyRRT::save2file(vector<Motion*> mpath) {
 		fp.close();
 		std::remove("./paths/temp.txt");
 	}
-}
-
-void ompl::geometric::LazyRRT::LogPerf2file() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/perf_log.txt");
-
-	myfile << final_solved << endl;
-	myfile << PlanDistance << endl; // Distance between nodes 1
-	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << two_robots::get_IK_counter() << endl; // How many IK checks? 5
-	myfile << two_robots::get_IK_time() << endl; // IK computation time 6
-	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
-	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
-	myfile << get_isValid_counter() << endl; // How many nodes checked 9
-	myfile << nodes_in_path << endl; // Nodes in path 10
-	myfile << nodes_in_trees << endl; // 11
-	myfile << local_connection_time/local_connection_count << endl;
-
-	myfile.close();
 }
 

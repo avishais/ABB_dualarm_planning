@@ -155,6 +155,34 @@ public:
 
 	void log_q(State q, bool New);
 
+	// Performance parameters and handle
+	double total_runtime; // Total planning time
+	clock_t startTime; // Start clock
+	clock_t endTime; // End clock
+	int nodes_in_path; // Log nodes in path
+	int nodes_in_trees; // Log nodes in both trees
+	double PlanDistance; // Norm distance from start to goal configurations
+	bool final_solved; // Planning query solved?
+	double local_connection_time; // Log LC total time
+	int local_connection_count; // Log number of LC attempts
+    int local_connection_success_count; // Log number of LC success
+
+	/** Reset log parameters */
+	void initiate_log_parameters() {
+		IK_counter = 0;
+		IK_time = 0;
+		collisionCheck_counter = 0;
+		collisionCheck_time = 0;
+		isValid_counter = 0;
+		nodes_in_path = 0;
+		nodes_in_trees = 0;
+		local_connection_time = 0;
+		local_connection_count = 0;
+    	local_connection_success_count = 0;
+	}
+
+	void LogPerf2file();
+
 private:
 	ob::StateSpace *stateSpace_;
 	ob::SpaceInformation    *mysi_;

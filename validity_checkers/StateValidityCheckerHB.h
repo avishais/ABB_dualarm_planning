@@ -88,8 +88,8 @@ public:
 	void updateStateVector(const ob::State *, State, State);
 
 	/** Identify the IK solutions of a configuration using two passive chains */
-	State identify_state_ik(const ob::State *, State = {-1, -1});
-	State identify_state_ik(State, State, State = {-1, -1});
+	State identify_state_ik(const ob::State *);
+	State identify_state_ik(State, State);
 
 	/** Print ob::State ro console */
 	void printStateVector(const ob::State *state);
@@ -189,6 +189,41 @@ public:
 	}
 
 	void log_q(State q, bool New);
+
+    // Performance parameters and handle
+    double total_runtime; // Total planning time
+    clock_t startTime; // Start clock
+    clock_t endTime; // End clock
+    int nodes_in_path; // Log nodes in path
+    int nodes_in_trees; // Log nodes in both trees
+    double PlanDistance; // Norm distance from start to goal configurations
+    bool final_solved; // Planning query solved?
+    double local_connection_time; // Log LC total time
+    int local_connection_count; // Log number of LC attempts
+    int local_connection_success_count; // Log number of LC success
+    int grow_iterations; // Total number of iterations in the growTree
+    int grow_calls; // Number of calls to the growTree function
+
+    /** Reset log parameters */
+    void initiate_log_parameters() {
+    	two_robots::IK_counter = 0;
+    	two_robots::IK_time = 0;
+    	kdl::IK_counter = 0;
+    	kdl::IK_time = 0;
+    	collisionCheck_counter = 0;
+    	collisionCheck_time = 0;
+    	isValid_counter = 0;
+    	nodes_in_path = 0;
+    	nodes_in_trees = 0;
+    	local_connection_time = 0;
+    	local_connection_count = 0;
+    	local_connection_success_count = 0;
+    	grow_iterations = 0;
+    	grow_calls = 0;
+    	iden = 0;
+    }
+
+    void LogPerf2file();
 
 private:
 	ob::StateSpace *stateSpace_;

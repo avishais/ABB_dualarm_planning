@@ -147,13 +147,13 @@ bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain, int
 
 // ---------------------------- Identify state IK --------------------------------
 
-State StateValidityChecker::identify_state_ik(const ob::State *state, State ik) {
+State StateValidityChecker::identify_state_ik(const ob::State *state) {
 
 	clock_t sT = clock();
-	State q1(6), q2(6), q_temp(6);
+	State q1(6), q2(6);
 	retrieveStateVector(state, q1, q2);
 
-	ik = identify_state_ik(q1, q2, ik);
+	State ik = identify_state_ik(q1, q2);
 
 	clock_t eT = clock();
 	iden +=  double(eT - sT) / CLOCKS_PER_SEC;
@@ -161,43 +161,44 @@ State StateValidityChecker::identify_state_ik(const ob::State *state, State ik) 
 	return ik;
 }
 
-State StateValidityChecker::identify_state_ik(State q1, State q2, State ik) {
+State StateValidityChecker::identify_state_ik(State q1, State q2) {
 
-	if (ik[0] == -1) { // Compute only if the ik index for the active chain 0 is unknown
-		// q1 is the active chain
-		FKsolve_rob(q1, 1);
-		Matrix T2 = MatricesMult(get_FK_solution_T1(), getQ()); // Returns the opposing required matrix of the rods tip at robot 2
-		T2 = MatricesMult(T2, {{-1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}); // Returns the REQUIRED matrix of the rods tip at robot 2
-		int n = calc_all_IK_solutions_2(T2);
-		if (n == 0)
-			return ik;
+	State ik(2);
+	ik[0] = -1;
+	ik[1] = -1;
+	int n;
 
-		for (int i = 0; i < n; i++) {
-			q_temp = get_all_IK_solutions_2(i);
-			if (normDistance(q_temp,q2)<1e-1) {
-				ik[0] = get_valid_IK_solutions_indices_2(i);
-				break;
-			}
+	// q1 is the active chain
+	FKsolve_rob(q1, 1);
+	Matrix T2 = MatricesMult(get_FK_solution_T1(), getQ()); // Returns the opposing required matrix of the rods tip at robot 2
+	T2 = MatricesMult(T2, {{-1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}); // Returns the REQUIRED matrix of the rods tip at robot 2
+	n = calc_all_IK_solutions_2(T2);
+	if (n == 0)
+		return ik;
+
+	for (int i = 0; i < n; i++) {
+		q_temp = get_all_IK_solutions_2(i);
+		if (normDistance(q_temp,q2)<1e-1) {
+			ik[0] = get_valid_IK_solutions_indices_2(i);
+			break;
 		}
 	}
 
-	if (ik[1] == -1) { // Compute only if the ik index for the active chain 1 is unknown
-		// q2 is the active chain
-		Matrix Tinv = getQ();
-		InvertMatrix(getQ(), Tinv); // Invert matrix
-		FKsolve_rob(q2, 2);
-		Matrix T1 = MatricesMult(get_FK_solution_T2(), {{-1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}); // Returns the opposing required matrix of the rods tip at robot 2
-		T1 = MatricesMult(T1, Tinv); // Returns the REQUIRED matrix of the rods tip at rob
-		int n = calc_all_IK_solutions_1(T1);
-		if (n == 0)
-			return ik;
+	// q2 is the active chain
+	Matrix Tinv = getQ();
+	InvertMatrix(getQ(), Tinv); // Invert matrix
+	FKsolve_rob(q2, 2);
+	Matrix T1 = MatricesMult(get_FK_solution_T2(), {{-1, 0, 0, 0}, {0, -1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}); // Returns the opposing required matrix of the rods tip at robot 2
+	T1 = MatricesMult(T1, Tinv); // Returns the REQUIRED matrix of the rods tip at rob
+	n = calc_all_IK_solutions_1(T1);
+	if (n == 0)
+		return ik;
 
-		for (int i = 0; i < n; i++) {
-			q_temp = get_all_IK_solutions_1(i);
-			if (normDistance(q_temp,q1)<1e-1) {
-				ik[1] = get_valid_IK_solutions_indices_1(i);
-				break;
-			}
+	for (int i = 0; i < n; i++) {
+		q_temp = get_all_IK_solutions_1(i);
+		if (normDistance(q_temp,q1)<1e-1) {
+			ik[1] = get_valid_IK_solutions_indices_1(i);
+			break;
 		}
 	}
 
@@ -563,4 +564,24 @@ void StateValidityChecker::log_q(State q, bool New) {
 }
 
 
+void StateValidityChecker::LogPerf2file() {
 
+	std::ofstream myfile;
+	myfile.open("./paths/perf_log.txt");
+
+	myfile << final_solved << endl;
+	myfile << PlanDistance << endl; // Distance between nodes 1
+	myfile << total_runtime << endl; // Overall planning runtime 2
+	myfile << two_robots::get_IK_counter()+kdl::get_IK_counter() << endl; // How many IK checks? 5
+	myfile << two_robots::get_IK_time()+kdl::get_IK_time() << endl; // IK computation time 6
+	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
+	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
+	myfile << get_isValid_counter() << endl; // How many nodes checked 9
+	myfile << nodes_in_path << endl; // Nodes in path 10
+	myfile << nodes_in_trees << endl; // 11
+	myfile << local_connection_time << endl;
+	myfile << local_connection_count << endl;
+	myfile << local_connection_success_count << endl;
+
+	myfile.close();
+}

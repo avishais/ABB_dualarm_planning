@@ -265,6 +265,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 
 		if (validMotion)
 		{
+			local_connection_success_count++;
 			/* Update advanced motion */
 			Motion *motion = new Motion(si_);
 			motion->ik_q1_active = ik[0];
@@ -739,28 +740,5 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 		//timeMinPath(path);
 	}
 
-}
-
-void ompl::geometric::CBiRRT::LogPerf2file() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/perf_log.txt");
-
-	myfile << final_solved << endl;
-	myfile << PlanDistance << endl; // Distance between nodes 1
-	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << get_IK_counter() << endl; // How many IK checks? 5
-	myfile << get_IK_time() << endl; // IK computation time 6
-	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
-	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
-	myfile << get_isValid_counter() << endl; // How many nodes checked 9
-	myfile << nodes_in_path << endl; // Nodes in path 10
-	myfile << nodes_in_trees << endl; // 11
-	myfile << local_connection_time << endl;
-	myfile << local_connection_count << endl;
-	//myfile << minPathtime << endl;
-	//myfile << pathLength << endl;
-
-	myfile.close();
 }
 

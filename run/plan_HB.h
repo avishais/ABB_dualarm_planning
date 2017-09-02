@@ -16,10 +16,10 @@
 
 // Modified and custom planners
 #include "../planners/CBiRRT_HB.h"
-#include "../planners/RRT_PCS.h"
+#include "../planners/RRT_HB.h"
 #include "../planners/LazyRRT_HB.h"
 //#include "../planners/PRM_PCS.h"
-//#include "../planners/SBL_PCS.h"
+#include "../planners/SBL_HB.h"
 
 #include "../validity_checkers/verification_class.h"
 

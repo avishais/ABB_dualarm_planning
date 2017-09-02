@@ -193,6 +193,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
         if (validMotion)
         {
+        	local_connection_success_count++;
             /* create a motion */
             Motion *motion = new Motion(si_);
             si_->copyState(motion->state, dstate);
@@ -264,7 +265,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
         si_->freeState(rmotion->state);
     delete rmotion;
 
-    final_solved = solved;
+	final_solved = !approximate ? solved : false;
     LogPerf2file(); // Log planning parameters
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
@@ -368,22 +369,3 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 	}
 }
 
-void ompl::geometric::RRT::LogPerf2file() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/perf_log.txt");
-
-	myfile << final_solved << endl;
-	myfile << PlanDistance << endl; // Distance between nodes 1
-	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << get_IK_counter() << endl; // How many IK checks? 5
-	myfile << get_IK_time() << endl; // IK computation time 6
-	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
-	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
-	myfile << get_isValid_counter() << endl; // How many nodes checked 9
-	myfile << nodes_in_path << endl; // Nodes in path 10
-	myfile << nodes_in_trees << endl; // 11
-	myfile << local_connection_time/local_connection_count << endl;
-
-	myfile.close();
-}

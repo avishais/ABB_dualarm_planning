@@ -301,8 +301,11 @@ bool ompl::geometric::SBL::isPathValid(TreeData &tree, Motion *motion)
 			local_connection_count++;
 			bool validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state);
 			local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
-			if (validMotion)
+
+			if (validMotion) {
+				local_connection_success_count++;
 				mpath[i]->valid = true;
+			}
 			else
 			{
 				removeMotion(tree, mpath[i]);

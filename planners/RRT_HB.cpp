@@ -161,9 +161,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		else
 			sampler_->sampleUniform(rstate);
 
-		// Choose active chain
-		active_chain = rand() % 2; // 0 - (q1,a) is the active chain, 1 - (q2,a) is the active chain
-
 		/* find closest state in the tree */
 		Motion *nmotion = nn_->nearest(rmotion);
 		base::State *dstate = rstate;
@@ -180,11 +177,12 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 
 		// If not goal, then must project
 		if (!(gg && reach)) {
+
 			// Project dstate (currently not on the manifold)
 			if (!IKproject(dstate)) // Collision check is done inside the projection
 				continue;
 
-			ik = identify_state_ik(q1, q2);
+			ik = identify_state_ik(dstate);
 			si_->copyState(xstate, dstate);
 			dstate = xstate;
 
@@ -204,18 +202,18 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		if (!validMotion && nmotion->ik_q2_active == ik[1] && ik[1]!=-1)
 			validMotion = checkMotionRBS(nmotion->state, dstate, 1, nmotion->ik_q2_active);
 		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
-
+		
 		if (validMotion)
 		{
+			local_connection_success_count++;
 			/* create a motion */
 			Motion *motion = new Motion(si_);
 			motion->ik_q1_active = ik[0];
 			motion->ik_q2_active = ik[1];
 			si_->copyState(motion->state, dstate);
-			motion->a_chain = active_chain;
 			motion->parent = nmotion;
-
 			nn_->add(motion);
+
 			double dist = 0.0;
 			bool sat = goal->isSatisfied(motion->state, &dist);
 			if (sat)
@@ -281,7 +279,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 		si_->freeState(rmotion->state);
 	delete rmotion;
 
-	final_solved = solved;
+	final_solved = !approximate ? solved : false;
 	LogPerf2file(); // Log planning parameters
 
 	OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
@@ -397,22 +395,3 @@ void ompl::geometric::RRT::save2file(vector<Motion*> mpath) {
 	}
 }
 
-void ompl::geometric::RRT::LogPerf2file() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/perf_log.txt");
-
-	myfile << final_solved << endl;
-	myfile << PlanDistance << endl; // Distance between nodes 1
-	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << two_robots::get_IK_counter() << endl; // How many IK checks? 5
-	myfile << two_robots::get_IK_time() << endl; // IK computation time 6
-	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
-	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
-	myfile << get_isValid_counter() << endl; // How many nodes checked 9
-	myfile << nodes_in_path << endl; // Nodes in path 10
-	myfile << nodes_in_trees << endl; // 11
-	myfile << local_connection_time/local_connection_count << endl;
-
-	myfile.close();
-}
