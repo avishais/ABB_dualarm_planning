@@ -520,7 +520,7 @@ bool ompl::geometric::CBiRRT::check_path(vector<Motion*> mpath1, vector<Motion*>
 	return validMotion;
 }
 
-void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
+/*void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 
 	IK_counter = 0;
 	IK_time = 0;
@@ -539,7 +539,7 @@ void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 	}
 	minPathtime = double(clock() - st) / CLOCKS_PER_SEC;
 
-}
+}*/
 
 void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 
@@ -638,7 +638,7 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 			}
 
 			for (int k = 1; k < M.size(); k++) {
-				pathLength += normDistance(M[k], M[k-1]);
+				//pathLength += normDistance(M[k], M[k-1]);
 				for (int j = 0; j < M[k].size(); j++) {
 					myfile << M[k][j] << " ";
 				}

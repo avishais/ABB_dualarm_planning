@@ -501,7 +501,7 @@ void ompl::geometric::CBiRRT::getPlannerData(base::PlannerData &data) const
 	data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
 }
 
-void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
+/*void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 
 	two_robots::IK_counter = 0;
 	two_robots::IK_time = 0;
@@ -512,27 +512,6 @@ void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 
 	clock_t st = clock();
 	for (int i = 1; i < path.size(); i++) {
-
-		/*State ik1 = identify_state_ik(path[i-1]->state);
-		State ik2 = identify_state_ik(path[i]->state);
-
-		//retrieveStateVector(path[i]->state, q1, q2);
-		//IKproject(q1, q2, 0, ik2[0]);
-
-		clock_t stLC = clock();
-		bool valid = false;
-		if (ik1[0] == ik2[0] && ik2[0] != -1) {
-			local_connection_count++;
-			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 0, ik1[0]);
-		}
-		if (!valid && ik1[1] == ik2[1] && ik2[1] != -1) {
-			local_connection_count++;
-			valid =  checkMotionRBS(path[i-1]->state, path[i]->state, 1, ik1[1]);
-		}
-		local_connection_time += double(clock() - stLC) / CLOCKS_PER_SEC;*/
-
-		//retrieveStateVector(path[i]->state, q1, q2);
-		//IKproject(q1, q2, 0, path[i]->ik_q1_active);
 
 		clock_t stLC = clock();
 		bool valid = false;
@@ -548,7 +527,7 @@ void ompl::geometric::CBiRRT::timeMinPath(vector<Motion*> path) {
 	}
 	minPathtime = double(clock() - st) / CLOCKS_PER_SEC;
 
-}
+}*/
 
 void ompl::geometric::CBiRRT::smoothPath(vector<Motion*> &path) {
 
@@ -671,7 +650,7 @@ void ompl::geometric::CBiRRT::save2file(vector<Motion*> mpath1, vector<Motion*> 
 			}
 
 			for (int k = 1; k < M.size(); k++) {
-				pathLength += normDistance(M[k], M[k-1]);
+				//pathLength += normDistance(M[k], M[k-1]);
 				for (int j = 0; j < M[k].size(); j++) {
 					myfile << M[k][j] << " ";
 				}

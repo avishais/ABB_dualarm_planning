@@ -35,13 +35,13 @@ CPP_P_GD_s = ${INC_RUN}plan_GD.cpp ${INC_PLANNERS}CBiRRT_GD_s.cpp
 CPP_P_HB = ${INC_RUN}plan_HB.cpp ${INC_PLANNERS}CBiRRT_HB.cpp ${INC_PLANNERS}RRT_HB.cpp ${INC_PLANNERS}LazyRRT_HB.cpp ${INC_PLANNERS}SBL_HB.cpp #${INC_PLANNERS}PRM_PCS.cpp 
 
 all:
-	#$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
+	$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 	#$(CXX) ${CPP_P_PCS_s} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcss $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
 	$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 	#$(CXX) ${CPP_P_GD_s} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgds $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
-	#$(CXX) ${CPP_P_HB} ${CPPHB} ${CPPPQP} ${CPPVRF} -o phb $(CXXFLAGS) $(LDFLAGS) -DHB -std=c++11
+	$(CXX) ${CPP_P_HB} ${CPPHB} ${CPPPQP} ${CPPVRF} -o phb $(CXXFLAGS) $(LDFLAGS) -DHB -std=c++11
 
 
 
