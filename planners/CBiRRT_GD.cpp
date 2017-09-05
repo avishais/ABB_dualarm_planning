@@ -186,8 +186,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			if (!IKproject(dstate)) // Collision check is done inside the projection
 				return nmotion;
 
-			retrieveStateVector(dstate, q);
-			updateStateVector(tgi.xstate, q);
+			si_->copyState(tgi.xstate, dstate);
 			dstate = tgi.xstate;
 
 			// Find a closer neighbor

@@ -1,7 +1,7 @@
 % Performance comparison between the PCS, GD (with KDL) and the Hybrid
 % approach. The experiment is in one scene with obstacles where the start and goal configurations
 % are:
-% State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+% State c_start = {0.5236, 1.74753, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 % State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 % This while benchmarking the maximum step distance.
 % With joint limits of the ABB robots.
@@ -12,7 +12,7 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{1};
+plannerType = planners{3};
 switch plannerType
     case 'BiRRT'
         D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt');
@@ -24,8 +24,8 @@ switch plannerType
         D3 = load('Benchmark_RRT_HB_3poles_rB.txt'); D3 = D3(D3(:,3)==1,:);
     case 'LazyRRT'
         D1 = load('Benchmark_LazyRRT_PCS_3poles_rB.txt');
-        D2 = load('Benchmark_LazyRRT_GD_3poles_rB.txt');
-        D3 = load('Benchmark_LazyRRT_HB_3poles_rB.txt');
+        D2 = load('Benchmark_LazyRRT_GD_3poles_rB.txt'); D2 = D2(D2(:,3)==1,:);
+        D3 = load('Benchmark_RRT_HB_3poles_rB.txt');
     case 'SBL'
         D1 = load('Benchmark_SBL_PCS_3poles_rB.txt');
         D2 = load('Benchmark_SBL_GD_3poles_rB.txt');
@@ -105,8 +105,9 @@ disp(['Avg. nodes in path: ' num2str(floor(mean(D(:,10)))) ]);
 disp(['Avg. nodes in trees: ' num2str(floor(mean(D(:,11)))) ]);
 disp(['Avg. number of projections: ' num2str(floor(mean(D(:,5)))) ]);
 disp(['Avg. local-connection time: ' num2str(mean(D(:,12)./D(:,13))*1e3)  ' +/- ' num2str(std(D(:,12)./D(:,13))/sqrt(size(D,1))*1e3) ' msec ']);
+disp(['Avg. total local-connection time: ' num2str(mean(D(:,12))*1e3)  ' +/- ' num2str(std(D(:,12))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. number of local connection checks: ' num2str(mean(D(:,13)))]);
-disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14))/mean(D(:,13)))]);
+disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14)./D(:,13)))]);
 
 %%
 sS = rg(ig);
@@ -128,8 +129,9 @@ disp(['Avg. nodes in path: ' num2str(floor(mean(D(:,10)))) ]);
 disp(['Avg. nodes in trees: ' num2str(floor(mean(D(:,11)))) ]);
 disp(['Avg. number of projections: ' num2str(floor(mean(D(:,5)))) ]);
 disp(['Avg. local-connection time: ' num2str(mean(D(:,12)./D(:,13))*1e3)  ' +/- ' num2str(std(D(:,12)./D(:,13))/sqrt(size(D,1))*1e3) ' msec ']);
+disp(['Avg. total local-connection time: ' num2str(mean(D(:,12))*1e3)  ' +/- ' num2str(std(D(:,12))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. number of local connection checks: ' num2str(mean(D(:,13)))]);
-disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14))/mean(D(:,13)))]);
+disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14)./D(:,13)))]);
 
 %%
 sS = rb(ib);
@@ -151,8 +153,9 @@ disp(['Avg. nodes in path: ' num2str(floor(mean(D(:,10)))) ]);
 disp(['Avg. nodes in trees: ' num2str(floor(mean(D(:,11)))) ]);
 disp(['Avg. number of projections: ' num2str(floor(mean(D(:,5)))) ]);
 disp(['Avg. local-connection time: ' num2str(mean(D(:,12)./D(:,13))*1e3)  ' +/- ' num2str(std(D(:,12)./D(:,13))/sqrt(size(D,1))*1e3) ' msec ']);
+disp(['Avg. total local-connection time: ' num2str(mean(D(:,12))*1e3)  ' +/- ' num2str(std(D(:,12))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. number of local connection checks: ' num2str(mean(D(:,13)))]);
-disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14))/mean(D(:,13)))]);
+disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14)./D(:,13)))]);
 
 %%
 disp(' ');
