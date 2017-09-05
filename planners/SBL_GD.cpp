@@ -169,8 +169,14 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
 			continue;
 
-		if (!IKproject(xstate, true)) // Projection without collision check (lazy)
+		clock_t s = clock();
+		if (!IKproject(xstate, true)) {// Projection without collision check (lazy)
+			t[1] += double(clock() - s) / CLOCKS_PER_SEC;
+			t[3]++;
 			continue;
+		}
+		t[2]++;
+		t[0] += double(clock() - s) / CLOCKS_PER_SEC;
 
 		/* create a motion */
 		Motion *motion = new Motion(si_);
@@ -211,6 +217,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
 	final_solved = solved;
 	LogPerf2file(); // Log planning parameters
+	//timeProfile();
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
@@ -303,11 +310,13 @@ bool ompl::geometric::SBL::isPathValid(TreeData &tree, Motion *motion)
 			local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
 			if (validMotion) {
+				t[4] += double(clock() - sT) / CLOCKS_PER_SEC;
 				local_connection_success_count++;
 				mpath[i]->valid = true;
 			}
 			else
 			{
+				t[5] += double(clock() - sT) / CLOCKS_PER_SEC;
 				removeMotion(tree, mpath[i]);
 				return false;
 			}

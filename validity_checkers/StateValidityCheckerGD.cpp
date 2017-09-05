@@ -94,6 +94,7 @@ bool StateValidityChecker::IKproject(State &q, bool includeObs) {
 	q = get_GD_result();
 
 	State q1(6), q2(6);
+
 	seperate_Vector(q, q1, q2);
 	if (includeObs && withObs && collision_state(P, q1, q2))
 		return false;
@@ -173,13 +174,13 @@ bool StateValidityChecker::isValidRBS(State &q) {
 
 	isValid_counter++;
 
-	State q1(6), q2(6);
-
+	clock_t s = clock();
 	if (!GD(q))
 		return false;
 
 	q = get_GD_result();
 
+	State q1(6), q2(6);
 	seperate_Vector(q, q1, q2);
 	if (withObs && collision_state(P, q1, q2))
 		return false;
@@ -454,7 +455,23 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << local_connection_time << endl;
 	myfile << local_connection_count << endl;
 	myfile << local_connection_success_count << endl;
+	for (int i = 0; i < 6; i++)
+		myfile << t[i] << endl;
 
 	myfile.close();
 }
 
+void StateValidityChecker::timeProfile() {
+
+	std::ofstream myfile;
+	myfile.open("./paths/timeProfile.txt");
+
+	myfile << total_runtime << endl;
+	myfile << local_connection_time << endl;
+	myfile << get_collisionCheck_time() << endl;
+	myfile << get_IK_time() << endl;
+	for (int i = 0; i < t.size(); i++)
+		myfile << t[i] << endl;
+
+	myfile.close();
+}

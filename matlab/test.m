@@ -1,12 +1,12 @@
 clear all
 clc
 
-% F = {'Benchmark_BiRRT_PCS_3poles_rB.txt','Benchmark_BiRRT_GD_3poles_rB.txt','Benchmark_BiRRT_HB_3poles_rB.txt'};
-% op = [1 2.6 1.4];
+F = {'Benchmark_BiRRT_PCS_3poles_rB.txt','Benchmark_BiRRT_GD_3poles_rB.txt','Benchmark_BiRRT_HB_3poles_rB.txt'};
+op = [1 2.6 1.4];
 % F = {'Benchmark_RRT_PCS_3poles_rB.txt','Benchmark_RRT_GD_3poles_rB.txt','Benchmark_RRT_HB_3poles_rB.txt'};
 % op = [2.8 2.6 2.2];
-F = {'Benchmark_SBL_PCS_3poles_rB.txt','Benchmark_SBL_GD_3poles_rB.txt','Benchmark_SBL_HB_3poles_rB.txt'};
-op = [0.6 0.8 1];
+% F = {'Benchmark_SBL_PCS_3poles_rB.txt','Benchmark_SBL_GD_3poles_rB.txt','Benchmark_SBL_HB_3poles_rB.txt'};
+% op = [0.6 0.8 1];
 color = 'rgb';
 linestyle = {'-','--',':'};
 

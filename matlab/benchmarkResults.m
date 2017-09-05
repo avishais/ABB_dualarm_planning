@@ -12,7 +12,7 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{3};
+plannerType = planners{4};
 switch plannerType
     case 'BiRRT'
         D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt');
@@ -107,6 +107,7 @@ disp(['Avg. number of projections: ' num2str(floor(mean(D(:,5)))) ]);
 disp(['Avg. local-connection time: ' num2str(mean(D(:,12)./D(:,13))*1e3)  ' +/- ' num2str(std(D(:,12)./D(:,13))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. total local-connection time: ' num2str(mean(D(:,12))*1e3)  ' +/- ' num2str(std(D(:,12))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. number of local connection checks: ' num2str(mean(D(:,13)))]);
+disp(['Avg. collision check time: ' num2str(mean(D(:,8))*1e3) ' msec.']);
 disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14)./D(:,13)))]);
 
 %%
@@ -131,6 +132,7 @@ disp(['Avg. number of projections: ' num2str(floor(mean(D(:,5)))) ]);
 disp(['Avg. local-connection time: ' num2str(mean(D(:,12)./D(:,13))*1e3)  ' +/- ' num2str(std(D(:,12)./D(:,13))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. total local-connection time: ' num2str(mean(D(:,12))*1e3)  ' +/- ' num2str(std(D(:,12))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. number of local connection checks: ' num2str(mean(D(:,13)))]);
+disp(['Avg. collision check time: ' num2str(mean(D(:,8))*1e3) ' msec.']);
 disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14)./D(:,13)))]);
 
 %%
@@ -155,6 +157,7 @@ disp(['Avg. number of projections: ' num2str(floor(mean(D(:,5)))) ]);
 disp(['Avg. local-connection time: ' num2str(mean(D(:,12)./D(:,13))*1e3)  ' +/- ' num2str(std(D(:,12)./D(:,13))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. total local-connection time: ' num2str(mean(D(:,12))*1e3)  ' +/- ' num2str(std(D(:,12))/sqrt(size(D,1))*1e3) ' msec ']);
 disp(['Avg. number of local connection checks: ' num2str(mean(D(:,13)))]);
+disp(['Avg. collision check time: ' num2str(mean(D(:,8))*1e3) ' msec.']);
 disp(['Percent of successful local connections: ' num2str(100*mean(D(:,14)./D(:,13)))]);
 
 %%

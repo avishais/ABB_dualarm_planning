@@ -183,7 +183,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
 
 			// Project dstate (which currently is not on the manifold)
-			if (!IKproject(dstate)) // Collision check is done inside the projection
+			if (!IKproject(dstate))  // Collision check is done inside the projection
 				return nmotion;
 
 			si_->copyState(tgi.xstate, dstate);
@@ -424,6 +424,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 
 	final_solved = solved;
 	LogPerf2file(); // Log planning parameters
+	//timeProfile();
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

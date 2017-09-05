@@ -167,6 +167,8 @@ public:
 	int local_connection_count; // Log number of LC attempts
     int local_connection_success_count; // Log number of LC success
 
+    State t;
+
 	/** Reset log parameters */
 	void initiate_log_parameters() {
 		IK_counter = 0;
@@ -179,9 +181,11 @@ public:
 		local_connection_time = 0;
 		local_connection_count = 0;
     	local_connection_success_count = 0;
+    	t.resize(10);
 	}
 
 	void LogPerf2file();
+	void timeProfile();
 
 private:
 	ob::StateSpace *stateSpace_;
