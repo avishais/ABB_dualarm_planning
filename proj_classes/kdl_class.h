@@ -12,6 +12,7 @@
 #include <kdl/chainfksolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolverpos_nr.hpp>
+#include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 //#include <kdl/chainiksolverpos_lma.hpp>
 #include <kdl/frames_io.hpp>
@@ -52,9 +53,12 @@ public:
 	KDL::JntArray jointpositions;
 	KDL::Frame cartposFK; // Create the frame that will contain the FK results
 	KDL::Frame cartposIK; // Create the frame that will contain the FK results
+	KDL::JntArray q_min; // Minimum joint limits
+	KDL::JntArray q_max; // Maximum joint limits
 
 	/** Newton-Raphson projection onto the constraint surface */
-	bool GD(State q_init);
+	bool GD(State);
+	bool GD_JL(State); // With KDL joint limits
 	State get_GD_result();
 
 	/** Check the angles limits of the ABB - IK based on a constant trans. matrix */

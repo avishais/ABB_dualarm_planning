@@ -3,9 +3,8 @@ clc
 
 %%
 
-D = load('benchmark_SBL_GD_3poles_profileTime.txt');
+D = load('benchmark_SBL_GD_3poles_profileTime_JL.txt');
 D = D(:,2:end);
-
 
 totalTime = D(:,3)*1e3;
 lc_time = D(:,11)*1e3;
