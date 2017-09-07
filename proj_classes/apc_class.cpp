@@ -389,7 +389,7 @@ bool two_robots::calc_specific_IK_solution_R2(Matrix T, State q2, int IKsol) {
 }
 
 // Check the feasibility of the state with no other information
-// Checks that IK exists for the IK solition of Robot 1
+// Checks that IK exists for the IK solution of Robot 1
 bool two_robots::IsRobotsFeasible_R1(Matrix T, State q) {
 	// T - Trans. matrix for the end of the rod while its start is in the origin
 	// q - angles of robot 1.
