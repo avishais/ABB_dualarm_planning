@@ -210,6 +210,9 @@ namespace ompl
 
             // Smooth the solution path
             void smoothPath(vector<Motion*> &path);
+            
+            // Serial reconstruct of a local-connection
+            bool reconstruct(Motion *, Motion *, Matrix &M);
 
         };
 

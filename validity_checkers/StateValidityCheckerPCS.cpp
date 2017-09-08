@@ -158,7 +158,6 @@ bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain, int
 
 	IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
-
 	return valid;
 }
 
@@ -388,7 +387,7 @@ bool StateValidityChecker::checkMotion(const ob::State *s1, const ob::State *s2,
 	//int nd = stateSpace_->validSegmentCount(s1, s2);
 
 	double d = stateDistance(s1, s2);
-	int nd = d / 0.1;
+	int nd = d / RBS_tol;
 
 	// initialize the queue of test positions
 	std::queue< std::pair<int, int> > pos;
@@ -486,13 +485,12 @@ bool StateValidityChecker::checkMotionRBS(State qa1, State qa2, State qb1, State
 	if (d < RBS_tol)
 		return true;
 
+	cout << recursion_depth << endl;
+
 	if (recursion_depth > RBS_max_depth)// || non_decrease_count > 10)
 		return false;
 
 	midpoint(qa1, qa2, qb1, qb2, q1, q2);
-
-	//if ( (qa2[5]>3.1415 && qb2[5]<-3.1415) || (qa2[5]<-3.1415 && qb2[5]>3.1415) )
-	//	return false;
 
 	// Check obstacles collisions and joint limits
 	if (!isValidRBS(q1, q2, active_chain, ik_sol)) // Also updates s_mid with the projected value
@@ -600,6 +598,11 @@ void StateValidityChecker::log_q(ob::State *s) {
 
 	State q1(6), q2(6);
 	retrieveStateVector(s, q1, q2);
+
+	log_q(q1, q2);
+}
+
+void StateValidityChecker::log_q(State q1, State q2) {
 
 	// Open a_path file
 	std::ofstream myfile;

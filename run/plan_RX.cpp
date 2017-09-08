@@ -32,11 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Avishai Sintov, Ioan Sucan */
+/* Author: Ioan Sucan, Avishai Sintov */
 
-#include "plan_SG.h"
-
-bool IKturn = true; // Define whether we sample q1 and solve IK for q2 (true) or vice versa.
+#include "plan_RX.h"
 
 bool isStateValid(const ob::State *state)
 {
@@ -61,16 +59,16 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         {
             return std::make_shared<og::LazyRRT>(si, maxStep);
             break;
-        }*/
-        /*case PLANNER_PRM:
+        }
+        case PLANNER_PRM:
         {
-        	return std::make_shared<og::PRM>(si);
-        	break;
-        }*/
-        /*case PLANNER_SBL:
+            return std::make_shared<og::PRM>(si);
+            break;
+        }
+        case PLANNER_SBL:
         {
-        	return std::make_shared<og::SBL>(si, maxStep);
-        	break;
+            return std::make_shared<og::SBL>(si, maxStep);
+            break;
         }*/
         default:
         {
@@ -125,7 +123,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	// set state validity checking for this space
 	//si->setStateValidityChecker(ob::StateValidityCheckerPtr(new myStateValidityCheckerClass(si)));
 	si->setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
-	si->setStateValidityCheckingResolution(0.02); // 3% ???
+	si->setStateValidityCheckingResolution(0.1); // 3% ???
 
 	// create start state
 	ob::ScopedState<ob::RealVectorStateSpace> start(Cspace);
@@ -183,7 +181,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 
 		// Save path to file
 		//std::ofstream myfile;
-		//myfile.open("pathRRTC.txt");
+		//myfile.open("pathGD.txt");
 		//og::PathGeometric& pog = static_cast<og::PathGeometric&>(*path); // Transform into geometric path class
 		//pog.printAsMatrix(myfile); // Print as matrix to file
 		//myfile.close();
@@ -199,7 +197,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 
 void extract_from_perf_file(ofstream &ToFile) {
 	ifstream FromFile;
-	FromFile.open("perf_log.txt");
+	FromFile.open("./paths/perf_log.txt");
 
 	string line;
 	while (getline(FromFile, line))
@@ -254,83 +252,76 @@ int main(int argn, char ** args) {
 
 	plan_C Plan;
 
+	srand (time(NULL));
+
 	int mode = 1;
 	switch (mode) {
 	case 1: {
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015, 8, 3}; // Robot 2 backfilp - Elbow down
+		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
-		//State c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
 
-		Plan.plan(c_start, c_goal, runtime, ptype, 0.5);
+		Plan.plan(c_start, c_goal, runtime, ptype, 0.2);
 
-		Plan.vfc.verify_path();
-
+		//Plan.vfc.verify_path();
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
-		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_" + plannerName + "_SG_3poles_minCpath.txt", ios::app);
+		ofstream GD;
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_GD_3poles_profileTime_JL.txt", ios::app);
 
-		for (int k = 0; k < 250; k++) {
+		for (int k = 0; k < 500; k++) {
 			Plan.plan(c_start, c_goal, runtime, ptype, 0.8);
 
-			bool verf = Plan.vfc.verify_path();
-			if (!verf) {
-				cout << "Press...\n";
-				//cin.ignore();
-			}
-			APS << verf << "\t";
+			//bool verf = Plan.vfc.verify_path();
+			//GD << verf << "\t";
 
 			// Extract from perf file
 			ifstream FromFile;
 			FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
 			string line;
 			while (getline(FromFile, line))
-				APS << line << "\t";
+				GD << line << "\t";
 			FromFile.close();
-			APS << endl;
+			GD << endl;
 		}
-		APS.close();
+		GD.close();
 		break;
 	}
-	case 3 : { // Benchmark maximum step size while benchmarking the step size
+	case 3 : { // Benchmark maximum step size
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
-		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
+		ofstream GD;
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_GD_3poles_rB.txt", ios::app);
 
-		int N = 500;
-		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 16; j++) {
-				double maxStep = 0.2 + 0.2*j;
+		for (int k = 0; k < 500; k++) {
+			for (int j = 0; j < 7; j++) {
+				double maxStep = 0.4 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
 				bool verf = Plan.vfc.verify_path();
 
-				APS << maxStep << " " << verf << "\t";
+				GD << maxStep << "\t";// << verf << "\t";
 
 				// Extract from perf file
 				ifstream FromFile;
 				FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
 				string line;
 				while (getline(FromFile, line))
-					APS << line << "\t";
+					GD << line << "\t";
 				FromFile.close();
-				APS << endl;
+				GD << endl;
 			}
 		}
-		APS.close();
+		GD.close();
 		break;
 	}
-
 	}
-
 
 	std::cout << std::endl << std::endl;
 

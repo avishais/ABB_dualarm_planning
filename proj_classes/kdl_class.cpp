@@ -250,11 +250,19 @@ State kdl::get_GD_result() {
 // This is only for validation. There is no use for this function in terms of closed chain kinematics
 void kdl::FK(State q) {
 
+	// Flip robot two vector
+	State q_flip(q.size());
+	for (int i = 0; i < 6; i++)
+		q_flip[i] = q[i];
+	for (int i = 11, j = 6; i >= 6; i--,j++)
+		q_flip[j] = q[i];
+	q_flip[11] = -q_flip[11];
+
 	// Create solver based on kinematic chain
 	ChainFkSolverPos_recursive fksolver = ChainFkSolverPos_recursive(chain);
 
-	for (int i = 0; i < q.size(); i++)
-		jointpositions(i) = q[i];
+	for (int i = 0; i < q_flip.size(); i++)
+		jointpositions(i) = q_flip[i];
 
 	// Calculate forward position kinematics
 	bool kinematics_status;

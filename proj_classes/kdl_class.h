@@ -86,6 +86,10 @@ public:
 		return P;
 	}
 
+	Matrix get_Tpose() {
+		return T_pose;
+	}
+
 	/** Performance parameters */
 	int IK_counter;
 	double IK_time;
