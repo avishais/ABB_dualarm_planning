@@ -7,7 +7,7 @@
 #include <ctime>
 #include <math.h>
 
-#define PI 3.1416
+#define PI_ 3.1416
 #define NUM_IK_SOLUTIONS 12
 
 using namespace std;

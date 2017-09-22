@@ -261,7 +261,7 @@ int main(int argn, char ** args) {
 		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
-		Plan.plan(c_start, c_goal, runtime, ptype, 0.2);
+		Plan.plan(c_start, c_goal, runtime, ptype, 0.5);
 
 		//Plan.vfc.verify_path();
 		break;

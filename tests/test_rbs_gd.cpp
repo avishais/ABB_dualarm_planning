@@ -57,7 +57,7 @@ int main() {
 				vfc.log_path_file(path);
 				cout << "Verified to be: " << vfc.verify_path(path) << endl;
 				cout << "Press...\n";
-				cin.ignore();
+				//cin.ignore();
 			}
 
 			f << vsuc << " " << path_valid << " " << svc.normDistance(q1, q2) << " " << rbs_time << endl;

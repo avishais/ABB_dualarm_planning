@@ -46,7 +46,7 @@ void o(T a) {
 	cout << a << endl;
 }
 
-ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
+ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double eps) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
@@ -59,7 +59,8 @@ ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxS
 	defaultSettings(); // Avishai
 
 	//Range = 0.2;
-	Range = maxStep;//(epsilon * 2) < 2 ? epsilon * 2 : 2;
+	set_epsilon(eps);
+	Range = (eps * 2) < 2 ? eps * 2 : 2; //maxStep;//
 }
 
 ompl::geometric::CBiRRT::~CBiRRT()
@@ -178,7 +179,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
 
 			// Project dstate (which currently is not on the manifold)
-			if (!check_project(dstate))  // Collision check is done inside the projection
+			if (!check_project(dstate))
 				return nmotion;
 
 			si_->copyState(tgi.xstate, dstate);
@@ -272,14 +273,14 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	bool solved         = false;
 
 	// ====================================
-
-	/*retrieveStateVector(start_node, q);
+/*
+	retrieveStateVector(start_node, q);
 	q[0] += 0.1;
-	check_valid_constraint(q);
+	check_relax_constraint(q);
 
 	log_q(q);
-	exit(1);*/
-
+	exit(1);
+*/
 	// ====================================
 
 	while (ptc == false)
@@ -349,9 +350,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			// it must be the case that either the start tree or the goal tree has made some progress
 			// so one of the parents is not nullptr. We go one step 'back' to avoid having a duplicate state
 			// on the solution path
-
-			cout << addedMotion << " " << tgi.xmotion << endl;
-
 			if (startMotion->parent)
 				startMotion = startMotion->parent;
 			else

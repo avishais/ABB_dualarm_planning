@@ -35,7 +35,7 @@ int main() {
 
 		double s = fRand(0.01, 1);
 		for (int j = 0; j < n; j++)
-			q2[j] = q1[j] + s * (fRand(-PI, PI)-q1[j]);
+			q2[j] = q1[j] + s * (fRand(-PI_, PI_)-q1[j]);
 
 		svc.seperate_Vector(q2, q2a, q2b);
 		int active_chain = rand() / RAND_MAX * 2;
@@ -74,7 +74,7 @@ int main() {
 				vfc.log_path_file(path);
 				cout << "Verified to be: " << vfc.verify_path(path) << endl;
 				cout << "Press...\n";
-				cin.ignore();
+				//cin.ignore();
 			}
 
 			f << vsuc << " " << path_valid << " " << svc.normDistance(q1, q2) << " " << rbs_time << endl;

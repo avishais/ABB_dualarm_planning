@@ -200,7 +200,7 @@ bool StateValidityChecker::sample_q(ob::State *st) {
 	while (1) {
 		// Random active chain
 		for (int i = 0; i < 6; i++)
-			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI - PI;
+			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
 
 		int ik_sol = rand() % 8;
 
@@ -230,7 +230,7 @@ State StateValidityChecker::sample_q() {
 	while (1) {
 		// Random active chain
 		for (int i = 0; i < 6; i++)
-			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI - PI;
+			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
 
 		int ik_sol = rand() % 8;
 
@@ -484,8 +484,6 @@ bool StateValidityChecker::checkMotionRBS(State qa1, State qa2, State qb1, State
 	double d = normDistanceDuo(qa1, qa2, qb1, qb2);
 	if (d < RBS_tol)
 		return true;
-
-	cout << recursion_depth << endl;
 
 	if (recursion_depth > RBS_max_depth)// || non_decrease_count > 10)
 		return false;

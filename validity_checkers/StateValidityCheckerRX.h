@@ -87,7 +87,7 @@ public:
 	bool check_project(const ob::State *state);
 
 	/** Check that the state is within the closure constriant bounds */
-	bool check_valid_constraint(State);
+	bool check_relax_constraint(State);
 
 	int get_valid_solution_index() {
 		return valid_solution_index;
@@ -151,6 +151,13 @@ public:
 			q_prev[i] = q[i];
 	}
 
+	void set_epsilon(double n) {
+		epsilon = n;
+	}
+	double get_epsilon() {
+		return epsilon;
+	}
+
 	void log_q(State, bool = true);
 
 	// Performance parameters and handle
@@ -199,6 +206,8 @@ private:
 	int n = 12; // Dimension of system
 	double epsilonD = 100; // Allowed tolerance from constraint bound - position
 	double epsilonA = 0.3; // Allowed tolerance from constraint bound - orientation
+	double epsilon;// = 0.3; // Benchmark 0->~0.7
+	double Ka = (epsilonA*epsilonA)/(epsilonD*epsilonD);
 };
 
 

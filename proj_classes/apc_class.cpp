@@ -114,7 +114,7 @@ int two_robots::get_countSolutions() {
 bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 	State q(6);
 
-	double q1_add_sol[NUM_IK_SOLUTIONS] = { 0, 0, 0, 0, PI, PI, PI, PI};
+	double q1_add_sol[NUM_IK_SOLUTIONS] = { 0, 0, 0, 0, PI_, PI_, PI_, PI_};
 	double q2_sign[NUM_IK_SOLUTIONS] = { -1, -1, -1, -1,  1,  1,  1,  1};
 	double q3_sign[NUM_IK_SOLUTIONS] = { 1, -1,  1, -1,  1, -1,  1, -1};
 	double sign456[NUM_IK_SOLUTIONS] = { 1, -1, -1,  1, -1,  1,  1, -1};
@@ -139,10 +139,10 @@ bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 	//q1
 	{
 		q[0] = atan2(p5[1], p5[0]) + q1_add_sol[solution_num];
-		if (q[0]>PI)
-			q[0] -= 2*PI;
-		if (q[0]<-PI)
-			q[0] += 2*PI;
+		if (q[0]>PI_)
+			q[0] -= 2*PI_;
+		if (q[0]<-PI_)
+			q[0] += 2*PI_;
 
 		if (include_joint_limits && fabs(q[0]) > q1minmax)
 			return false;
@@ -166,10 +166,10 @@ bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 		}
 		sinphi = q3_sign[solution_num]*sqrt(sinphi);
 		q[2] = -(atan2(sinphi, cosphi)+alpha);
-		if (q[2]>PI)
-			q[2] -= 2*PI;
-		if (q[2]<-PI)
-			q[2] += 2*PI;
+		if (q[2]>PI_)
+			q[2] -= 2*PI_;
+		if (q[2]<-PI_)
+			q[2] += 2*PI_;
 		if (include_joint_limits && (q[2] < q3min || q[2] > q3max))
 			return false;
 	}
@@ -179,11 +179,11 @@ bool two_robots::IKsolve_rob(Matrix T, int robot_num, int solution_num) {
 		double sinalpha1 = -l34*(sinphi) / sqrt(D2);
 		double alpha1 = atan2(-q2_sign[solution_num]*sinalpha1, sqrt(1 - sinalpha1*sinalpha1));
 		double alpha2 = atan2(p5[2] - l1 - b, sqrt(k2));
-		q[1] = q2_sign[solution_num] * (alpha1 + alpha2 - PI / 2);
-		if (q[1]>PI)
-			q[1] -= 2*PI;
-		if (q[1]<-PI)
-			q[1] += 2*PI;
+		q[1] = q2_sign[solution_num] * (alpha1 + alpha2 - PI_ / 2);
+		if (q[1]>PI_)
+			q[1] -= 2*PI_;
+		if (q[1]<-PI_)
+			q[1] += 2*PI_;
 		if (include_joint_limits && fabs(q[1]) > q2minmax)
 			return false;
 
@@ -590,7 +590,7 @@ void two_robots::initVector(State &V, int n) {
 
 // Convert degrees to radians
 double two_robots::deg2rad(double deg) {
-	return deg * PI / 180.0;
+	return deg * PI_ / 180.0;
 }
 
 // Print matrix data to console

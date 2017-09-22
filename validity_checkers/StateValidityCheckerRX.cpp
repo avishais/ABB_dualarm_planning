@@ -51,7 +51,6 @@ void StateValidityChecker::printStateVector(const ob::State *state) {
 }
 
 State StateValidityChecker::sample_q() {
-	// c is a 12 dimensional vector composed of [q1 q2]
 
 	State q(12), q1(6), q2(6);
 
@@ -59,13 +58,7 @@ State StateValidityChecker::sample_q() {
 		for (int i = 0; i < q.size(); i++)
 			q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
 
-		if (!GD(q))
-			continue;
-
-		q = get_GD_result();
-
-		seperate_Vector(q, q1, q2);
-		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+		if (!isValidRBS(q))
 			continue;
 
 		return q;
@@ -73,20 +66,19 @@ State StateValidityChecker::sample_q() {
 }
 
 bool StateValidityChecker::check_project(const ob::State *state) {
-	// c is a 12 dimensional vector composed of [q1 q2]
 
 	State q(12), q1(6), q2(6);
 	retrieveStateVector(state, q);
 	seperate_Vector(q, q1, q2);
 
 	// Check Constraints
-	if (withObs && ( !check_valid_constraint(q) ||  !check_angle_limits(q) || collision_state(P, q1, q2) ))
+	if (withObs && ( !check_relax_constraint(q) ||  !check_angle_limits(q) || collision_state(P, q1, q2) ))
 		return false;
 
 	return true;
 }
 
-bool StateValidityChecker::check_valid_constraint(State q) {
+bool StateValidityChecker::check_relax_constraint(State q) {
 
 	FK(q);
 
@@ -100,17 +92,18 @@ bool StateValidityChecker::check_valid_constraint(State q) {
 	for (int i = 0; i < 3; i++) {
 		d += (Tq[i][3]-T_pose[i][3])*(Tq[i][3]-T_pose[i][3]);
 	}
-	d = sqrt(d);
+	//d = sqrt(d);
 
 	double roll = atan2(Tq[1][0], Tq[0][0]);
 	double pitch = atan2(-Tq[2][0], sqrt(Tq[2][1]*Tq[2][1]+Tq[2][2]*Tq[2][2]));
 	double yaw = atan2(Tq[2][1], Tq[2][2]);
 
-	double a = sqrt(yaw*yaw + pitch*pitch + roll*roll);
+	double a = (yaw*yaw + pitch*pitch + roll*roll);
 
-	//cout << a << " " << d << endl;
-	if (d < epsilonD && a < epsilonA)
+	//cout << a << " " << d << " " << sqrt(Ka*d + a) << " " << epsilon << endl;
+	if ( sqrt(Ka*d + a) < epsilon ) {
 		return true;
+	}
 	else
 		return false;
 
@@ -126,16 +119,12 @@ bool StateValidityChecker::isValid(const ob::State *state) {
 	State q(12), q1(6), q2(6);
 	retrieveStateVector(state, q);
 
-	if (!GD(q))
-		return false;
-
-	q = get_GD_result();
-
 	seperate_Vector(q, q1, q2);
-	if (withObs && collision_state(P, q1, q2))
+
+	// Check Constraints
+	if (withObs && ( !check_relax_constraint(q) ||  !check_angle_limits(q) || collision_state(P, q1, q2) ))
 		return false;
 
-	updateStateVector(state, q);
 	q_prev = q;
 	return true;
 }
@@ -192,7 +181,7 @@ bool StateValidityChecker::isValidRBS(State q) {
 	seperate_Vector(q, q1, q2);
 
 	// Check Constraints
-	if (withObs && ( !check_valid_constraint(q) ||  !check_angle_limits(q) || collision_state(P, q1, q2) ))
+	if (withObs && ( !check_relax_constraint(q) ||  !check_angle_limits(q) || collision_state(P, q1, q2) ))
 		return false;
 
 	return true;

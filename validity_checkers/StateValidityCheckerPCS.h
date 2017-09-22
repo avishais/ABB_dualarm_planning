@@ -30,8 +30,8 @@ class StateValidityChecker : public two_robots, public collisionDetection
 {
 public:
 	/** Constructors */
-	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
-	StateValidityChecker() : two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
+	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI_}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
+	StateValidityChecker() : two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI_}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
 
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
