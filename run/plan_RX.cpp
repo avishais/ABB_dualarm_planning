@@ -50,7 +50,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::CBiRRT>(si, maxStep);
             break;
         }
-        /*case PLANNER_RRT:
+        case PLANNER_RRT:
         {
             return std::make_shared<og::RRT>(si, maxStep);
             break;
@@ -60,16 +60,16 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::LazyRRT>(si, maxStep);
             break;
         }
-        case PLANNER_PRM:
+        /*case PLANNER_PRM:
         {
             return std::make_shared<og::PRM>(si);
             break;
-        }
+        }*/
         case PLANNER_SBL:
         {
             return std::make_shared<og::SBL>(si, maxStep);
             break;
-        }*/
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -254,14 +254,14 @@ int main(int argn, char ** args) {
 
 	srand (time(NULL));
 
-	int mode = 3;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
 		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
-		Plan.plan(c_start, c_goal, runtime, ptype, 0.5);
+		Plan.plan(c_start, c_goal, runtime, ptype, 0.1);
 
 		//Plan.vfc.verify_path();
 		break;
@@ -299,7 +299,7 @@ int main(int argn, char ** args) {
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps1_3poles_rB.txt", ios::app);
 
 		for (int k = 0; k < 20; k++) {
-			for (int j = 0; j < 4; j++) {
+			for (int j = 0; j < 1; j++) {
 				double maxStep = 0.05 + 0.25*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
