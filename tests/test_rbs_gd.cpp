@@ -31,10 +31,11 @@ int main() {
 	int N = 0.5e6, i = 0;
 	while (i < N) {
 		q1 = svc.sample_q();
+		//q2 = svc.sample_q();
 		if (q1[0]==-1000)
 			continue;
 
-		double s = fRand(0.01, 1);
+		double s = fRand(0.001, 0.05);
 		for (int j = 0; j < n; j++)
 			q2[j] = q1[j] + s * (fRand(-PI, PI)-q1[j]);
 

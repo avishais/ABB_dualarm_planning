@@ -33,16 +33,23 @@ int main() {
 
 		q1 = svc.sample_q();
 
-		double s = fRand(0.01, 1);
-		for (int j = 0; j < n; j++)
-			q2[j] = q1[j] + s * (fRand(-PI_, PI_)-q1[j]);
+		int active_chain;
+		if (rand()%2==0) {
+			double s = fRand(0.01, 1);
+			for (int j = 0; j < n; j++)
+				q2[j] = q1[j] + s * (fRand(-PI_, PI_)-q1[j]);
 
-		svc.seperate_Vector(q2, q2a, q2b);
-		int active_chain = rand() / RAND_MAX * 2;
-		int ik_sol = rand() / RAND_MAX * 8;
+			svc.seperate_Vector(q2, q2a, q2b);
+			int active_chain = rand() / RAND_MAX * 2;
+			int ik_sol = rand() / RAND_MAX * 8;
 
-		if (!svc.IKproject(q2a, q2b, active_chain, ik_sol))
-			continue;
+			if (!svc.IKproject(q2a, q2b, active_chain, ik_sol))
+				continue;
+		}
+		else {
+			q2 = svc.sample_q();
+			svc.seperate_Vector(q2, q2a, q2b);
+		}
 		State ik2 = svc.identify_state_ik(q2a, q2b);
 
 		svc.seperate_Vector(q1, q1a, q1b);

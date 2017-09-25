@@ -71,6 +71,8 @@ bool StateValidityChecker::check_project(const ob::State *state) {
 	retrieveStateVector(state, q);
 	seperate_Vector(q, q1, q2);
 
+	checks++;
+
 	// Check Constraints
 	if (withObs && ( !check_relax_constraint(q) ||  !check_angle_limits(q) || collision_state(P, q1, q2) ))
 		return false;
@@ -366,7 +368,7 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << final_solved << endl;
 	myfile << PlanDistance << endl; // Distance between nodes 1
 	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << get_IK_counter() << endl; // How many IK checks? 5
+	myfile << checks << endl; // How many IK checks? 5
 	myfile << get_IK_time() << endl; // IK computation time 6
 	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
 	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8

@@ -66,7 +66,7 @@ hist(D(:,3));
 clear V d
 Dd = D(:,3);
 max_d = max(Dd);
-d = linspace(0, max_d, 30);
+d = linspace(0, max_d, 100);
 for i = 2:length(d)
     S = D(D(:,3)>=d(i-1) & D(:,3)<d(i), 1);
     V(i-1) = (1-sum(S)/length(S)) * 100;

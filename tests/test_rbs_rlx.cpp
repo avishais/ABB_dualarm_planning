@@ -33,9 +33,10 @@ Matrix load_ranf_confs(double eps) {
 	double t;
 
 	ifstream fq;
-	fq.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps" + std::to_string(eps) + ".txt");
+	//fq.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps" + std::to_string(eps) + ".txt");
+	fq.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps0.1.txt");
 	int i = 0;
-	while(!fq.eof()) {
+	while(!fq.eof()) {// || i > 1e5) {
 		for (int j=0; j < 12; j++) {
 			fq >> c_temp[j];
 		}
@@ -55,17 +56,17 @@ int main() {
 
 	// KDL
 	StateValidityChecker svc;
-	svc.set_epsilon(0.5);
+	svc.set_epsilon(0.1);
 
-	gen_data(svc);
-	Matrix C = load_ranf_confs(svc.get_epsilon());
-	exit(1);
+	//gen_data(svc);
+	Matrix C = load_ranf_confs(0.3);//svc.get_epsilon()
+	//exit(1);
 
 	int n = 12;
 	State q1(n), q2(n);
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/rlx_rbs_verification_eps1_withObs.txt", ios::app);
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/rlx_rbs_verification_eps0.1_withObs.txt", ios::app);
 
 	int N = 0.5e6, i = 0;
 
@@ -74,21 +75,31 @@ int main() {
 		q1 = C[k];
 		//q1 = svc.sample_q();
 
-		bool flag = false;
-		for (int k = 0; k < 20; k++) {
-			double s = fRand(0.01, 1);
-			for (int j = 0; j < n; j++)
-				q2[j] = q1[j] + s * (fRand(-PI, PI) - q1[j]);
+		if (1){//rand()%2==0) {
+			bool flag = false;
+			for (int a = 0; a < 20; a++) {
+				double s = fRand(0.001, 0.05);
+				for (int j = 0; j < n; j++)
+					q2[j] = q1[j] + s * (fRand(-PI, PI) - q1[j]);
 
-			if (!svc.isValidRBS(q2))
-				continue;
-			else {
-				flag = true;
-				break;
+				if (!svc.isValidRBS(q2))
+					continue;
+				else {
+					flag = true;
+					break;
+				}
 			}
+			if (!flag)
+				continue;
 		}
-		if (!flag)
-			continue;
+		else {
+			int j;
+			do {
+				j = rand() % C.size();
+			} while (j==k);
+
+			q2 = C[j];
+		}
 
 		clock_t begin = clock();
 		bool vsuc = svc.checkMotionRBS(q1, q2, 0, 0);
@@ -108,8 +119,8 @@ int main() {
 		else
 			f << 0 << " " << 0 << " " << svc.normDistance(q1, q2) << " " << rbs_time << endl;
 	}
-
 /*
+
 	for (int j = 0; j < C.size()-1; j++) {
 		for (int k = j+1; k < C.size(); k++) {
 			q1 = C[j];
@@ -129,8 +140,8 @@ int main() {
 				f << 0 << " " << 0 << " " << svc.normDistance(q1, q2) << " " << rbs_time << endl;
 
 		}
-	}
-*/
+	}*/
+
 	f.close();
 
 

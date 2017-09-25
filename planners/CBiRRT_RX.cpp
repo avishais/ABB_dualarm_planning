@@ -46,7 +46,7 @@ void o(T a) {
 	cout << a << endl;
 }
 
-ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double eps) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
+ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
@@ -59,8 +59,9 @@ ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double eps)
 	defaultSettings(); // Avishai
 
 	//Range = 0.2;
+	double eps = 0.1;
 	set_epsilon(eps);
-	Range = (eps * 2) < 2 ? eps * 2 : 2; //maxStep;//
+	Range = maxStep;//(eps * 2) < 2 ? eps * 2 : 2; //
 }
 
 ompl::geometric::CBiRRT::~CBiRRT()
@@ -201,6 +202,14 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			motion->root = nmotion->root;
 			tgi.xmotion = motion;
 			tree->add(motion);
+
+			/*std::ofstream f;
+			f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps0.1.txt", ios::app);
+			retrieveStateVector(dstate, q);
+			for (int i = 0; i < 12; i++)
+				f << q[i] << " ";
+			f << endl;
+			f.close();*/
 
 			nmotion = motion;
 
