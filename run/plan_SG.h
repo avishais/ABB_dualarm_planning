@@ -16,12 +16,10 @@
 
 // Modified and custom planners
 #include "../planners/CBiRRT_SG.h"
-//#include "../planners/RRT_PCS.h"
+#include "../planners/RRT_SG.h"
 //#include "../planners/LazyRRT_PCS.h"
 //#include "../planners/PRM_PCS.h"
 //#include "../planners/SBL_PCS.h"
-
-#include "../validity_checkers/verification_class.h"
 
 // Standard libraries
 #include <iostream>
@@ -60,7 +58,6 @@ public:
 
 	double maxStep;
 
-	verification_class vfc;
 };
 
 #endif /* PLAN_C_SPACE_H_ */

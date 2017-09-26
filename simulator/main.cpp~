@@ -10,6 +10,9 @@
 #include <unistd.h>
 
 #define ROBOTS_DISTANCE 900
+#define ROBOTS_DISTANCE_ENVII 1200
+#define ROD_LENGTH 300
+#define ROD_LENGTH_ENVII 500
 
 PQP_Model base, link1, link2, link3, link4, link5, link6, EE, table, room, floor1;
 Model *base_to_draw, *link1_to_draw, *link2_to_draw, *link3_to_draw, \
@@ -31,6 +34,7 @@ PQP_REAL M5[3][3],M6[3][3],M7[3][3];
 PQP_REAL Mobs[3][3], Tobs[3];
 
 bool withObs = true;
+int env = 2;
 
 int step;
 
@@ -95,6 +99,9 @@ void InitViewerWindow()
 	GLfloat Specular[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	GLfloat SpecularExp[] = { 50 };
 	GLfloat Emission[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glMaterialfv(GL_FRONT, GL_AMBIENT, Ambient);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, Diffuse);
@@ -595,7 +602,8 @@ void DisplayCB()
 		glPopMatrix();
 	}
 
-	if (withObs) {
+	// Environment I
+	if (withObs && env == 1) {
 
 		// Obs 1
 		MRotZ(Mobs,0);
@@ -647,6 +655,46 @@ void DisplayCB()
 			glPushMatrix();
 			glMultMatrixd(oglm);
 			obs3_to_draw->Draw();
+			glPopMatrix();
+		}
+	}
+
+	// Environment II
+	if (withObs && env == 2) {
+
+		// Obs 1
+		MRotZ(Mobs,0);
+		//MxM(R0,Mobs,Mobs);
+
+		Tobs[0] =  0;
+		Tobs[1] =  0;
+		Tobs[2] =  0;
+
+		if(visualize == 1 && withObs) {
+			glColor4f(1.0,0.0,0.0,1);
+			MVtoOGL(oglm,Mobs,Tobs);
+			glPushMatrix();
+			glMultMatrixd(oglm);
+			obs1_to_draw->Draw();
+			glPopMatrix();
+		}
+
+		double dObs = 250;
+
+		// Obs 2
+		MRotX(Mobs,3.14);
+		//MxM(R0,Mobs,Mobs);
+
+		Tobs[0] =  0;
+		Tobs[1] =  0;
+		Tobs[2] =  800;
+
+		if(visualize == 1 && withObs) {
+			glColor4f(1.0,0.0,0.0,1);
+			MVtoOGL(oglm,Mobs,Tobs);
+			glPushMatrix();
+			glMultMatrixd(oglm);
+			obs2_to_draw->Draw();
 			glPopMatrix();
 		}
 	}
@@ -1103,77 +1151,121 @@ void load_models(){
 
 	if (withObs) {
 
-		// initialize obs1
+		if (env == 1) {
+			// initialize obs1
+			obs1_to_draw = new Model("obs.tris");
 
-		obs1_to_draw = new Model("obs.tris");
+			fp = fopen("obs.tris","r");
+			if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
+			fscanf(fp,"%d",&ntris);
 
-		fp = fopen("obs.tris","r");
-		if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
-		fscanf(fp,"%d",&ntris);
+			obs1.BeginModel();
+			for (i = 0; i < ntris; i++)
+			{
+				double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
+				fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+						&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
+				PQP_REAL p1[3],p2[3],p3[3];
+				p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
+				p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
+				p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
+				obs1.AddTri(p1,p2,p3,i);
+			}
+			obs1.EndModel();
+			fclose(fp);
 
-		obs1.BeginModel();
-		for (i = 0; i < ntris; i++)
-		{
-			double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
-			fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-					&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
-			PQP_REAL p1[3],p2[3],p3[3];
-			p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
-			p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
-			p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
-			obs1.AddTri(p1,p2,p3,i);
+			// initialize obs2
+			obs2_to_draw = new Model("obs.tris");
+
+			fp = fopen("obs.tris","r");
+			if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
+			fscanf(fp,"%d",&ntris);
+
+			obs2.BeginModel();
+			for (i = 0; i < ntris; i++)
+			{
+				double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
+				fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+						&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
+				PQP_REAL p1[3],p2[3],p3[3];
+				p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
+				p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
+				p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
+				obs2.AddTri(p1,p2,p3,i);
+			}
+			obs2.EndModel();
+			fclose(fp);
+
+			// initialize obs3
+			obs3_to_draw = new Model("obs.tris");
+
+			fp = fopen("obs.tris","r");
+			if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
+			fscanf(fp,"%d",&ntris);
+
+			obs3.BeginModel();
+			for (i = 0; i < ntris; i++)
+			{
+				double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
+				fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+						&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
+				PQP_REAL p1[3],p2[3],p3[3];
+				p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
+				p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
+				p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
+				obs3.AddTri(p1,p2,p3,i);
+			}
+			obs3.EndModel();
+			fclose(fp);
 		}
-		obs1.EndModel();
-		fclose(fp);
 
-		// initialize obs2
+		if (env == 2) {
+			// initialize obs1
+			obs1_to_draw = new Model("cone.tris");
 
-		obs2_to_draw = new Model("obs.tris");
+			fp = fopen("cone.tris","r");
+			if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
+			fscanf(fp,"%d",&ntris);
 
-		fp = fopen("obs.tris","r");
-		if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
-		fscanf(fp,"%d",&ntris);
+			obs1.BeginModel();
+			for (i = 0; i < ntris; i++)
+			{
+				double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
+				fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+						&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
+				PQP_REAL p1[3],p2[3],p3[3];
+				p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
+				p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
+				p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
+				obs1.AddTri(p1,p2,p3,i);
+			}
+			obs1.EndModel();
+			fclose(fp);
 
-		obs2.BeginModel();
-		for (i = 0; i < ntris; i++)
-		{
-			double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
-			fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-					&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
-			PQP_REAL p1[3],p2[3],p3[3];
-			p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
-			p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
-			p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
-			obs2.AddTri(p1,p2,p3,i);
+			// initialize obs2
+			obs2_to_draw = new Model("cone.tris");
+
+			fp = fopen("cone.tris","r");
+			if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
+			fscanf(fp,"%d",&ntris);
+
+			obs2.BeginModel();
+			for (i = 0; i < ntris; i++)
+			{
+				double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
+				fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+						&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
+				PQP_REAL p1[3],p2[3],p3[3];
+				p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
+				p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
+				p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
+				obs2.AddTri(p1,p2,p3,i);
+			}
+			obs2.EndModel();
+			fclose(fp);
 		}
-		obs2.EndModel();
-		fclose(fp);
-
-		// initialize obs3
-
-		obs3_to_draw = new Model("obs.tris");
-
-		fp = fopen("obs.tris","r");
-		if (fp == NULL) { fprintf(stderr,"Couldn't open table.tris\n"); exit(-1); }
-		fscanf(fp,"%d",&ntris);
-
-		obs3.BeginModel();
-		for (i = 0; i < ntris; i++)
-		{
-			double p1x,p1y,p1z,p2x,p2y,p2z,p3x,p3y,p3z;
-			fscanf(fp,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-					&p1x,&p1y,&p1z,&p2x,&p2y,&p2z,&p3x,&p3y,&p3z);
-			PQP_REAL p1[3],p2[3],p3[3];
-			p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
-			p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
-			p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
-			obs3.AddTri(p1,p2,p3,i);
-		}
-		obs3.EndModel();
-		fclose(fp);
 
 		// initialize room
-
 		room_to_draw = new Model("room.tris");
 
 		fp = fopen("room.tris","r");
@@ -1190,13 +1282,12 @@ void load_models(){
 			p1[0] = (PQP_REAL)p1x; p1[1] = (PQP_REAL)p1y; p1[2] = (PQP_REAL)p1z;
 			p2[0] = (PQP_REAL)p2x; p2[1] = (PQP_REAL)p2y; p2[2] = (PQP_REAL)p2z;
 			p3[0] = (PQP_REAL)p3x; p3[1] = (PQP_REAL)p3y; p3[2] = (PQP_REAL)p3z;
-			EE2.AddTri(p1,p2,p3,i);
+			room.AddTri(p1,p2,p3,i);
 		}
 		room.EndModel();
 		fclose(fp);
 
 		// initialize floor
-
 		floor_to_draw = new Model("floor.tris");
 
 		fp = fopen("floor.tris","r");
@@ -1341,8 +1432,8 @@ void execute_path(int k){
 
 	glutPostRedisplay();
 	if(k<RoboStates.size()-1){
-		if (step==1)
-			sleep(5);
+		//if (step==1)
+		//	sleep(5);
 
 		step+=1;
 		glutTimerFunc(sim_velocity,execute_path,k+1);
@@ -1369,7 +1460,12 @@ int fake_rod() {
 
 	fprintf(f, "%d\n", 501*nlines);
 
-	double L = 300.0;
+	double L;
+	if (env == 1)
+		L = ROD_LENGTH;
+	else if (env == 2)
+		L = ROD_LENGTH_ENVII;
+
 	double dt = L/500;
 	for (int i=0; i<nlines; i++) {
 		for (int j = 0; j<500; j++)
@@ -1400,6 +1496,9 @@ int main(int argc, char **argv)
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
 
 	// create the window
+
+	if (env == 2)
+		offsetX = ROBOTS_DISTANCE_ENVII;
 
 	glutCreateWindow("Robot View");
 

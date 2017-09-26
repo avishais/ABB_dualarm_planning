@@ -268,9 +268,9 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 					local_connection_count++;
 					bool validMotion = false;
 					if (mpath[i]->parent->ik_q1_active == mpath[i]->ik_q1_active && mpath[i]->ik_q1_active!=-1)
-						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 0, nmotion->ik_q1_active);
+						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 0, mpath[i]->ik_q1_active);
 					if (!validMotion && mpath[i]->parent->ik_q2_active == mpath[i]->ik_q2_active && mpath[i]->ik_q2_active!=-1)
-						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 1, nmotion->ik_q2_active);
+						validMotion = checkMotionRBS(mpath[i]->parent->state, mpath[i]->state, 1, mpath[i]->ik_q2_active);
 					local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
 					if (validMotion) {

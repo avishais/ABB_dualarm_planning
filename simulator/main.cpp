@@ -34,7 +34,7 @@ PQP_REAL M5[3][3],M6[3][3],M7[3][3];
 PQP_REAL Mobs[3][3], Tobs[3];
 
 bool withObs = true;
-int env = 2;
+int env = 1;
 
 int step;
 

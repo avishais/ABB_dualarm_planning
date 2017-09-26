@@ -59,7 +59,6 @@ ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxS
 	defaultSettings();
 
 	Range = maxStep;
-
 }
 
 ompl::geometric::CBiRRT::~CBiRRT()
@@ -152,58 +151,6 @@ double ompl::geometric::CBiRRT::distanceBetweenTrees(TreeData &tree1, TreeData &
 	return minD;
 }
 
-// Sample singularities
-bool ompl::geometric::CBiRRT::sampleSingular(ob::State* state)
-{
-	State q1(6), q2(6), q2_mode(6), q2_add(6), ik(2);
-	int sol_R2 = -1;
-	bool valid = false;
-
-	int sMode = rng_.uniformInt(0, 2);
-	switch (sMode) {
-	case 0:
-		q2_mode = {1,1,0,1,0,1};
-		q2_add = {0,0,-PI_/2,0,0,0};
-		break;
-	case 1:
-		q2_mode = {1,1,1,1,0,1};
-		q2_add = {0,0,0,0,0,0};
-		break;
-	case 2:
-		q2_mode = {1,1,0,1,1,1};
-		q2_add = {0,0,-PI_/2,0,0,0};
-	}
-
-	Matrix Q = getQ();
-
-	do {
-		sampler_->sampleUniform(state);
-		retrieveStateVector(state, q1, q2);
-
-		// Make the sample of the passive chain singular
-		for (int i = 0; i < 6; i++)
-			q2[i] = q2[i]*q2_mode[i]+q2_add[i];
-
-		Matrix Qinv = Q;
-		InvertMatrix(Q, Qinv); // Invert matrix
-		if (IsRobotsFeasible_R2(Qinv, q2)) {
-
-			sol_R2 = rng_.uniformInt(0, get_countSolutions()-1);
-			q1 = get_all_IK_solutions_1(sol_R2);
-			
-			updateStateVector(state, q1, q2);
-			ik = identify_state_ik(state);
-			if (ik[1] == -1) 
-				continue;
-
-			if (!collision_state(getPMatrix(), q1, q2))
-				valid = true;
-		}
-	} while (!valid);
-
-	return valid;
-}
-
 ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, int mode, int count_iterations)
 // tmotion - target
 // nmotion - nearest
@@ -277,16 +224,20 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			return nmotion;
 
 		// Check motion
+		bool validMotion;
 		clock_t sT = clock();
 		local_connection_count++;
-		bool validMotion = checkMotion(nmotion->state, dstate, 0, ik_sol);
-		//bool validMotion = checkMotionRBS(nmotion->state, dstate, 0, ik_sol);
+		if (mode==3 && reach) // dstate is singular
+			validMotion = checkMotionRBS(nmotion->state, dstate, 2, 0, ik_sol);
+		else if (nmotion->ik_q1_active == -2) // nmotion is singular
+			validMotion = checkMotionRBS(nmotion->state, dstate, 1, 0, ik_sol);
+		else
+			validMotion = checkMotionRBS(nmotion->state, dstate, 0, ik_sol);
+		//bool validMotion = checkMotion(nmotion->state, dstate, 0, ik_sol);
 		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
 		if (validMotion)
 		{
-			if ((nmotion->ik_q1_active != 3 && nmotion->ik_q1_active != 0) || (ik_sol != 3 && ik_sol != 0)) 
-				cout << nmotion->ik_q1_active << " " << ik_sol << endl;
 			/* Update advanced motion */
 			Motion *motion = new Motion(si_);
 			motion->ik_q1_active = (mode == 3 && reach) ? -2 : ik_sol;
@@ -297,6 +248,9 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			tree->add(motion);
 
 			nmotion = motion;
+
+			if (nmotion->ik_q1_active == -2)
+				return nmotion;
 
 			if (reach) {
 				growTree_reached = true;
@@ -437,8 +391,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			}
 		}
 
-		cout << "Trees size: " << tStart_->size() << ", " << tGoal_->size() << endl;
-		cout << "Current trees distance: " << distanceBetweenTrees(tree, otherTree) << endl << endl;
+		//cout << "Trees size: " << tStart_->size() << ", " << tGoal_->size() << endl;
+		//cout << "Current trees distance: " << distanceBetweenTrees(tree, otherTree) << endl << endl;
 
 		//==========================================================================
 
@@ -451,6 +405,7 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			// Sample singular configuration
 			sampleSingular(rstate);
 			mode = 3;
+			//cout << "Sampled singular.\n";
 		}
 
 		// Grow tree

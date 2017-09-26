@@ -8,7 +8,7 @@ D = D(:,1:12);
 figure(1)
 clf
 hold on
-for i = 12%1:12
+for i = 1:12
     %     plot(D(:,1),D(:,i),'.-k');
     plot(rad2deg(D(:,i)),'.-k');
     

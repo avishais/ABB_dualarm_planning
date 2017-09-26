@@ -43,7 +43,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "../validity_checkers/StateValidityCheckerPCS.h"
+#include "../validity_checkers/StateValidityCheckerRSS.h"
 
 namespace ompl
 {
@@ -111,7 +111,6 @@ namespace ompl
 
             // Flag of successful reach to point in the growTree function
             bool growTree_reached;
-
 
         protected:
 
@@ -196,9 +195,6 @@ namespace ompl
 
             /** \brief Grow a tree towards a random state */
             Motion* growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *nmotion, Motion *tmotion, int, int);
-
-            /** Sample near singularities */
-            bool sampleSingular(ob::State*);
 
             /** \brief Computes the minimum distance between files !!! Do not use in actual planning - very inefficient !!! */
             double distanceBetweenTrees(TreeData &tree1, TreeData &tree2);

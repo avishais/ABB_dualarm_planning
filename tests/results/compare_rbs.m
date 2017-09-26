@@ -4,7 +4,7 @@ clc
 Dgd = load('gd_rbs_verification_withObs.txt');
 Dpcs = load('pcs_rbs_verification_withObs.txt');
 Drss = load('rss_rbs_verification_withObs.txt');
-Drlx = load('rlx_rbs_verification_eps0.1_withObs.txt');
+Drlx = load('rlx_rbs_verification_eps0.5_withObs.txt');
 
 clear Vgd Vpcs Vrss Vrlx
 clear dgd dpcs drss drlx
@@ -61,7 +61,7 @@ drss = d(2:end);
 
 %% rlx
 
-bins = 10;
+bins = 15;
 
 D = Drlx;
 Dd = D(:,3);
@@ -92,4 +92,4 @@ xlim([max([dpcs(1) dgd(1) drss(1) drlx(1)]) max([dpcs(end) dgd(end) drss(end) dr
 set(h, 'Position', [100, 100, 800, 400]);
 xlabel('distance: $\sqrt{(\phi_1-\phi_2)^T(\phi_1-\phi_2)}$','Interpreter','latex');
 ylabel('success rate (%)');
-% print successRate.eps -depsc -r200
+print successRate.eps -depsc -r200
