@@ -46,7 +46,7 @@ all:
 
 	#$(CXX) ${CPP_P_SG} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o psg $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 
-	$(CXX) ${CPP_P_RX} ${CPPRX} ${CPPPQP} ${CPPVRF} -o prx1 $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
+	$(CXX) ${CPP_P_RX} ${CPPRX} ${CPPPQP} ${CPPVRF} -o prx $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 
 	#$(CXX) ${CPP_P_HB} ${CPPHB} ${CPPPQP} ${CPPVRF} -o phb $(CXXFLAGS) $(LDFLAGS) -DHB -std=c++11
 

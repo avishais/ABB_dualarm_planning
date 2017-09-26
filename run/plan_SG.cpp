@@ -98,8 +98,8 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	Qbounds.setHigh(3, 2.79);
 	Qbounds.setLow(4, -2.09);
 	Qbounds.setHigh(4, 2.09);
-	Qbounds.setLow(5, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it - this impacts the sampler
-	Qbounds.setHigh(5, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
+	Qbounds.setLow(5, -PI_);// -6.98); // Should be -6.98 but currently the IK won't allow it - this impacts the sampler
+	Qbounds.setHigh(5, PI_);// 6.98); // Should be 6.98 but currently the IK won't allow it
 	Qbounds.setLow(6, -2.88); // Robot 2
 	Qbounds.setHigh(6, 2.88);
 	Qbounds.setLow(7, -1.919);
@@ -110,8 +110,8 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	Qbounds.setHigh(9, 2.79);
 	Qbounds.setLow(10, -2.09);
 	Qbounds.setHigh(10, 2.09);
-	Qbounds.setLow(11, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it
-	Qbounds.setHigh(11, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
+	Qbounds.setLow(11, -PI_);// -6.98); // Should be -6.98 but currently the IK won't allow it
+	Qbounds.setHigh(11, PI_);// 6.98); // Should be 6.98 but currently the IK won't allow it
 
 	// set the bound for the compound space
 	Q->as<ob::RealVectorStateSpace>()->setBounds(Qbounds);

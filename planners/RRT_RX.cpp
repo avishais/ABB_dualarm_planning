@@ -204,7 +204,6 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
             nn_->add(motion);
             double dist = 0.0;
             bool sat = goal->isSatisfied(motion->state, &dist);
-            cout << dist << " " << approxdif << endl;
             if (sat)
             {
                 approxdif = dist;
