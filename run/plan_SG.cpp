@@ -57,21 +57,21 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
             return std::make_shared<og::RRT>(si, maxStep);
             break;
         }
-        /*case PLANNER_LAZYRRT:
+        case PLANNER_LAZYRRT:
         {
             return std::make_shared<og::LazyRRT>(si, maxStep);
             break;
-        }*/
+        }
         /*case PLANNER_PRM:
         {
         	return std::make_shared<og::PRM>(si);
         	break;
         }*/
-        /*case PLANNER_SBL:
+        case PLANNER_SBL:
         {
         	return std::make_shared<og::SBL>(si, maxStep);
         	break;
-        }*/
+        }
         default:
         {
             OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
@@ -254,7 +254,7 @@ int main(int argn, char ** args) {
 
 	plan_C Plan;
 
-	int mode = 1;
+	int mode = 3;
 	switch (mode) {
 	case 1: {
 		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
@@ -262,7 +262,7 @@ int main(int argn, char ** args) {
 		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 		//State c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
 
-		Plan.plan(c_start, c_goal, runtime, ptype, 2.5);
+		Plan.plan(c_start, c_goal, runtime, ptype, 1.4);
 
 		//Plan.vfc.verify_path();
 
@@ -299,8 +299,8 @@ int main(int argn, char ** args) {
 
 		int N = 500;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 2; j++) {
-				double maxStep = 0.2 + 0.2*j;
+			for (int j = 0; j < 12; j++) {
+				double maxStep = 0.05 + 0.25*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

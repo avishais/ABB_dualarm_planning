@@ -160,7 +160,7 @@ ompl::base::PlannerStatus ompl::geometric::RRT::solve(const base::PlannerTermina
 			gg = true;
 		}
 		else {
-			if (rng_.uniform01() > 0.1) // 20% of the sampling, sample a singular point.
+			if (rng_.uniform01() > 0.05) // 20% of the sampling, sample a singular point.
 				// sample random state
 				sampler_->sampleUniform(rstate);
 			else {

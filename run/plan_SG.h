@@ -17,9 +17,9 @@
 // Modified and custom planners
 #include "../planners/CBiRRT_SG.h"
 #include "../planners/RRT_SG.h"
-//#include "../planners/LazyRRT_PCS.h"
+#include "../planners/LazyRRT_SG.h"
 //#include "../planners/PRM_PCS.h"
-//#include "../planners/SBL_PCS.h"
+#include "../planners/SBL_SG.h"
 
 // Standard libraries
 #include <iostream>

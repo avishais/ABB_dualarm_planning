@@ -160,7 +160,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 			gg = true;
 		}
 		else {
-			if (rng_.uniform01() > 0.20) // 20% of the sampling, sample a singular point.
+			if (rng_.uniform01() > 0.15) // 20% of the sampling, sample a singular point.
 				// sample random state
 				sampler_->sampleUniform(rstate);
 			else {

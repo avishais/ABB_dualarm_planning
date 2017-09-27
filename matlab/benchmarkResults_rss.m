@@ -17,6 +17,7 @@ switch plannerType
     case 'BiRRT'
         D = load('Benchmark_BiRRT_SG_3poles_rB.txt'); D = D(D(:,2)==1,:);
     case 'RRT'
+        D = load('Benchmark_RRT_SG_3poles_rB.txt'); D = D(D(:,2)==1,:);
     case 'LazyRRT'
     case 'SBL'
 end
