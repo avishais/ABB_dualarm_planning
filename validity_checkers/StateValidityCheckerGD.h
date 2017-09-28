@@ -20,8 +20,10 @@
 
 #include <iostream>
 
-#define ROBOTS_DISTANCE 900
-#define ROD_LENGTH 300
+//#define ROBOTS_DISTANCE 900
+//#define ROD_LENGTH 300
+#define ROBOTS_DISTANCE 1200
+#define ROD_LENGTH 500
 
 namespace ob = ompl::base;
 using namespace std;
@@ -30,8 +32,8 @@ class StateValidityChecker : public collisionDetection, public kdl
 {
 public:
 	/** Constructors */
-	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), kdl(ROBOTS_DISTANCE, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
-	StateValidityChecker() : kdl(ROBOTS_DISTANCE, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
+	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), kdl(ROBOTS_DISTANCE, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0,2) {q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
+	StateValidityChecker() : kdl(ROBOTS_DISTANCE, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0,2) {q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
 
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
@@ -198,7 +200,7 @@ private:
 	Matrix P;
 
 	double dq = 0.05; // Serial local connection resolution
-	bool withObs = false; // Include obstacles?
+	bool withObs = true; // Include obstacles?
 	double RBS_tol = 0.05; // RBS local connection resolution
 	int RBS_max_depth = 150; // Maximum RBS recursion depth
 	int n = 12; // Dimension of system

@@ -160,7 +160,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 			gg = true;
 		}
 		else {
-			if (rng_.uniform01() > 0.15) // 20% of the sampling, sample a singular point.
+			if (rng_.uniform01() > 0.2) // 20% of the sampling, sample a singular point.
 				// sample random state
 				sampler_->sampleUniform(rstate);
 			else {
@@ -185,13 +185,25 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 			reach = false;
 		}
 
-		// If not goal, then must project
-		if (!(gg && reach)) {
+		if (reach && (sg || gg)) {
+			if (gg) { // If trying to connect to the goal
+				ik_sol = ik_goal[0];
+				if (nmotion->ik_q1_active != -2 && nmotion->ik_q1_active != ik_sol)
+					continue;
+			}
+			else if (sg) { // If trying to connect to a singular configuration
+				if (nmotion->ik_q1_active == -2)
+					continue;
+				ik_sol = nmotion->ik_q1_active;
+			}
+		}
+		else { // If not goal, then must project
 			retrieveStateVector(dstate, q1, q2);
 			Matrix T = getQ();
 
 			if (nmotion->ik_q1_active == -2)
-				ik_sol = rand() % 8;//rng_.uniformInt(0,7); // The nearest neighbor has a singularity, connect to it with a random IK solution
+				ik_sol = rng_.uniformInt(0,1) ? 0 : 3;
+				//ik_sol = rand() % 8;//rng_.uniformInt(0,7); // The nearest neighbor has a singularity, connect to it with a random IK solution
 			else
 				ik_sol = nmotion->ik_q1_active;
 
@@ -206,17 +218,6 @@ ompl::base::PlannerStatus ompl::geometric::LazyRRT::solve(const base::PlannerTer
 
 			updateStateVector(xstate, q1, q2);
 			dstate = xstate;
-		}
-		else if (gg && reach) { // check if can connect to the goal
-			ik_sol = ik_goal[0];
-			if (nmotion->ik_q1_active != -2 && nmotion->ik_q1_active != ik_sol)
-				continue;
-		}
-
-		if (sg && reach) {
-			if (nmotion->ik_q1_active == -2)
-				continue;
-			ik_sol = nmotion->ik_q1_active;
 		}
 
 		if (nmotion->ik_q1_active == -2 && ik_sol == -2) // Not necessary, but...

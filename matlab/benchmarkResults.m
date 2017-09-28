@@ -12,7 +12,7 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{3};
+plannerType = planners{1};
 switch plannerType
     case 'BiRRT'
         D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt');
@@ -209,10 +209,13 @@ clf
 plot(T1,Md*100,'-k','linewidth',2);
 hold on
 plot(T2,Mg*100,'--k','linewidth',2);
-plot(T3,Mb*100,':k','linewidth',2);
+% plot(T3,Mb*100,':k','linewidth',2);
 hold off
-xlabel('maximum runtime [sec]');
-ylabel('failure rate [%]');
-legend('PCS','GD','HB');
-xlim([0 max([T1 T2])]);
-title(plannerType);
+xlabel('maximum runtime (sec)');
+ylabel('failure rate (%)');
+legend('PCS','NR');
+xlim([0 1.2]);%max([T1 T2])]);
+% title(plannerType);
+set(gca,'fontsize',13);
+% set(h, 'Position', [100, 100, 800, 400]);
+% print PCS_NR_runtime.eps -depsc -r200

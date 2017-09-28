@@ -21,7 +21,7 @@ class collisionDetection
 public:
 
 	double offsetX, offsetY, offsetZ, offsetRot;
-	collisionDetection(double,double,double,double);
+	collisionDetection(double,double,double,double,int = 1);
 	void load_models();
 	int collision_state(Matrix M, State q1, State q2);
 	PQP_Model base, link1, link2, link3, link4, link5, link6, EE, table, obs1, obs2, obs3;
@@ -36,6 +36,8 @@ public:
 	double get_collisionCheck_time() {
 		return collisionCheck_time;
 	}
+
+	int env;
 };
 
 #endif

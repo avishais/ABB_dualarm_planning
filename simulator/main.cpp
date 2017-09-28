@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <unistd.h>
+#include <string.h>
 
 #define ROBOTS_DISTANCE 900
 #define ROBOTS_DISTANCE_ENVII 1200
@@ -34,7 +35,7 @@ PQP_REAL M5[3][3],M6[3][3],M7[3][3];
 PQP_REAL Mobs[3][3], Tobs[3];
 
 bool withObs = true;
-int env = 1;
+int env;
 
 int step;
 
@@ -554,7 +555,7 @@ void DisplayCB()
 		table_to_draw->Draw();
 		glPopMatrix();
 	}
-	if(visualize == 1){
+	if(0 && visualize == 1){
 		glColor3d(0.8,0.9,0.9);
 		MVtoOGL(oglm,R0,Ti);
 		glPushMatrix();
@@ -679,15 +680,13 @@ void DisplayCB()
 			glPopMatrix();
 		}
 
-		double dObs = 250;
-
 		// Obs 2
 		MRotX(Mobs,3.14);
 		//MxM(R0,Mobs,Mobs);
 
 		Tobs[0] =  0;
 		Tobs[1] =  0;
-		Tobs[2] =  800;
+		Tobs[2] =  790;
 
 		if(visualize == 1 && withObs) {
 			glColor4f(1.0,0.0,0.0,1);
@@ -1477,18 +1476,44 @@ int fake_rod() {
 
 int main(int argc, char **argv)
 {
+	if (argc == 2 && !strcmp(argv[1],"-h")) {
+		std::cout << std::endl;
+		std::cout << " ABB IRB-120 dual-arm simulator" << std::endl;
+		std::cout << " Syntex: " << std::endl;
+		std::cout << "   ./viz <mode> <velocity> <environment>" << std::endl;
+		std::cout << "      <mode>: 0 - Continuous motion, 1 - Step by step with the press of a button."  << std::endl;
+		std::cout << "      <velocity>: Control the velocity by indicating the time between poses, in (msec)." << std::endl;
+		std::cout << "      <environment>: 1 - env. I with three poles, 1 - env. II with two cones (narrow passage)." << std::endl << std::endl;
+		return 0;
+	}
+
 	if (argc > 1) {
 		if (atof(argv[1])==0)
 			step_sim = false; 
 		else if (atof(argv[1])==1)
 			step_sim = true;
+		else {
+			std::cout << "Invalid entry. Type -h for list of options." << std::endl;
+			return 1;
+		}
+
 		if (argc > 2)
 			sim_velocity = atoi(argv[2]);
 		else
 			sim_velocity = 80;
+		if (argc == 4) {
+			env = atoi(argv[3]);
+			if (env != 1 && env != 2)
+				env = 1;
+		}
+		else
+			env = 1;
 	}
-	else
+	else {
+		step_sim = false;
 		sim_velocity = 80;
+		env = 1;
+	}
 
 	fake_rod(); // Create a fake rod file
 

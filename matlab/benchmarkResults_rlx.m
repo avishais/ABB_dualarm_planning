@@ -163,7 +163,7 @@ disp(['Percent of successful local connections: ' num2str(100*mean(D(:,13)./D(:,
 %%
 %%
 % 0.1
-td = D1(:,4);
+td = D1(:,3);
 maxT = max(td);
 T1 = linspace(0,maxT,100);
 T1 = T1(2:end);
@@ -174,7 +174,7 @@ for i = 1:length(T1)
 end
 %%
 % 0.3
-tg = D2(:,4);
+tg = D2(:,3);
 maxT = max(tg);
 T2 = linspace(0,maxT,1000);
 T2 = T2(2:end);
@@ -186,7 +186,7 @@ end
 
 %%
 % 0.5
-tb = D3(:,4);
+tb = D3(:,3);
 maxT = max(tg);
 T3 = linspace(0,maxT,1000);
 T3 = T3(2:end);

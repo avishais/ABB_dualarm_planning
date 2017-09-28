@@ -59,7 +59,7 @@ ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxS
 	defaultSettings(); // Avishai
 
 	//Range = 0.2;
-	double eps = 0.1;
+	double eps = 0.5;
 	set_epsilon(eps);
 	Range = maxStep;//(eps * 2) < 2 ? eps * 2 : 2; //
 }

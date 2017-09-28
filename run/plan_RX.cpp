@@ -298,9 +298,9 @@ int main(int argn, char ** args) {
 		ofstream GD;
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
 
-		for (int k = 0; k < 20; k++) {
-			for (int j = 0; j < 4; j++) {
-				double maxStep = 0.05 + 0.2*j;
+		for (int k = 0; k < 100; k++) {
+			for (int j = 0; j < 1; j++) {
+				double maxStep = 0.3;//0.05 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
