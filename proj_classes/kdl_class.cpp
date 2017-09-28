@@ -26,7 +26,6 @@ kdl::kdl(double D, double rod_L) {
 
 	initMatrix(T_pose, 4, 4);
 	T_pose = {{1, 0, 0, D}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-	cout << D << L << endl;
 
 	//Definition of a kinematic chain & add segments to the chain
 	// Robot 1

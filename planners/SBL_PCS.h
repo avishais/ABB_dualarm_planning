@@ -89,7 +89,7 @@ class SBL : public base::Planner, public StateValidityChecker
 public:
 
 	/** \brief The constructor needs the instance of the space information */
-	SBL(const base::SpaceInformationPtr &si, double = 2);
+	SBL(const base::SpaceInformationPtr &si, double = 2, int = 1);
 
 	virtual ~SBL();
 

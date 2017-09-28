@@ -8,7 +8,7 @@
 #include <math.h>
 
 #define PI_ 3.1416
-#define NUM_IK_SOLUTIONS 12
+#define NUM_IK_SOLUTIONS 8
 
 using namespace std;
 

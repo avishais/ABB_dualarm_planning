@@ -46,7 +46,7 @@ void o(T a) {
 	cout << a << endl;
 }
 
-ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep) : base::Planner(si, "CBiRRT"), StateValidityChecker(si)
+ompl::geometric::CBiRRT::CBiRRT(const base::SpaceInformationPtr &si, double maxStep, int env) : base::Planner(si, "CBiRRT"), StateValidityChecker(si, env)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.directed = true;
@@ -327,8 +327,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 		motion->a_chain = 0;
 		tStart_->add(motion);
 
-		o("Start: "); printStateVector(st);
-
 		si_->copyState(start_node,st);
 	}
 
@@ -387,8 +385,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 				motion->a_chain = 0;
 				tGoal_->add(motion);
 				PlanDistance = si_->distance(start_node, st);
-
-				o("Goal: "); printStateVector(st);
 			}
 
 			if (tGoal_->size() == 0)

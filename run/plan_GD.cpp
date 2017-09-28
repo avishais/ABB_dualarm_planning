@@ -276,7 +276,6 @@ int main(int argn, char ** args) {
 	int mode = 1;
 	switch (mode) {
 	case 1: {
-
 		Plan.plan(c_start, c_goal, runtime, ptype, 1);
 
 		break;
