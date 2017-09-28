@@ -82,7 +82,7 @@ class LazyRRT : public base::Planner, StateValidityChecker
 public:
 
 	/** \brief Constructor */
-	LazyRRT(const base::SpaceInformationPtr &si, double = 2);
+	LazyRRT(const base::SpaceInformationPtr &si, double = 2, int = 1);
 
 	virtual ~LazyRRT();
 

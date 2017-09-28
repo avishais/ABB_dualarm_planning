@@ -276,7 +276,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 3;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 0.55);
@@ -304,12 +304,17 @@ int main(int argn, char ** args) {
 	}
 	case 3 : { // Benchmark maximum step size while benchmarking the step size
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_PCS_3poles_rB.txt", ios::app);
+		if (env == 1)
+			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_PCS_3poles_rB.txt", ios::app);
+		else if (env == 2)
+			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_PCS_3poles_rB.txt", ios::app);
 
 		int N = 500;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 2; j++) {
-				double maxStep = 1.4 + 0.2*j;
+			for (int j = 0; j < 4; j++) {
+				double maxStep = 0.4 + 0.2*j;
+
+				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
 				APS << maxStep << "\t";
 

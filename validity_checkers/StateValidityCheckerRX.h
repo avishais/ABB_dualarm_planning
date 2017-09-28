@@ -20,8 +20,10 @@
 
 #include <iostream>
 
-#define ROBOTS_DISTANCE 900
-#define ROD_LENGTH 300
+#define ROBOTS_DISTANCE_ENV_I 900
+#define ROD_LENGTH_ENV_I 300
+#define ROBOTS_DISTANCE_ENV_II 1200
+#define ROD_LENGTH_ENV_II 500
 
 namespace ob = ompl::base;
 using namespace std;
@@ -30,9 +32,23 @@ class StateValidityChecker : public collisionDetection, public kdl
 {
 public:
 	/** Constructors */
-	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), kdl(ROBOTS_DISTANCE, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
-	StateValidityChecker() : kdl(ROBOTS_DISTANCE, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_prev.resize(12);setQ();setP();}; //Constructor // Avishai
-
+	StateValidityChecker(const ob::SpaceInformationPtr &si, int env = 1) :
+		mysi_(si.get()),
+		kdl(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
+		collisionDetection(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II,0,0,0,env)
+			{L = env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II;
+			q_prev.resize(12);
+			setQ();
+			setP();
+			}; //Constructor
+	StateValidityChecker(int env = 1) :
+		kdl(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
+		collisionDetection(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II,0,0,0,env)
+			{L = env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II;
+			q_prev.resize(12);
+			setQ();
+			setP();
+			}; //Constructor
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
 
@@ -197,7 +213,7 @@ private:
 	int valid_solution_index;
 	State q_prev;
 
-	double L = ROD_LENGTH;
+	double L;
 	Matrix Q;
 	Matrix P;
 

@@ -45,40 +45,40 @@ bool isStateValid(const ob::State *state)
 
 ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p_type)
 {
-    switch (p_type)
-    {
-        case PLANNER_BIRRT:
-        {
-            return std::make_shared<og::CBiRRT>(si, maxStep);
-            break;
-        }
-        case PLANNER_RRT:
-        {
-            return std::make_shared<og::RRT>(si, maxStep);
-            break;
-        }
-        case PLANNER_LAZYRRT:
-        {
-            return std::make_shared<og::LazyRRT>(si, maxStep);
-            break;
-        }
-        /*case PLANNER_PRM:
+	switch (p_type)
+	{
+	case PLANNER_BIRRT:
+	{
+		return std::make_shared<og::CBiRRT>(si, maxStep, env);
+		break;
+	}
+	case PLANNER_RRT:
+	{
+		return std::make_shared<og::RRT>(si, maxStep, env);
+		break;
+	}
+	case PLANNER_LAZYRRT:
+	{
+		return std::make_shared<og::LazyRRT>(si, maxStep, env);
+		break;
+	}
+	/*case PLANNER_PRM:
         {
         	return std::make_shared<og::PRM>(si);
         	break;
         }*/
-        case PLANNER_SBL:
-        {
-        	return std::make_shared<og::SBL>(si, maxStep);
-        	break;
-        }
-        default:
-        {
-            OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
-            return ob::PlannerPtr(); // Address compiler warning re: no return value.
-            break;
-        }
-    }
+	case PLANNER_SBL:
+	{
+		return std::make_shared<og::SBL>(si, maxStep, env);
+		break;
+	}
+	default:
+	{
+		OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
+		return ob::PlannerPtr(); // Address compiler warning re: no return value.
+		break;
+	}
+	}
 }
 
 void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step) {
@@ -214,16 +214,19 @@ int main(int argn, char ** args) {
 	double runtime;
 	plannerType ptype;
 	string plannerName;
+	int env; // Tested environment index
 
 	if (argn == 1) {
 		runtime = 1; // sec
 		ptype = PLANNER_BIRRT;
+		env = 1;
 	}
 	else if (argn == 2) {
 		runtime = atof(args[1]);
 		ptype = PLANNER_BIRRT;
+		env = 1;
 	}
-	else {
+	else if (argn > 2) {
 		runtime = atof(args[1]);
 		switch (atoi(args[2])) {
 		case 1 :
@@ -250,27 +253,37 @@ int main(int argn, char ** args) {
 			cout << "Error: Requested planner not defined.";
 			exit(1);
 		}
+		if (argn == 4)
+			env = atoi(args[3]);
+		else
+			env = 1;
 	}
 
 	plan_C Plan;
 
+	srand (time(NULL));
+
+	State c_start, c_goal;
+	if (env == 1) {
+		c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
+		c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
+		Plan.set_environment(1);
+	}
+	else if (env == 2) {
+		c_start = {1.1, 1.1, 0, 1.24, -1.5708, 0, -0.79567, 0.60136, 0.43858, -0.74986, -1.0074, -0.092294};
+		c_goal = {-1.1, 1.35, -0.2, -1, -1.9, 0, 0.80875, 0.72363, -0.47891, -1.0484, 0.73278, 1.7491};
+		Plan.set_environment(2);
+	}
+
 	int mode = 3;
 	switch (mode) {
 	case 1: {
-		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015, 8, 3}; // Robot 2 backfilp - Elbow down
-		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
-		//State c_goal = {0.531362, -0.398654, -0.563179, -0.044497, 1.72452, -1.61092, 2.79512, -1.35673, -1.26292, -0.983011, 0.686615, -0.00176505};
-
-		Plan.plan(c_start, c_goal, runtime, ptype, 1.4);
-
-		//Plan.vfc.verify_path();
+		Plan.plan(c_start, c_goal, runtime, ptype, 0.6);
 
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream APS;
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_" + plannerName + "_SG_3poles_minCpath.txt", ios::app);
@@ -291,16 +304,16 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 3 : { // Benchmark maximum step size while benchmarking the step size
-		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
-
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
+		if (env == 1)
+			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
+		else if (env == 2)
+			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
 
 		int N = 500;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 1; j++) {
-				double maxStep = 1.4 + 0.25*j;
+			for (int j = 0; j < 2; j++) {
+				double maxStep = 0.6 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

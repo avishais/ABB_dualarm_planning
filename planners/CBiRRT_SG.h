@@ -68,7 +68,7 @@ namespace ompl
         public:
 
             /** \brief Constructor */
-            CBiRRT(const base::SpaceInformationPtr &si, double = 2);
+            CBiRRT(const base::SpaceInformationPtr &si, double = 2, int = 1);
 
             virtual ~CBiRRT();
 

@@ -68,7 +68,7 @@ class CBiRRT : public base::Planner, public StateValidityChecker  // Avishai
 public:
 
 	/** \brief Constructor */
-	CBiRRT(const base::SpaceInformationPtr &si, double);
+	CBiRRT(const base::SpaceInformationPtr &si, double, int = 1);
 
 	virtual ~CBiRRT();
 

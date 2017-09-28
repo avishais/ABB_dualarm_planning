@@ -58,6 +58,10 @@ public:
 
 	double maxStep;
 
+	int env;
+	void set_environment(int env_index) {
+		env = env_index;
+	}
 };
 
 #endif /* PLAN_C_SPACE_H_ */

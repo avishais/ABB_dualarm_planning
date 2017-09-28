@@ -20,8 +20,10 @@
 
 #include <iostream>
 
-#define ROBOTS_DISTANCE 900
-#define ROD_LENGTH 300
+#define ROBOTS_DISTANCE_ENV_I 900.
+#define ROD_LENGTH_ENV_I 300.
+#define ROBOTS_DISTANCE_ENV_II 1200.
+#define ROD_LENGTH_ENV_II 500.
 
 namespace ob = ompl::base;
 using namespace std;
@@ -30,8 +32,23 @@ class StateValidityChecker : public two_robots, public collisionDetection
 {
 public:
 	/** Constructors */
-	StateValidityChecker(const ob::SpaceInformationPtr &si) : mysi_(si.get()), two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI_}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
-	StateValidityChecker() : two_robots({-ROBOTS_DISTANCE/2, 0, 0 }, {ROBOTS_DISTANCE/2, 0, PI_}, ROD_LENGTH), collisionDetection(ROBOTS_DISTANCE,0,0,0) {q_temp.resize(6);setQ();setP();}; //Constructor // Avishai
+	StateValidityChecker(const ob::SpaceInformationPtr &si, int env = 1) :
+		mysi_(si.get()),
+		two_robots({-(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, 0 }, {(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, PI_}, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
+		collisionDetection(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II,0,0,0,env)
+			{L = env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II;
+			q_temp.resize(6);
+			setQ();
+			setP();
+			}; //Constructor
+	StateValidityChecker(int env = 1) :
+		two_robots({-(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, 0 }, {(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, PI_}, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
+		collisionDetection(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II,0,0,0,env)
+			{L = env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II;
+			q_temp.resize(6);
+			setQ();
+			setP();
+			}; //Constructor
 
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
@@ -90,8 +107,8 @@ public:
 	State sample_q();
 	bool sample_q(ob::State *st);
 
-    /** Sample near singularities */
-    bool sampleSingular(ob::State*);
+	/** Sample near singularities */
+	bool sampleSingular(ob::State*);
 
 	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
 	bool IKproject(State &, State &, int, int);
@@ -176,7 +193,7 @@ public:
 	bool final_solved; // Planning query solved?
 	double local_connection_time; // Log LC total time
 	int local_connection_count; // Log number of LC attempts
-    int local_connection_success_count; // Log number of LC success
+	int local_connection_success_count; // Log number of LC success
 
 	/** Reset log parameters */
 	void initiate_log_parameters() {
@@ -189,7 +206,7 @@ public:
 		nodes_in_trees = 0;
 		local_connection_time = 0;
 		local_connection_count = 0;
-    	local_connection_success_count = 0;
+		local_connection_success_count = 0;
 	}
 
 	void LogPerf2file();
@@ -200,7 +217,7 @@ private:
 	State q_temp;
 	int valid_solution_index;
 
-	double L = ROD_LENGTH;
+	double L;
 	Matrix Q;
 	Matrix P;
 

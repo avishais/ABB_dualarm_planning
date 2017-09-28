@@ -48,7 +48,7 @@ public:
 			q_temp.resize(6);
 			setQ();
 			setP();
-			}; //Constructor // Avishai
+			}; //Constructor
 
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
