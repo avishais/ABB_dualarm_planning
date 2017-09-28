@@ -69,7 +69,7 @@ class RRT : public base::Planner, StateValidityChecker
 public:
 
 	/** \brief Constructor */
-	RRT(const base::SpaceInformationPtr &si, double = 2);
+	RRT(const base::SpaceInformationPtr &si, double = 2, int = 1);
 
 	virtual ~RRT();
 

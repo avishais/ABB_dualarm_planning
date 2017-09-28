@@ -47,17 +47,17 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
     {
         case PLANNER_BIRRT:
         {
-            return std::make_shared<og::CBiRRT>(si, maxStep);
+            return std::make_shared<og::CBiRRT>(si, maxStep, env);
             break;
         }
         case PLANNER_RRT:
         {
-            return std::make_shared<og::RRT>(si, maxStep);
+            return std::make_shared<og::RRT>(si, maxStep, env);
             break;
         }
         case PLANNER_LAZYRRT:
         {
-            return std::make_shared<og::LazyRRT>(si, maxStep);
+            return std::make_shared<og::LazyRRT>(si, maxStep, env);
             break;
         }
         case PLANNER_PRM:
@@ -67,7 +67,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
         }
         case PLANNER_SBL:
         {
-            return std::make_shared<og::SBL>(si, maxStep);
+            return std::make_shared<og::SBL>(si, maxStep, env);
             break;
         }
         default:
@@ -206,22 +206,24 @@ void extract_from_perf_file(ofstream &ToFile) {
 	FromFile.close();
 }
 
-
 int main(int argn, char ** args) {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
-	double runtime;
-	plannerType ptype;
+	double runtime; // Maximum allowed runtime
+	plannerType ptype; // Planner type
 	string plannerName;
+	int env; // Tested environment index
 
 	if (argn == 1) {
 		runtime = 1; // sec
 		ptype = PLANNER_BIRRT;
+		env = 1;
 	}
 	else if (argn == 2) {
 		runtime = atof(args[1]);
 		ptype = PLANNER_BIRRT;
+		env = 1;
 	}
-	else {
+	else if (argn > 2) {
 		runtime = atof(args[1]);
 		switch (atoi(args[2])) {
 		case 1 :
@@ -248,49 +250,44 @@ int main(int argn, char ** args) {
 			cout << "Error: Requested planner not defined.";
 			exit(1);
 		}
+		if (argn == 4)
+			env = atoi(args[3]);
+		else
+			env = 1;
 	}
 
-	int env = 2; // Environment index
 	plan_C Plan;
 
 	srand (time(NULL));
 
+	State c_start, c_goal;
+	if (env == 1) {
+		c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
+		c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
+		Plan.set_environment(1);
+	}
+	else if (env == 2) {
+		c_start = {1.1, 1.1, 0, 1.24, -1.5708, 0, -0.79567, 0.60136, 0.43858, -0.74986, -1.0074, -0.092294};
+		c_goal = {-1.1, 1.35, -0.2, -1, -1.9, 0, 0.80875, 0.72363, -0.47891, -1.0484, 0.73278, 1.7491};
+		Plan.set_environment(2);
+	}
+
 	int mode = 1;
 	switch (mode) {
 	case 1: {
-		State c_start, c_goal;
-		if (env == 1) {
-			c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-			//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
-			c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
-		}
-		else if (env == 2) {
-			c_start = {1.1, 1.1, 0, 1.24, -1.5708, 0, -0.79567, 0.60136, 0.43858, -0.74986, -1.0074, -0.092294};
-			c_goal = {-1.1, 1.35, -0.2, -1, -1.9, 0, 0.80875, 0.72363, -0.47891, -1.0484, 0.73278, 1.7491};
-		}
 
 		Plan.plan(c_start, c_goal, runtime, ptype, 1);
 
-		Plan.vfc.verify_path();
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream GD;
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_GD_3poles_profileTime_JL.txt", ios::app);
 
 		for (int k = 0; k < 500; k++) {
 			Plan.plan(c_start, c_goal, runtime, ptype, 0.8);
-
-			bool verf = Plan.vfc.verify_path();
-			if (!verf) {
-				cout << "Press...\n";
-				//cin.ignore();
-			}
-
-			GD << verf << "\t";
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -305,8 +302,6 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 3 : { // Benchmark maximum step size
-		State c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
-		State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 
 		ofstream GD;
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_GD_3poles_rB.txt", ios::app);
@@ -317,9 +312,7 @@ int main(int argn, char ** args) {
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
-				bool verf = Plan.vfc.verify_path();
-
-				GD << maxStep << " " << verf << "\t";
+				GD << maxStep << "\t";
 
 				// Extract from perf file
 				ifstream FromFile;

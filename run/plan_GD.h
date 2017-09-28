@@ -21,7 +21,7 @@
 #include "../planners/PRM_GD.h"
 #include "../planners/SBL_GD.h"
 
-#include "../validity_checkers/verification_class.h"
+//#include "../validity_checkers/verification_class.h"
 
 // Standard libraries
 #include <iostream>
@@ -60,7 +60,12 @@ public:
 
 	double maxStep;
 
-	verification_class vfc;
+	//verification_class vfc;
+
+	int env;
+	void set_environment(int env_index) {
+		env = env_index;
+	}
 };
 
 #endif /* PLAN_C_SPACE_H_ */

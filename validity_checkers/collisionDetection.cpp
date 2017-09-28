@@ -259,10 +259,7 @@ int collisionDetection::collision_state(Matrix M, State q1, State q2)
 	MxV(T72,R62,T22);
 	VpV(T72,T62,T72);
 
-
-
 	// perform tolerance query
-
 	PQP_REAL tolerance = 8;
 	PQP_ToleranceResult res[116];
 
