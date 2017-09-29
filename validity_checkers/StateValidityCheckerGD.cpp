@@ -455,23 +455,10 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << local_connection_time << endl;
 	myfile << local_connection_count << endl;
 	myfile << local_connection_success_count << endl;
-	for (int i = 0; i < 6; i++)
-		myfile << t[i] << endl;
+	myfile << sampling_time << endl;
+	myfile << sampling_counter[0] << endl;
+	myfile << sampling_counter[1] << endl;
 
 	myfile.close();
 }
 
-void StateValidityChecker::timeProfile() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/timeProfile.txt");
-
-	myfile << total_runtime << endl;
-	myfile << local_connection_time << endl;
-	myfile << get_collisionCheck_time() << endl;
-	myfile << get_IK_time() << endl;
-	for (int i = 0; i < t.size(); i++)
-		myfile << t[i] << endl;
-
-	myfile.close();
-}

@@ -199,8 +199,11 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			// Project dstate (currently not on the manifold)
 			if (!active_chain) {
 				if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active)) {
-					if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active))
+					if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active)) {
+						sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+						sampling_counter[1]++;
 						return nmotion;
+					}
 					active_chain = !active_chain;
 					q1 = get_IK_solution_q1();
 					ik[1] =  nmotion->ik_q2_active;
@@ -212,8 +215,11 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			}
 			else {
 				if (!calc_specific_IK_solution_R2(T, q2, nmotion->ik_q2_active)) {
-					if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active))
+					if (!calc_specific_IK_solution_R1(T, q1, nmotion->ik_q1_active)) {
+						sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+						sampling_counter[1]++;
 						return nmotion;
+					}
 					active_chain = !active_chain;
 					q2 = get_IK_solution_q2();
 					ik[0] =  nmotion->ik_q1_active;
@@ -224,6 +230,9 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 				}
 			}
 			IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[0]++;
+
 			if (collision_state(getPMatrix(), q1, q2))
 				return nmotion;
 
@@ -465,6 +474,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
 				path->append(mpath2[i]->state);
 
+			final_solved = true;
+			LogPerf2file(); // Log planning parameters
 			save2file(mpath1, mpath2);
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
@@ -481,6 +492,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
 
 		nodes_in_trees = tStart_->size() + tGoal_->size();
+		final_solved = false;
+		LogPerf2file(); // Log planning parameters
 	}
 
 	si_->freeState(tgi.xstate);
@@ -490,9 +503,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	delete rmotion;
 
 	OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
-
-	final_solved = solved;
-	LogPerf2file(); // Log planning parameters
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

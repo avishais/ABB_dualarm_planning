@@ -179,9 +179,15 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 
 		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
 
+			clock_t sT = clock();
 			// Project dstate (which currently is not on the manifold)
-			if (!check_project(dstate))
+			if (!check_project(dstate)) {
+				sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_counter[1]++;
 				return nmotion;
+			}
+			sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[0]++;
 
 			si_->copyState(tgi.xstate, dstate);
 			dstate = tgi.xstate;
@@ -195,6 +201,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 
 		if (validMotion)
 		{
+			local_connection_success_count++;
 			// Update advanced motion
 			Motion *motion = new Motion(si_);
 			si_->copyState(motion->state, dstate);
@@ -202,14 +209,6 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			motion->root = nmotion->root;
 			tgi.xmotion = motion;
 			tree->add(motion);
-
-			/*std::ofstream f;
-			f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps0.1.txt", ios::app);
-			retrieveStateVector(dstate, q);
-			for (int i = 0; i < 12; i++)
-				f << q[i] << " ";
-			f << endl;
-			f.close();*/
 
 			nmotion = motion;
 
@@ -394,6 +393,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
 				path->append(mpath2[i]->state);
 
+			final_solved = true;
+			LogPerf2file();
 			save2file(mpath1, mpath2);
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
@@ -411,6 +412,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
 
 		nodes_in_trees = tStart_->size() + tGoal_->size();
+		final_solved = false;
+		LogPerf2file();
 	}
 
 	si_->freeState(tgi.xstate);
@@ -418,9 +421,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	delete rmotion;
 
 	OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
-
-	final_solved = solved;
-	LogPerf2file();
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

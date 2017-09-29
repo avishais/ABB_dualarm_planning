@@ -183,8 +183,14 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 		if (mode==1 || !reach) { // equivalent to (!(mode==2 && reach))
 
 			// Project dstate (which currently is not on the manifold)
-			if (!IKproject(dstate))  // Collision check is done inside the projection
+			clock_t sT = clock();
+			if (!IKproject(dstate)) {  // Collision check is done inside the projection
+				sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_counter[1]++;
 				return nmotion;
+			}
+			sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[0]++;
 
 			si_->copyState(tgi.xstate, dstate);
 			dstate = tgi.xstate;
@@ -199,7 +205,6 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 		local_connection_count++;
 		//bool validMotion = checkMotion(nmotion->state, dstate);
 		bool validMotion = checkMotionRBS(nmotion->state, dstate);
-		//bool validMotion = checkMotionSew(nmotion->state, dstate);
 		local_connection_time += double(clock() - sT) / CLOCKS_PER_SEC;
 
 		if (validMotion)
@@ -394,8 +399,9 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
 				path->append(mpath2[i]->state);
 
+			final_solved = true;
+			LogPerf2file(); // Log planning parameters
 			save2file(mpath1, mpath2);
-			//check_path(mpath1, mpath2);
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
 			solved = true;
@@ -412,6 +418,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
 
 		nodes_in_trees = tStart_->size() + tGoal_->size();
+		final_solved = false;
+		LogPerf2file(); // Log planning parameters
 	}
 
 	si_->freeState(tgi.xstate);
@@ -421,10 +429,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	delete rmotion;
 
 	OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
-
-	final_solved = solved;
-	LogPerf2file(); // Log planning parameters
-	//timeProfile();
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

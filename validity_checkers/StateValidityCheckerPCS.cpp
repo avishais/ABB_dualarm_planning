@@ -636,6 +636,9 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << local_connection_time << endl;
 	myfile << local_connection_count << endl;
 	myfile << local_connection_success_count << endl;
+	myfile << sampling_time << endl;
+	myfile << sampling_counter[0] << endl;
+	myfile << sampling_counter[1] << endl;
 
 	myfile.close();
 }

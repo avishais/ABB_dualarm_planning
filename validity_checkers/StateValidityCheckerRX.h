@@ -188,6 +188,8 @@ public:
 	int local_connection_count; // Log number of LC attempts
     int local_connection_success_count; // Log number of LC success
     int checks;
+    double sampling_time;
+    State sampling_counter;
 
 	/** Reset log parameters */
 	void initiate_log_parameters() {
@@ -202,10 +204,12 @@ public:
 		local_connection_count = 0;
     	local_connection_success_count = 0;
     	checks = 0;
+    	sampling_time = 0;
+    	sampling_counter.resize(2);
+    	sampling_counter[0] = sampling_counter[1] = 0; // [0/1] - successful/failed sampling
 	}
 
 	void LogPerf2file();
-	void timeProfile();
 
 private:
 	ob::StateSpace *stateSpace_;

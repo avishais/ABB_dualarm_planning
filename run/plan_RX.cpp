@@ -274,7 +274,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 0.1);
@@ -282,28 +282,28 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_3poles.txt", ios::app);
+		ofstream RX;
+		RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_RLX_3poles.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 0.1);
+		for (int k = 0; k < 100; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.3);
 
 			// Extract from perf file
 			ifstream FromFile;
 			FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
 			string line;
 			while (getline(FromFile, line))
-				GD << line << "\t";
+				RX << line << "\t";
 			FromFile.close();
-			GD << endl;
+			RX << endl;
 		}
-		GD.close();
+		RX.close();
 		break;
 	}
 	case 3 : { // Benchmark maximum step size
 
-		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
+		ofstream RX;
+		RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
 			for (int j = 0; j < 1; j++) {
@@ -311,19 +311,19 @@ int main(int argn, char ** args) {
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
-				GD << maxStep << "\t";
+				RX << maxStep << "\t";
 
 				// Extract from perf file
 				ifstream FromFile;
 				FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
 				string line;
 				while (getline(FromFile, line))
-					GD << line << "\t";
+					RX << line << "\t";
 				FromFile.close();
-				GD << endl;
+				RX << endl;
 			}
 		}
-		GD.close();
+		RX.close();
 		break;
 	}
 	}

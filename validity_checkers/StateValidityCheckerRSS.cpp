@@ -258,7 +258,7 @@ bool StateValidityChecker::sampleSingular(ob::State* state)
 	int sol_R2 = -1;
 	bool valid = false;
 
-	int sMode = 1;//rng_.uniformInt(0, 2);
+	int sMode = 2;//rng_.uniformInt(0, 2);
 	switch (sMode) {
 	case 0:
 		q2_mode = {1,1,0,1,0,1};
@@ -805,6 +805,9 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << local_connection_time << endl;
 	myfile << local_connection_count << endl;
 	myfile << local_connection_success_count << endl;
+	myfile << sampling_time << endl;
+	myfile << sampling_counter[0] << endl;
+	myfile << sampling_counter[1] << endl;
 
 	myfile.close();
 }

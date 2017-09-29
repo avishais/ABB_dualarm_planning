@@ -188,11 +188,20 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 			else
 				ik_sol = nmotion->ik_q1_active;
 
+			IK_counter++;
+			clock_t sT = clock();
 			// Project dstate (currently not on the manifold)
-			if (!calc_specific_IK_solution_R1(T, q1, ik_sol))
+			if (!calc_specific_IK_solution_R1(T, q1, ik_sol)) {
+				sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_counter[1]++;
 				return nmotion;
-			else
+			}
+			else {
 				q2 = get_IK_solution_q2();
+				IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_counter[0]++;
+			}
 
 			if (collision_state(getPMatrix(), q1, q2))
 				return nmotion;
@@ -238,6 +247,7 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 
 		if (validMotion)
 		{
+			local_connection_success_count++;
 			/* Update advanced motion */
 			Motion *motion = new Motion(si_);
 			motion->ik_q1_active = (mode == 3 && reach) ? -2 : ik_sol;
@@ -470,6 +480,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 			for (unsigned int i = 0 ; i < mpath2.size() ; ++i)
 				path->append(mpath2[i]->state);
 
+			final_solved = true;
+			LogPerf2file();
 			ompl::geometric::CBiRRT::save2file(mpath1, mpath2);
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
@@ -486,6 +498,8 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
 
 		nodes_in_trees = tStart_->size() + tGoal_->size();
+		final_solved = false;
+		LogPerf2file();
 	}
 
 	si_->freeState(tgi.xstate);
@@ -493,9 +507,6 @@ ompl::base::PlannerStatus ompl::geometric::CBiRRT::solve(const base::PlannerTerm
 	delete rmotion;
 
 	OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_->size() + tGoal_->size(), tStart_->size(), tGoal_->size());
-
-	final_solved = solved;
-	LogPerf2file();
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

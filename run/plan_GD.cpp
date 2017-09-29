@@ -273,7 +273,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 1);
@@ -283,10 +283,10 @@ int main(int argn, char ** args) {
 	case 2 : { // Benchmark planning time with constant maximum step size
 
 		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/benchmark_SBL_GD_3poles_profileTime_JL.txt", ios::app);
+		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_GD_3poles.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 0.8);
+		for (int k = 0; k < 100; k++) {
+			Plan.plan(c_start, c_goal, runtime, ptype, 2.6);
 
 			// Extract from perf file
 			ifstream FromFile;

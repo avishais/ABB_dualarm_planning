@@ -82,6 +82,8 @@ bool StateValidityChecker::check_project(const ob::State *state) {
 
 bool StateValidityChecker::check_relax_constraint(State q) {
 
+	IK_counter++;
+	clock_t sT = clock();
 	FK(q);
 
 	Matrix Tq = get_FK_solution();
@@ -91,10 +93,8 @@ bool StateValidityChecker::check_relax_constraint(State q) {
 	//printMatrix(T_pose);
 
 	double d = 0;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
 		d += (Tq[i][3]-T_pose[i][3])*(Tq[i][3]-T_pose[i][3]);
-	}
-	//d = sqrt(d);
 
 	double roll = atan2(Tq[1][0], Tq[0][0]);
 	double pitch = atan2(-Tq[2][0], sqrt(Tq[2][1]*Tq[2][1]+Tq[2][2]*Tq[2][2]));
@@ -102,7 +102,8 @@ bool StateValidityChecker::check_relax_constraint(State q) {
 
 	double a = (yaw*yaw + pitch*pitch + roll*roll);
 
-	//cout << a << " " << d << " " << sqrt(Ka*d + a) << " " << epsilon << endl;
+	IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
 	if ( sqrt(Ka*d + a) < epsilon ) {
 		return true;
 	}
@@ -378,19 +379,10 @@ void StateValidityChecker::LogPerf2file() {
 	myfile << local_connection_time << endl;
 	myfile << local_connection_count << endl;
 	myfile << local_connection_success_count << endl;
+	myfile << sampling_time << endl;
+	myfile << sampling_counter[0] << endl;
+	myfile << sampling_counter[1] << endl;
 
 	myfile.close();
 }
 
-void StateValidityChecker::timeProfile() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/timeProfile.txt");
-
-	myfile << total_runtime << endl;
-	myfile << local_connection_time << endl;
-	myfile << get_collisionCheck_time() << endl;
-	myfile << get_IK_time() << endl;
-
-	myfile.close();
-}
