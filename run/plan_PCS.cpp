@@ -311,7 +311,7 @@ int main(int argn, char ** args) {
 
 		int N = 500;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 3; j++) {
+			for (int j = 0; j < 1; j++) {
 				double maxStep = 0.2 + 0.2*j;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);

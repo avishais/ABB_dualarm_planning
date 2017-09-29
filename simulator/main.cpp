@@ -555,7 +555,7 @@ void DisplayCB()
 		table_to_draw->Draw();
 		glPopMatrix();
 	}
-	if(0 && visualize == 1){
+	if(1 && visualize == 1){
 		glColor3d(0.8,0.9,0.9);
 		MVtoOGL(oglm,R0,Ti);
 		glPushMatrix();

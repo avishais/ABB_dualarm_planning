@@ -39,13 +39,13 @@ CPP_P_SG = ${INC_RUN}plan_SG.cpp ${INC_PLANNERS}CBiRRT_SG.cpp ${INC_PLANNERS}RRT
 CPP_P_RX = ${INC_RUN}plan_RX.cpp ${INC_PLANNERS}CBiRRT_RX.cpp ${INC_PLANNERS}RRT_RX.cpp ${INC_PLANNERS}LazyRRT_RX.cpp ${INC_PLANNERS}SBL_RX.cpp
 
 all:
-	$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
+	#$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 	#$(CXX) ${CPP_P_PCS_s} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcss $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
-	#$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} -o pgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
+	$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} -o pgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 	#$(CXX) ${CPP_P_GD_s} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgds $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
-	#$(CXX) ${CPP_P_SG} ${CPPRSS} ${CPPPQP} -o psg $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
+	$(CXX) ${CPP_P_SG} ${CPPRSS} ${CPPPQP} -o psg $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 
 	#$(CXX) ${CPP_P_RX} ${CPPRX} ${CPPPQP} -o prx $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 

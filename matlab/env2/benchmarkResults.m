@@ -19,13 +19,13 @@ switch plannerType
         D2 = load('Benchmark_BiRRT_GD_3poles_rB.txt');
     case 'RRT'
         D1 = load('Benchmark_RRT_PCS_3poles_rB.txt'); 
-        D2 = load('Benchmark_RRT_PCS_3poles_rB.txt'); 
+        D2 = load('Benchmark_RRT_GD_3poles_rB.txt'); 
     case 'LazyRRT'
         D1 = load('Benchmark_LazyRRT_PCS_3poles_rB.txt');
-        D2 = load('Benchmark_LazyRRT_PCS_3poles_rB.txt'); 
+        D2 = load('Benchmark_LazyRRT_GD_3poles_rB.txt'); 
     case 'SBL'
         D1 = load('Benchmark_SBL_PCS_3poles_rB.txt'); 
-        D2 = load('Benchmark_SBL_PCS_3poles_rB.txt');
+        D2 = load('Benchmark_SBL_GD_3poles_rB.txt');
 end
 
 %% 

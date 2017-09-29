@@ -30,6 +30,8 @@ fprintf('Avg. local connection time: %f msec.\n', lc_time/lc_count*1e3);
 fprintf('number of local connections per sec: %d\n\n', lc_count/total_runtime);
 
 ygd = [sample_time lc_time col_time];
+LC(:,1) =  D(:,11)./D(:,12)*1e3;
+
 %%
 
 D = load('profile_BiRRT_PCS_3poles.txt');
@@ -59,6 +61,7 @@ fprintf('Avg. local connection time: %f msec.\n', lc_time/lc_count*1e3);
 fprintf('number of local connections per sec: %d\n\n', lc_count/total_runtime);
 
 ypcs = [sample_time lc_time col_time];
+LC(:,2) =  D(:,11)./D(:,12)*1e3;
 
 %%
 
@@ -89,6 +92,7 @@ fprintf('Avg. local connection time: %f msec.\n', lc_time/lc_count*1e3);
 fprintf('number of local connections per sec: %d\n\n', lc_count/total_runtime);
 
 yrlx = [sample_time lc_time col_time];
+LC(:,3) =  D(:,11)./D(:,12)*1e3;
 
 %%
 
@@ -119,6 +123,7 @@ fprintf('Avg. local connection time: %f msec.\n', lc_time/lc_count*1e3);
 fprintf('number of local connections per sec: %d\n\n', lc_count/total_runtime);
 
 yrss = [sample_time lc_time col_time];
+LC(:,4) =  D(:,11)./D(:,12)*1e3;
 
 %%
 figure(1)
