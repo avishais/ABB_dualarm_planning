@@ -309,8 +309,11 @@ int main(int argn, char ** args) {
 			GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_GD_3poles_rB.txt", ios::app);
 
 		for (int k = 0; k < 500; k++) {
-			for (int j = 0; j < 7; j++) {
+
+			for (int j = 0; j < 3; j++) {
 				double maxStep = 0.2 + 0.2*j;
+
+				cout << "** Running GD iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

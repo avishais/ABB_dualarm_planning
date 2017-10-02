@@ -276,7 +276,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 0.55);
@@ -313,6 +313,8 @@ int main(int argn, char ** args) {
 		for (int k = 0; k < N; k++) {
 			for (int j = 0; j < 1; j++) {
 				double maxStep = 0.2 + 0.2*j;
+
+				cout << "** Running PCS iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 

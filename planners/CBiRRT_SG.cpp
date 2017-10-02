@@ -196,15 +196,17 @@ ompl::geometric::CBiRRT::Motion* ompl::geometric::CBiRRT::growTree(TreeData &tre
 				sampling_counter[1]++;
 				return nmotion;
 			}
-			else {
-				q2 = get_IK_solution_q2();
-				IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
-				sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
-				sampling_counter[0]++;
-			}
 
-			if (collision_state(getPMatrix(), q1, q2))
+			q2 = get_IK_solution_q2();
+			IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+			if (collision_state(getPMatrix(), q1, q2)) {
+				sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+				sampling_counter[1]++;
 				return nmotion;
+			}
+			sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[0]++;
 
 			updateStateVector(tgi.xstate, q1, q2);
 			dstate = tgi.xstate;

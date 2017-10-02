@@ -12,20 +12,21 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{3};
+plannerType = planners{4};
 switch plannerType
     case 'BiRRT'
-        D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt');
-        D2 = load('Benchmark_BiRRT_GD_3poles_rB.txt');
+        D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt'); D1 = D1(D1(:,2)==1,:);
+        D2 = load('Benchmark_BiRRT_GD_3poles_rB.txt'); D2 = D2(D2(:,2)==1,:);
     case 'RRT'
-        D1 = load('Benchmark_RRT_PCS_3poles_rB.txt'); 
-        D2 = load('Benchmark_RRT_GD_3poles_rB.txt'); 
+        D1 = load('Benchmark_RRT_PCS_3poles_rB.txt');  D1 = D1(D1(:,2)==1,:);
+        D2 = load('Benchmark_RRT_GD_3poles_rB.txt'); D2 = D2(D2(:,2)==1,:);
     case 'LazyRRT'
-        D1 = load('Benchmark_LazyRRT_PCS_3poles_rB.txt');
-        D2 = load('Benchmark_LazyRRT_GD_3poles_rB.txt'); 
+        D1 = load('Benchmark_LazyRRT_PCS_3poles_rB.txt'); D1 = D1(D1(:,2)==1,:); D1 = D1(D1(:,1)~=0.8 & D1(:,1)~=1.2,:);
+        D2 = load('Benchmark_LazyRRT_GD_3poles_rB.txt');  D2 = D2(D2(:,2)==1,:);
     case 'SBL'
-        D1 = load('Benchmark_SBL_PCS_3poles_rB.txt'); 
-        D2 = load('Benchmark_SBL_GD_3poles_rB.txt');
+        D1 = load('Benchmark_SBL_PCS_3poles_rB.txt'); D1 = D1(D1(:,2)==1,:);
+        D2 = [load('Benchmark_SBL_GD_3poles_rB_1.txt'); load('Benchmark_SBL_GD_3poles_rB_2.txt')]; D2 = D2(D2(:,2)==1,:);
+        D2 = D2(D2(:,2)==1,:);
 end
 
 %% 
