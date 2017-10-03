@@ -194,12 +194,17 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		ik = {-1, -1};
 
 		// Project xstate (currently not on the manifold)
+		IK_counter++;
+		clock_t sT = clock();
 		retrieveStateVector(xstate, q1, q2);
 		Matrix T = getQ();
 		if (!active_chain) {
 			if (!calc_specific_IK_solution_R1(T, q1, existing->ik_q1_active)) {
-				if (!calc_specific_IK_solution_R2(T, q2, existing->ik_q2_active))
+				if (!calc_specific_IK_solution_R2(T, q2, existing->ik_q2_active)) {
+					sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+					sampling_counter[1]++;
 					continue;
+				}
 				active_chain = !active_chain;
 				q1 = get_IK_solution_q1();
 				ik[1] =  existing->ik_q2_active;
@@ -211,8 +216,11 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		}
 		else {
 			if (!calc_specific_IK_solution_R2(T, q2, existing->ik_q2_active)) {
-				if (!calc_specific_IK_solution_R1(T, q1, existing->ik_q1_active))
+				if (!calc_specific_IK_solution_R1(T, q1, existing->ik_q1_active)) {
+					sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+					sampling_counter[1]++;
 					continue;
+				}
 				active_chain = !active_chain;
 				q2 = get_IK_solution_q2();
 				ik[0] =  existing->ik_q1_active;
@@ -222,8 +230,16 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 				ik[1] =  existing->ik_q2_active;
 			}
 		}
-		if (collision_state(getPMatrix(), q1, q2))
+		IK_time += double(clock() - sT) / CLOCKS_PER_SEC;
+
+		if (collision_state(getPMatrix(), q1, q2)) {
+			sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[1]++;
 			continue;
+		}
+		sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		sampling_counter[0]++;
+
 		updateStateVector(xstate, q1, q2);
 		ik = identify_state_ik(xstate, ik);
 
@@ -247,6 +263,8 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
 			solved = true;
+			final_solved = true;
+			LogPerf2file(); // Log planning parameters
 			break;
 		}
 	}
@@ -258,6 +276,9 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
 
 		nodes_in_trees = tStart_.size + tGoal_.size;
+
+		final_solved = false;
+		LogPerf2file(); // Log planning parameters
 	}
 
 
@@ -266,9 +287,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 	OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)",
 			getName().c_str(), tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
 			tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
-
-	final_solved = solved;
-	LogPerf2file(); // Log planning parameters
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

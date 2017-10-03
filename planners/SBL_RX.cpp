@@ -171,8 +171,14 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		if (!sampler_->sampleNear(xstate, existing->state, maxDistance_))
 			continue;
 
-		if (!check_project(xstate))
+		clock_t sT = clock();
+		if (!check_project(xstate)) {
+			sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+			sampling_counter[1]++;
 			continue;
+		}
+		sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		sampling_counter[0]++;
 
 		/* create a motion */
 		Motion *motion = new Motion(si_);
@@ -191,6 +197,8 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
 			pdef_->addSolutionPath(base::PathPtr(path), false, 0.0, getName());
 			solved = true;
+			final_solved = true;
+			LogPerf2file(); // Log planning parameters
 			break;
 		}
 	}
@@ -202,6 +210,9 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 		total_runtime = double(endTime - startTime) / CLOCKS_PER_SEC;
 
 		nodes_in_trees = tStart_.size + tGoal_.size;
+
+		final_solved = false;
+		LogPerf2file(); // Log planning parameters
 	}
 
 
@@ -210,10 +221,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 	OMPL_INFORM("%s: Created %u (%u start + %u goal) states in %u cells (%u start + %u goal)",
 			getName().c_str(), tStart_.size + tGoal_.size, tStart_.size, tGoal_.size,
 			tStart_.grid.size() + tGoal_.grid.size(), tStart_.grid.size(), tGoal_.grid.size());
-
-	final_solved = solved;
-	LogPerf2file(); // Log planning parameters
-	//timeProfile();
 
 	return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }

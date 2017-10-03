@@ -288,7 +288,7 @@ int main(int argn, char ** args) {
 		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_PCS_3poles.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 1);
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.6);
 
 			// Extract from perf file
 			ifstream FromFile;

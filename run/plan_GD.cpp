@@ -273,7 +273,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 1);
@@ -281,12 +281,12 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-
 		ofstream GD;
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_GD_3poles.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 2.6);
+			//Plan.plan(c_start, c_goal, runtime, ptype, 2.6); // CBiRRT
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.8); // SBL
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -301,7 +301,6 @@ int main(int argn, char ** args) {
 		break;
 	}
 	case 3 : { // Benchmark maximum step size
-
 		ofstream GD;
 		if (env == 1)
 			GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_GD_3poles_rB.txt", ios::app);
