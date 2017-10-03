@@ -34,7 +34,7 @@ fprintf('Collision time %f msec for %d checks.\n', col_time*1e3, col_count);
 fprintf('Path size: %d.\n', round(path_size));
 fprintf('Trees size: %d.\n\n', round(trees_size));
 
-ygd = [sample_time lc_time col_time];
+ygd = [sample_time lc_time total_runtime-lc_time-sample_time];
 LC(:,1) =  D(:,11)./D(:,12)*1e3;
 
 %%
@@ -70,7 +70,7 @@ fprintf('Collision time %f msec for %d checks.\n', col_time*1e3, col_count);
 fprintf('Path size: %d.\n', round(path_size));
 fprintf('Trees size: %d.\n\n', round(trees_size));
 
-ypcs = [sample_time lc_time col_time];
+ypcs = [sample_time lc_time total_runtime-lc_time-sample_time];
 LC(:,2) =  D(:,11)./D(:,12)*1e3;
 
 %%
@@ -106,7 +106,7 @@ fprintf('Collision time %f msec for %d checks.\n', col_time*1e3, col_count);
 fprintf('Path size: %d.\n', round(path_size));
 fprintf('Trees size: %d.\n\n', round(trees_size));
 
-yrlx = [sample_time lc_time col_time];
+yrlx = [sample_time lc_time total_runtime-lc_time-sample_time];
 LC(:,3) =  D(:,11)./D(:,12)*1e3;
 
 %%
@@ -142,7 +142,7 @@ fprintf('Collision time %f msec for %d checks.\n', col_time*1e3, col_count);
 fprintf('Path size: %d.\n', round(path_size));
 fprintf('Trees size: %d.\n\n', round(trees_size));
 
-yrss = [sample_time lc_time col_time];
+yrss = [sample_time lc_time total_runtime-lc_time-sample_time];
 % LC(:,4) =  D(:,11)./D(:,12)*1e3;
 
 %%
@@ -150,8 +150,9 @@ figure(1)
 clf
 subplot(121)
 bar([ygd; ypcs],'stacked');
-legend('sample','LC','collision');
+legend('sample','LC','misc');
+set(gca,'XTickLabel',{'NR','PCS'})
 
 subplot(122)
 bar([yrlx; yrss],'stacked');
-legend('sample','LC','collision');
+set(gca,'XTickLabel',{'RLX','RSS'})
