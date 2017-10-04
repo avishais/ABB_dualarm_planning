@@ -15,96 +15,122 @@
 #include "ompl/base/State.h"
 #include <ompl/config.h>
 
-#include "kdl_class.h"
+#include "apc_class.h"
 #include "collisionDetection.h"
 
 #include <iostream>
 
-#define ROBOTS_DISTANCE_ENV_I 900
-#define ROD_LENGTH_ENV_I 300
-#define ROBOTS_DISTANCE_ENV_II 1200
-#define ROD_LENGTH_ENV_II 500
+#define ROBOTS_DISTANCE_ENV_I 900.
+#define ROD_LENGTH_ENV_I 300.
+#define ROBOTS_DISTANCE_ENV_II 1200.
+#define ROD_LENGTH_ENV_II 500.
 
 namespace ob = ompl::base;
 using namespace std;
 
-class StateValidityChecker : public collisionDetection, public kdl
+class StateValidityChecker : public two_robots, public collisionDetection
 {
 public:
 	/** Constructors */
 	StateValidityChecker(const ob::SpaceInformationPtr &si, int env = 1) :
 		mysi_(si.get()),
-		kdl(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
+		two_robots({-(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, 0 }, {(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, PI_}, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
 		collisionDetection(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II,0,0,0,env)
 			{L = env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II;
-			q_prev.resize(12);
+			q_temp.resize(6);
 			setQ();
 			setP();
 			}; //Constructor
 	StateValidityChecker(int env = 1) :
-		kdl(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
+		two_robots({-(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, 0 }, {(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II)/2, 0, PI_}, env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II),
 		collisionDetection(env==1 ? ROBOTS_DISTANCE_ENV_I : ROBOTS_DISTANCE_ENV_II,0,0,0,env)
 			{L = env==1 ? ROD_LENGTH_ENV_I : ROD_LENGTH_ENV_II;
-			q_prev.resize(12);
+			q_temp.resize(6);
 			setQ();
 			setP();
 			}; //Constructor
+
 	/** Validity check using standard OMPL */
 	bool isValid(const ob::State *);
+	bool isValid(const ob::State *, int, int);
 
 	/** Validity check for a vector<double> type  */
-	bool isValidRBS(State);
+	bool isValidRBS(State&, State&, int, int);
 
 	/** Serial local connection check  */
-	bool checkMotion(const ob::State *, const ob::State *);
+	bool checkMotion(const ob::State *, const ob::State *, int, int);
 
 	/** Recursive Bi-Section local connection check  */
-	bool checkMotionRBS(const ob::State *, const ob::State *);
-	bool checkMotionRBS(State, State, int, int);
+	bool checkMotionRBS(const ob::State *, const ob::State *, int, int);
+	bool checkMotionRBS(State, State, State, State, int, int, int, int);
+
+	/** Recursive Bi-Section local connection check when one of the nodes is singular  */
+	bool checkMotionRBS(const ob::State *, const ob::State *, int, int, int);
+	bool checkMotionRBS(State, State, State, State, State, State, int, int, int, int);
 
 	/** Reconstruct a local connection using RBS for post-processing  */
-	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &);
-	bool reconstructRBS(State, State, Matrix &, int, int, int);
+	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &, int, int);
+	bool reconstructRBS(State, State, State, State, int, int, Matrix &, int, int, int);
+
+	/** Reconstruct a local connection using RBS for post-processing when one of the nodes is singular  */
+	bool reconstructRBS(const ob::State *, const ob::State *, Matrix &, int, int, int);
+	bool reconstructRBS(State, State, State, State, State, State, int, int, Matrix &, int, int, int);
+
+	/** Norm distance of 2 vectors while each is separated */
+	double normDistanceDuo(State, State, State, State);
+
+	/** Return mid-point of two vectors for the RBS */
+	void midpoint(State, State, State, State, State &, State&);
 
 	/** Retrieve state from ob::State to vector<double> */
+	void retrieveStateVector(const ob::State *, State &, State &);
 	void retrieveStateVector(const ob::State *, State &);
 
 	/** Update state to ob::State from vector<double> */
+	void updateStateVector(const ob::State *, State, State);
 	void updateStateVector(const ob::State *, State);
 
-	/** Print ob::State ro console */
-	void printStateVector(const ob::State *state);
+	/** Print ob::State to console */
+	void printStateVector(const ob::State *);
 
 	/** Set default OMPL setting */
 	void defaultSettings();
 
 	/** Calculate norm distance between two vectors */
 	double normDistance(State, State);
-	double stateDistance(const ob::State*, const ob::State*);
 
-	/** Max distance between two vectors */
-	double maxDistance(State, State);
-	double MaxAngleDistance(State, State);
+	/** Calculate norm distance between two ob::State's */
+	double stateDistance(const ob::State *, const ob::State *);
 
-	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
-	bool IKproject(const ob::State *, bool = true);
-	bool IKproject(State &, bool = true);
+	/** Close chain (project) */
+	bool close_chain(const ob::State *, int);
 
 	/** Sample a random configuration */
 	State sample_q();
-	bool sample_q(State &);
+	bool sample_q(ob::State *st);
+	bool sample_q(ob::State *, State);
+
+	/** Sample near singularities */
+	bool sampleSingular(ob::State*);
+
+	/** Project a configuration in the ambient space to the constraint surface (and check collisions and joint limits) */
+	bool IKproject(State &, State &, int, int);
+	bool IKproject(State &, State &, int);
+	bool IKproject(State &, State &, State &, int&, State);
+
+	/** Identify the IK solutions of a configuration using two passive chains */
+	State identify_state_ik(const ob::State *, State = {-1, -1});
+	State identify_state_ik(State, State, State = {-1, -1});
 
 	/** Join the two robots joint vectors */
-	void Join_States(State&, State, State);
+	State join_Vectors(State, State);
 
 	/** Decouple the two robots joint vectors */
 	void seperate_Vector(State, State &, State &);
 
-	/** Check that the state is within the closure constriant bounds and satisfies collisions */
-	bool check_project(const ob::State *state);
-
-	/** Check that the state is within the closure constriant bounds */
-	bool check_relax_constraint(State);
+	/** Log configuration to path file */
+	void log_q(ob::State *);
+	void log_q(State, State);
 
 	int get_valid_solution_index() {
 		return valid_solution_index;
@@ -156,26 +182,9 @@ public:
 		return iden;
 	}
 
-	int get_n() {
-		return n;
-	}
-	double get_RBS_tol() {
+	double get_RBS_tol(){
 		return RBS_tol;
 	}
-
-	void set_q_prev(State q) {
-		for (int i = 0; i < q.size(); i++)
-			q_prev[i] = q[i];
-	}
-
-	void set_epsilon(double n) {
-		epsilon = n;
-	}
-	double get_epsilon() {
-		return epsilon;
-	}
-
-	void log_q(State, bool = true);
 
 	// Performance parameters and handle
 	double total_runtime; // Total planning time
@@ -187,8 +196,7 @@ public:
 	bool final_solved; // Planning query solved?
 	double local_connection_time; // Log LC total time
 	int local_connection_count; // Log number of LC attempts
-    int local_connection_success_count; // Log number of LC success
-    int checks;
+	int local_connection_success_count; // Log number of LC success
     double sampling_time;
     State sampling_counter;
 
@@ -203,8 +211,7 @@ public:
 		nodes_in_trees = 0;
 		local_connection_time = 0;
 		local_connection_count = 0;
-    	local_connection_success_count = 0;
-    	checks = 0;
+		local_connection_success_count = 0;
     	sampling_time = 0;
     	sampling_counter.resize(2);
     	sampling_counter[0] = sampling_counter[1] = 0; // [0/1] - successful/failed sampling
@@ -215,22 +222,18 @@ public:
 private:
 	ob::StateSpace *stateSpace_;
 	ob::SpaceInformation    *mysi_;
+	State q_temp;
 	int valid_solution_index;
-	State q_prev;
 
 	double L;
 	Matrix Q;
 	Matrix P;
 
-	double dq = 0.05; // Serial local connection resolution
 	bool withObs = true; // Include obstacles?
 	double RBS_tol = 0.05; // RBS local connection resolution
 	int RBS_max_depth = 150; // Maximum RBS recursion depth
-	int n = 12; // Dimension of system
-	double epsilonD = 100; // Allowed tolerance from constraint bound - position
-	double epsilonA = 0.3; // Allowed tolerance from constraint bound - orientation
-	double epsilon;// = 0.3; // Benchmark 0->~0.7
-	double Ka = (epsilonA*epsilonA)/(epsilonD*epsilonD);
+
+
 };
 
 

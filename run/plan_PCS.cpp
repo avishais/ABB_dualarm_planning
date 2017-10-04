@@ -62,11 +62,11 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 		return std::make_shared<og::LazyRRT>(si, maxStep, env);
 		break;
 	}
-	/*case PLANNER_PRM:
-        {
-        	return std::make_shared<og::PRM>(si);
-        	break;
-        }*/
+	case PLANNER_PRM:
+	{
+		return std::make_shared<og::PRM>(si, env);
+		break;
+	}
 	case PLANNER_SBL:
 	{
 		return std::make_shared<og::SBL>(si, maxStep, env);
@@ -276,7 +276,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 2;
+	int mode = 1;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 0.55);

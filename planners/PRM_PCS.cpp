@@ -70,7 +70,7 @@ static const unsigned int DEFAULT_NEAREST_NEIGHBORS = 10;
 }
 }
 
-ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy) :
+ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, int env, bool starStrategy) :
     		base::Planner(si, "PRM"),
 			starStrategy_(starStrategy),
 			stateProperty_(boost::get(vertex_state_t(), g_)),
@@ -83,7 +83,7 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
 			addedNewSolution_(false),
 			iterations_(0),
 			bestCost_(std::numeric_limits<double>::quiet_NaN()),
-			StateValidityChecker(si)
+			StateValidityChecker(si, env)
 {
 	specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
 	specs_.approximateSolutions = false;
@@ -473,16 +473,20 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 		psol.setOptimized(opt_, bestCost_, addedNewSolution());
 		pdef_->addSolutionPath(psol);
 
+
+		nodes_in_trees = boost::num_vertices(g_);
+		LogPerf2file();
+
 		save2file(pdef_);
 	}
 	else {
 		// Report computation time
 		total_runtime = double(clock() - startTime) / CLOCKS_PER_SEC;
 		final_solved = false;
-	}
 
-	nodes_in_trees = boost::num_vertices(g_);
-	LogPerf2file();
+		nodes_in_trees = boost::num_vertices(g_);
+		LogPerf2file();
+	}
 
 	return sol ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
@@ -536,9 +540,8 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 		totalConnectionAttemptsProperty_[m]++;
 		totalConnectionAttemptsProperty_[n]++;
 
-		State ik1(2), ik2(2);
-		retrieveStateVector(stateProperty_[n], ik1);
-		retrieveStateVector(stateProperty_[m], ik2);
+		State ik1 = identify_state_ik(stateProperty_[n]);
+		State ik2 = identify_state_ik(stateProperty_[m]);
 
 		// Local connection using the Recursive Bi-Section (RBS)
 		clock_t sT = clock();
@@ -552,6 +555,7 @@ ompl::geometric::PRM::Vertex ompl::geometric::PRM::addMilestone(base::State *sta
 
 		if (validMotion)
 		{
+			local_connection_success_count++;
 			successfulConnectionAttemptsProperty_[m]++;
 			successfulConnectionAttemptsProperty_[n]++;
 			const base::Cost weight = opt_->motionCost(stateProperty_[n], stateProperty_[m]);
@@ -657,10 +661,9 @@ void ompl::geometric::PRM::save2file(ompl::base::ProblemDefinitionPtr pdef) {
 	State q1(6), q2(6), ik(2), ik1(2), ik2(2);
 	for( size_t i = 0 ; i < states.size( ) ; ++i ) {
 		state = states[i]->as< ob::State >();
-		retrieveStateVector(state, q1, q2, ik);
+		retrieveStateVector(state, q1, q2);
 		Q1.push_back(q1);
 		Q2.push_back(q2);
-		IK.push_back(ik);
 	}
 
 	nodes_in_path = Q1.size();
@@ -749,25 +752,4 @@ void ompl::geometric::PRM::save2file(ompl::base::ProblemDefinitionPtr pdef) {
 		fp.close();
 		std::remove("./paths/temp.txt");
 	}
-}
-
-
-void ompl::geometric::PRM::LogPerf2file() {
-
-	std::ofstream myfile;
-	myfile.open("./paths/perf_log.txt");
-
-	myfile << final_solved << endl;
-	myfile << PlanDistance << endl; // Distance between nodes 1
-	myfile << total_runtime << endl; // Overall planning runtime 2
-	myfile << get_IK_counter() << endl; // How many IK checks? 5
-	myfile << get_IK_time() << endl; // IK computation time 6
-	myfile << get_collisionCheck_counter() << endl; // How many collision checks? 7
-	myfile << get_collisionCheck_time() << endl; // Collision check computation time 8
-	myfile << get_isValid_counter() << endl; // How many nodes checked 9
-	myfile << nodes_in_path << endl; // Nodes in path 10
-	myfile << nodes_in_trees << endl; // 11
-	myfile << local_connection_time/local_connection_count << endl;
-
-	myfile.close();
 }

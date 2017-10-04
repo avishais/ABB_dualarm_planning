@@ -48,7 +48,7 @@
 #include <vector>
 #include <map>
 
-#include "../validity_checkers/StateValidityCheckerGD.h"
+#include "../validity_checkers/StateValidityCheckerRSS_PRM.h"
 
 namespace ompl
 {
@@ -412,6 +412,9 @@ protected:
     // ***************** My additional functions ************************
     /** \brief Save solution path to two files */
 	void save2file(ompl::base::ProblemDefinitionPtr);
+
+	/** Connected components of start and goal */
+	State ConCom;
 };
 
 }

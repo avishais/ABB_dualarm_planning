@@ -48,7 +48,7 @@
 #include <thread>
 
 #include "GoalVisitor.hpp"
-#include "PRM_GD.h"
+#include "PRM_RX.h"
 
 #define foreach BOOST_FOREACH
 
@@ -103,6 +103,9 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, int env, bool sta
 			std::bind(&PRM::getEdgeCountString, this));
 
 	defaultSettings(); // Avishai
+
+	double eps = 0.5;
+	set_epsilon(eps);
 }
 
 ompl::geometric::PRM::~PRM()
@@ -317,9 +320,10 @@ void ompl::geometric::PRM::growRoadmap(const base::PlannerTerminationCondition &
 			unsigned int attempts = 0;
 			do
 			{
-				q_rand = sample_q(); // Use custom sampler
-				found = true; // Success condition
+				//q_rand = sample_q(); // Use custom sampler
+				//found = true; // Success condition
 				//found = sampler_->sample(workState);
+				found = sample_q(q_rand);
 
 				attempts++;
 			} while (attempts < magic::FIND_VALID_STATE_ATTEMPTS_WITHOUT_TERMINATION_CHECK && !found);

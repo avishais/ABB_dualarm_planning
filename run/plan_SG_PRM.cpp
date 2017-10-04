@@ -32,57 +32,41 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Avishai Sintov */
+/* Author: Avishai Sintov, Ioan Sucan */
 
-#include "plan_GD.h"
+#include "plan_SG_PRM.h"
 
 bool isStateValid(const ob::State *state)
 {
 	return true;
 }
 
-ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p_type)
+ob::PlannerPtr plan_PRM::allocatePlanner(ob::SpaceInformationPtr si, plannerType p_type)
 {
-    switch (p_type)
-    {
-        case PLANNER_BIRRT:
-        {
-            return std::make_shared<og::CBiRRT>(si, maxStep, env);
-            break;
-        }
-        case PLANNER_RRT:
-        {
-            return std::make_shared<og::RRT>(si, maxStep, env);
-            break;
-        }
-        case PLANNER_LAZYRRT:
-        {
-            return std::make_shared<og::LazyRRT>(si, maxStep, env);
-            break;
-        }
-        case PLANNER_PRM:
-        {
-            return std::make_shared<og::PRM>(si, env);
-            break;
-        }
-        case PLANNER_SBL:
-        {
-            return std::make_shared<og::SBL>(si, maxStep, env);
-            break;
-        }
-        default:
-        {
-            OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
-            return ob::PlannerPtr(); // Address compiler warning re: no return value.
-            break;
-        }
-    }
+	switch (p_type)
+	{
+	case PLANNER_PRM:
+	{
+		return std::make_shared<og::PRM>(si, env);
+		break;
+	}
+	default:
+	{
+		OMPL_ERROR("Planner-type enum is not implemented in allocation function.");
+		return ob::PlannerPtr(); // Address compiler warning re: no return value.
+		break;
+	}
+	}
 }
 
-void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step) {
+void plan_PRM::plan(State c_start, State c_goal, double runtime, plannerType ptype, double max_step) {
 
-	// construct the state space we are planning inz
+	// construct the state space we are planning
+	ob::CompoundStateSpace *cs = new ob::CompoundStateSpace(); // Compound R^12 configuration space
 	ob::StateSpacePtr Q(new ob::RealVectorStateSpace(12)); // Angles of Robot 1 & 2 - R^12
+	ob::StateSpacePtr IK(new ob::RealVectorStateSpace(2)); // Additional IK information
+	cs->addSubspace(Q, 1.0);
+	cs->addSubspace(IK, 0.0);
 
 	// set the bounds for the Q=R^12 part of 'Cspace'
 	ob::RealVectorBounds Qbounds(12);
@@ -96,8 +80,8 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	Qbounds.setHigh(3, 2.79);
 	Qbounds.setLow(4, -2.09);
 	Qbounds.setHigh(4, 2.09);
-	Qbounds.setLow(5, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it - this impacts the sampler
-	Qbounds.setHigh(5, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
+	Qbounds.setLow(5, -PI_);// -6.98); // Should be -6.98 but currently the IK won't allow it - this impacts the sampler
+	Qbounds.setHigh(5, PI_);// 6.98); // Should be 6.98 but currently the IK won't allow it
 	Qbounds.setLow(6, -2.88); // Robot 2
 	Qbounds.setHigh(6, 2.88);
 	Qbounds.setLow(7, -1.919);
@@ -108,14 +92,22 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	Qbounds.setHigh(9, 2.79);
 	Qbounds.setLow(10, -2.09);
 	Qbounds.setHigh(10, 2.09);
-	Qbounds.setLow(11, -PI);// -6.98); // Should be -6.98 but currently the IK won't allow it
-	Qbounds.setHigh(11, PI);// 6.98); // Should be 6.98 but currently the IK won't allow it
+	Qbounds.setLow(11, -PI_);// -6.98); // Should be -6.98 but currently the IK won't allow it
+	Qbounds.setHigh(11, PI_);// 6.98); // Should be 6.98 but currently the IK won't allow it
+
+	// set the bounds for the A=R^6
+	ob::RealVectorBounds IKbounds(2);
+	IKbounds.setLow(0, 0);
+	IKbounds.setHigh(0, 11);
+	IKbounds.setLow(1, 0);
+	IKbounds.setHigh(1, 11);
 
 	// set the bound for the compound space
-	Q->as<ob::RealVectorStateSpace>()->setBounds(Qbounds);
+	cs->as<ob::RealVectorStateSpace>(0)->setBounds(Qbounds);
+	cs->as<ob::RealVectorStateSpace>(1)->setBounds(IKbounds);
 
 	// construct a compound state space using the overloaded operator+
-	ob::StateSpacePtr Cspace(Q);
+	ob::StateSpacePtr Cspace(cs);
 
 	// construct an instance of  space information from this state space
 	ob::SpaceInformationPtr si(new ob::SpaceInformation(Cspace));
@@ -123,19 +115,23 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	// set state validity checking for this space
 	//si->setStateValidityChecker(ob::StateValidityCheckerPtr(new myStateValidityCheckerClass(si)));
 	si->setStateValidityChecker(std::bind(&isStateValid, std::placeholders::_1));
-	si->setStateValidityCheckingResolution(0.1); // 3% ???
+	si->setStateValidityCheckingResolution(0.02); // 3% ???
 
 	// create start state
-	ob::ScopedState<ob::RealVectorStateSpace> start(Cspace);
+	ob::ScopedState<ob::CompoundStateSpace> start(Cspace);
 	for (int i = 0; i < 12; i++) {
-		start->as<ob::RealVectorStateSpace::StateType>()->values[i] = c_start[i]; // Access the first component of the start a-state
+		start->as<ob::RealVectorStateSpace::StateType>(0)->values[i] = c_start[i]; // Access the first component of the start a-state
 	}
+	start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 3;
+	start->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
 
 	// create goal state
-	ob::ScopedState<ob::RealVectorStateSpace> goal(Cspace);
+	ob::ScopedState<ob::CompoundStateSpace> goal(Cspace);
 	for (int i = 0; i < 12; i++) {
-		goal->as<ob::RealVectorStateSpace::StateType>()->values[i] = c_goal[i]; // Access the first component of the goal a-state
+		goal->as<ob::RealVectorStateSpace::StateType>(0)->values[i] = c_goal[i]; // Access the first component of the goal a-state
 	}
+	goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 0;
+	goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 3;
 
 	// create a problem instance
 	ob::ProblemDefinitionPtr pdef(new ob::ProblemDefinition(si));
@@ -144,7 +140,6 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 	pdef->setStartAndGoalStates(start, goal);
 	pdef->print();
 
-	maxStep = max_step;
 	// create a planner for the defined space
 	// To add a planner, the #include library must be added above
 	ob::PlannerPtr planner = allocatePlanner(si, ptype);
@@ -181,7 +176,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 
 		// Save path to file
 		//std::ofstream myfile;
-		//myfile.open("pathGD.txt");
+		//myfile.open("pathRRTC.txt");
 		//og::PathGeometric& pog = static_cast<og::PathGeometric&>(*path); // Transform into geometric path class
 		//pog.printAsMatrix(myfile); // Print as matrix to file
 		//myfile.close();
@@ -197,7 +192,7 @@ void plan_C::plan(State c_start, State c_goal, double runtime, plannerType ptype
 
 void extract_from_perf_file(ofstream &ToFile) {
 	ifstream FromFile;
-	FromFile.open("./paths/perf_log.txt");
+	FromFile.open("perf_log.txt");
 
 	string line;
 	while (getline(FromFile, line))
@@ -206,45 +201,30 @@ void extract_from_perf_file(ofstream &ToFile) {
 	FromFile.close();
 }
 
+
 int main(int argn, char ** args) {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
-	double runtime; // Maximum allowed runtime
-	plannerType ptype; // Planner type
+	double runtime;
+	plannerType ptype;
 	string plannerName;
 	int env; // Tested environment index
 
 	if (argn == 1) {
 		runtime = 1; // sec
-		ptype = PLANNER_BIRRT;
+		ptype = PLANNER_PRM;
 		env = 1;
 	}
 	else if (argn == 2) {
 		runtime = atof(args[1]);
-		ptype = PLANNER_BIRRT;
+		ptype = PLANNER_PRM;
 		env = 1;
 	}
 	else if (argn > 2) {
 		runtime = atof(args[1]);
 		switch (atoi(args[2])) {
-		case 1 :
-			ptype = PLANNER_BIRRT;
-			plannerName = "BiRRT";
-			break;
-		case 2 :
-			ptype = PLANNER_RRT;
-			plannerName = "RRT";
-			break;
-		case 3 :
-			ptype = PLANNER_LAZYRRT;
-			plannerName = "LazyRRT";
-			break;
 		case 4 :
 			ptype = PLANNER_PRM;
 			plannerName = "PRM";
-			break;
-		case 5 :
-			ptype = PLANNER_SBL;
-			plannerName = "SBL";
 			break;
 		default :
 			cout << "Error: Requested planner not defined.";
@@ -256,13 +236,14 @@ int main(int argn, char ** args) {
 			env = 1;
 	}
 
-	plan_C Plan;
+	plan_PRM Plan;
 
 	srand (time(NULL));
 
 	State c_start, c_goal;
 	if (env == 1) {
 		c_start = {0.5236, 1.7453, -1.8326, -1.4835,	1.5708,	0, 1.004278, 0.2729, 0.9486, -1.15011, 1.81001, -1.97739};
+		//c_goal = {-0.293138, 1.53305, 0.0152247, -0.845332, -1.65145, 2.71709, -1.13577, 1.30739, 0.638773, 1.49542, 1.43842, 0.065378};
 		//State c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, -2.432, -1.4148, -1.7061, -1.6701, -1.905, 1.0015}; // Robot 2 backfilp - Elbow down
 		c_goal = {0.5236, 0.34907, 0.69813, -1.3963, 1.5708, 0, 0.7096, 1.8032, -1.7061, -1.6286, 1.9143, -2.0155}; // Robot 2 no backflip - Elbow down
 		Plan.set_environment(1);
@@ -276,62 +257,65 @@ int main(int argn, char ** args) {
 	int mode = 1;
 	switch (mode) {
 	case 1: {
-		Plan.plan(c_start, c_goal, runtime, ptype, 1);
+		Plan.plan(c_start, c_goal, runtime, ptype, 0.6);
 
 		break;
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
-		ofstream GD;
-		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_GD_env2.txt", ios::app);
+
+		ofstream APS;
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_SG_3poles.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			//Plan.plan(c_start, c_goal, runtime, ptype, 2.6); // CBiRRT
-			Plan.plan(c_start, c_goal, runtime, ptype, 0.6); // SBL
+			//Plan.plan(c_start, c_goal, runtime, ptype, 0.6); // CBiRRT
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.4); // SBL
 
 			// Extract from perf file
 			ifstream FromFile;
 			FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
 			string line;
 			while (getline(FromFile, line))
-				GD << line << "\t";
+				APS << line << "\t";
 			FromFile.close();
-			GD << endl;
+			APS << endl;
 		}
-		GD.close();
+		APS.close();
 		break;
 	}
-	case 3 : { // Benchmark maximum step size
-		ofstream GD;
+	case 3 : { // Benchmark maximum step size while benchmarking the step size
+		ofstream APS;
 		if (env == 1)
-			GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_GD_3poles_rB.txt", ios::app);
+			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
 		else if (env == 2)
-			GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_GD_3poles_rB.txt", ios::app);
+			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
 
-		for (int k = 0; k < 500; k++) {
-
+		int N = 100;
+		for (int k = 0; k < N; k++) {
 			for (int j = 0; j < 3; j++) {
-				double maxStep = 0.2 + 0.2*j;
+				double maxStep = 0.4 + 0.2*j;
 
-				cout << "** Running GD iteration " << k << " with maximum step: " << maxStep << " **" << endl;
+				cout << "** Running RSS iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 
 				Plan.plan(c_start, c_goal, runtime, ptype, maxStep);
 
-				GD << maxStep << "\t";
+				APS << maxStep << "\t";
 
 				// Extract from perf file
 				ifstream FromFile;
 				FromFile.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/perf_log.txt");
 				string line;
 				while (getline(FromFile, line))
-					GD << line << "\t";
+					APS << line << "\t";
 				FromFile.close();
-				GD << endl;
+				APS << endl;
 			}
 		}
-		GD.close();
+		APS.close();
 		break;
 	}
+
 	}
+
 
 	std::cout << std::endl << std::endl;
 

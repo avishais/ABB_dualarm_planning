@@ -54,15 +54,37 @@ State StateValidityChecker::sample_q() {
 
 	State q(12), q1(6), q2(6);
 
+	clock_t sT = clock();
 	while (1) {
 		for (int i = 0; i < q.size(); i++)
 			q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
 
-		if (!isValidRBS(q))
+		if (!isValidRBS(q)) {
+			sampling_counter[1]++;
 			continue;
+		}
 
+		sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		sampling_counter[0]++;
 		return q;
 	}
+}
+
+bool StateValidityChecker::sample_q(State &q) {
+
+	clock_t sT = clock();
+	for (int i = 0; i < q.size(); i++)
+		q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
+
+	if (!isValidRBS(q)) {
+		sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		sampling_counter[1]++;
+		return false;
+	}
+
+	sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+	sampling_counter[0]++;
+	return true;
 }
 
 bool StateValidityChecker::check_project(const ob::State *state) {

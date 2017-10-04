@@ -10,7 +10,7 @@ myStateValidityCheckerClass::myStateValidityCheckerClass(const ob::SpaceInformat
 
 }*/
 
-#include "StateValidityCheckerPCS.h"
+#include "StateValidityCheckerRSS_PRM.h"
 #include <queue>
 
 void StateValidityChecker::defaultSettings()
@@ -22,7 +22,8 @@ void StateValidityChecker::defaultSettings()
 
 void StateValidityChecker::retrieveStateVector(const ob::State *state, State &q1, State &q2) {
 	// cast the abstract state type to the type we expect
-	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
+	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
+	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
 
 	for (unsigned i = 0; i < 6; i++) {
 		q1[i] = Q->values[i]; // Set state of robot1
@@ -30,9 +31,19 @@ void StateValidityChecker::retrieveStateVector(const ob::State *state, State &q1
 	}
 }
 
+void StateValidityChecker::retrieveStateVector(const ob::State *state, State &ik) {
+	// cast the abstract state type to the type we expect
+	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
+	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
+
+	ik[0] = IK->values[0];
+	ik[1] = IK->values[1];
+}
+
 void StateValidityChecker::updateStateVector(const ob::State *state, State q1, State q2) {
 	// cast the abstract state type to the type we expect
-	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
+	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
+	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
 
 	for (unsigned i = 0; i < 6; i++) {
 		Q->values[i] = q1[i];
@@ -40,9 +51,20 @@ void StateValidityChecker::updateStateVector(const ob::State *state, State q1, S
 	}
 }
 
+void StateValidityChecker::updateStateVector(const ob::State *state, State ik) {
+	// cast the abstract state type to the type we expect
+	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
+	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
+
+	IK->values[0] = ik[0];
+	IK->values[1] = ik[1];
+}
+
 void StateValidityChecker::printStateVector(const ob::State *state) {
 	// cast the abstract state type to the type we expect
-	const ob::RealVectorStateSpace::StateType *Q = state->as<ob::RealVectorStateSpace::StateType>();
+	const ob::CompoundStateSpace::StateType *C_state = state->as<ob::CompoundStateSpace::StateType>();
+	const ob::RealVectorStateSpace::StateType *Q = C_state->as<ob::RealVectorStateSpace::StateType>(0);
+	const ob::RealVectorStateSpace::StateType *IK = C_state->as<ob::RealVectorStateSpace::StateType>(1);
 
 	State q1(6), q2(6);
 
@@ -53,6 +75,7 @@ void StateValidityChecker::printStateVector(const ob::State *state) {
 
 	cout << "q1: "; printVector(q1);
 	cout << "q2: "; printVector(q2);
+	cout << "[" << IK->values[0] << ", " << IK->values[1] << "]" << endl;
 }
 
 
@@ -196,38 +219,68 @@ bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain) {
 bool StateValidityChecker::sample_q(ob::State *st) {
 
 	State q(12), q1(6), q2(6), ik(2);
+	int ik_sol;
 
-	clock_t sT = clock();
 	while (1) {
 		// Random active chain
 		for (int i = 0; i < 6; i++)
 			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
 
-		int ik_sol = rand() % 8;
+		ik_sol = rand() % 8;
 
 		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
 			q2 = get_IK_solution_q2();
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1 && ik[1]==-1) {
-			sampling_counter[1]++;
+		if (ik[0]==-1)
 			continue;
-		}
 
 		q = join_Vectors(q1, q2);
-		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q)) {
-			sampling_counter[1]++;
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
 			continue;
-		}
 
 		break;
 	}
-	sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
-	sampling_counter[0]++;
 
 	updateStateVector(st, q1, q2);
+	updateStateVector(st, {(double)ik_sol, -1.});
 	return true;
+}
 
+bool StateValidityChecker::sample_q(ob::State *st, State concom) {
+
+	State q(12), q1(6), q2(6), ik(2);
+	int ik_sol;
+
+	while (1) {
+		// Random active chain
+		for (int i = 0; i < 6; i++)
+			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
+
+		//int j = rand() % concom.size();
+		//ik_sol = concom[j];
+		if (rand() % 100 > 30)
+			ik_sol = concom[1];
+		else
+			ik_sol = concom[0];
+
+		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
+			q2 = get_IK_solution_q2();
+
+		ik = identify_state_ik(q1, q2);
+		if (ik[0]==-1)
+			continue;
+
+		q = join_Vectors(q1, q2);
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+			continue;
+
+		break;
+	}
+
+	updateStateVector(st, q1, q2);
+	updateStateVector(st, {(double)ik_sol, -1.});
+	return true;
 }
 
 State StateValidityChecker::sample_q() {
@@ -245,7 +298,7 @@ State StateValidityChecker::sample_q() {
 			q2 = get_IK_solution_q2();
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1 && ik[1]==-1)
+		if (ik[0]==-1)
 			continue;
 
 		q = join_Vectors(q1, q2);
@@ -256,6 +309,60 @@ State StateValidityChecker::sample_q() {
 	}
 
 	return q;
+}
+
+// Sample singularities
+bool StateValidityChecker::sampleSingular(ob::State* state)
+{
+	State q1(6), q2(6), q2_mode(6), q2_add(6), ik(2);
+	int sol_R2 = -1;
+	bool valid = false;
+
+	int sMode = 2;//rng_.uniformInt(0, 2);
+	switch (sMode) {
+	case 0:
+		q2_mode = {1,1,0,1,0,1};
+		q2_add = {0,0,-PI_/2,0,0,0};
+		break;
+	case 1:
+		q2_mode = {1,1,1,1,0,1};
+		q2_add = {0,0,0,0,0,0};
+		break;
+	case 2:
+		q2_mode = {1,1,0,1,1,1};
+		q2_add = {0,0,-PI_/2,0,0,0};
+	}
+
+	Matrix Q = getQ();
+
+	do {
+		// Random active chain
+		for (int i = 0; i < 6; i++) {
+			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
+			q2[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
+
+			// Make the sample of the passive chain singular
+			q2[i] = q2[i]*q2_mode[i]+q2_add[i];
+		}
+
+		Matrix Qinv = Q;
+		InvertMatrix(Q, Qinv); // Invert matrix
+		if (IsRobotsFeasible_R2(Qinv, q2)) {
+
+			sol_R2 = rand() % get_countSolutions(); //rng_.uniformInt(0, get_countSolutions()-1);
+			q1 = get_all_IK_solutions_1(sol_R2);
+
+			updateStateVector(state, q1, q2);
+			ik = identify_state_ik(state);
+			if (ik[1] == -1)
+				continue;
+
+			if (!collision_state(getPMatrix(), q1, q2))
+				valid = true;
+		}
+	} while (!valid);
+
+	return valid;
 }
 
 State StateValidityChecker::identify_state_ik(const ob::State *state, State ik) {
@@ -510,6 +617,61 @@ bool StateValidityChecker::checkMotionRBS(State qa1, State qa2, State qb1, State
 		return false;
 }
 
+// ---------------- v Singularity RBS v ---------------------------
+
+// Calls the Recursive Bi-Section algorithm (Hauser)
+bool StateValidityChecker::checkMotionRBS(const ob::State *s1, const ob::State *s2, int sg, int active_chain, int ik_sol)
+{
+	// We assume motion starts and ends in a valid configuration - due to projection
+	bool result = true;
+
+	State qa1(6), qa2(6), qb1(6), qb2(6);
+	retrieveStateVector(s1, qa1, qa2);
+	retrieveStateVector(s2, qb1, qb2);
+
+	if (sg == 1) // s1 is singular
+		result = checkMotionRBS(qa1, qa2, qb1, qb2, qa1, qa2, active_chain, ik_sol, 0, 0);
+	else
+		result = checkMotionRBS(qa1, qa2, qb1, qb2, qb1, qb2, active_chain, ik_sol, 0, 0);
+
+	return result;
+}
+
+
+// Implements local-connection using Recursive Bi-Section Technique (Hauser)
+bool StateValidityChecker::checkMotionRBS(State qa1, State qa2, State qb1, State qb2, State qsg1, State qsg2, int active_chain, int ik_sol, int recursion_depth, int non_decrease_count) {
+
+	State q1(6), q2(6);
+
+	// Check if reached the required resolution
+	double d = normDistanceDuo(qa1, qa2, qb1, qb2);
+	if (d < RBS_tol)
+		return true;
+
+	if (recursion_depth > RBS_max_depth)// || non_decrease_count > 10)
+		return false;
+
+	midpoint(qa1, qa2, qb1, qb2, q1, q2);
+
+	// Check obstacles collisions and joint limits
+	if (!isValidRBS(q1, q2, active_chain, ik_sol)) // Also updates s_mid with the projected value
+		return false;
+
+	if (normDistanceDuo(q1, q2, qsg1, qsg2) < 25*RBS_tol)
+		return true;
+
+	//if ( normDistanceDuo(qa1, qa2, q1, q2) > d || normDistanceDuo(q1, q2, qb1, qb2) > d )
+	//		non_decrease_count++;
+
+	if ( checkMotionRBS(qa1, qa2, q1, q2, active_chain, ik_sol, recursion_depth+1, non_decrease_count) && checkMotionRBS(q1, q2, qb1, qb2, active_chain, ik_sol, recursion_depth+1, non_decrease_count) )
+		return true;
+	else
+		return false;
+}
+
+// ---------------- ^ Singularity RBS ^ ---------------------------
+
+
 double StateValidityChecker::normDistanceDuo(State qa1, State qa2, State qb1, State qb2) {
 	double sum = 0;
 	for (int i=0; i < qa1.size(); i++)
@@ -560,6 +722,66 @@ bool StateValidityChecker::reconstructRBS(State qa1, State qa2, State qb1, State
 	// Check obstacles collisions and joint limits
 	if (!isValidRBS(q1, q2, active_chain, ik_sol)) // Also updates s_mid with the projected value
 		return false; // Not suppose to happen since we run this function only when local connection feasibility is known
+
+	if (firstORsecond==1)
+		M.insert(M.begin()+last_index, join_Vectors(q1, q2)); // Inefficient operation, but this is only for post-processing and validation
+	else
+		M.insert(M.begin()+(++last_index), join_Vectors(q1, q2)); // Inefficient operation, but this is only for post-processing and validation
+
+	int prev_size = M.size();
+	if (!reconstructRBS(qa1, qa2, q1, q2, active_chain, ik_sol, M, iteration, last_index, 1))
+		return false;
+	last_index += M.size()-prev_size;
+	if (!reconstructRBS(q1, q2, qb1, qb2, active_chain, ik_sol, M, iteration, last_index, 2))
+		return false;
+
+	return true;
+}
+
+// ---------------- v Singularity RBS v ---------------------------
+
+// Reconstruct local connection with the Recursive Bi-Section algorithm (Hauser)
+bool StateValidityChecker::reconstructRBS(const ob::State *s1, const ob::State *s2, Matrix &Confs, int sg, int active_chain, int ik_sol)
+{
+	State qa1(6), qa2(6), qb1(6), qb2(6);
+	retrieveStateVector(s1, qa1, qa2);
+	retrieveStateVector(s2, qb1, qb2);
+
+	Confs.push_back(join_Vectors(qa1, qa2));
+	Confs.push_back(join_Vectors(qb1, qb2));
+
+	bool valid;
+	if (sg == 1) // s1 is singular
+		valid = reconstructRBS(qa1, qa2, qb1, qb2, qa1, qa2, active_chain, ik_sol, Confs, 0, 1, 1);
+	else
+		valid = reconstructRBS(qa1, qa2, qb1, qb2, qb1, qb2, active_chain, ik_sol, Confs, 0, 1, 1);
+
+	return valid;
+}
+
+bool StateValidityChecker::reconstructRBS(State qa1, State qa2, State qb1, State qb2, State qsg1, State qsg2, int active_chain, int ik_sol, Matrix &M, int iteration, int last_index, int firstORsecond) {
+	// firstORsecond - tells if the iteration is from the first or second call for the recursion (in the last iteration).
+	// last_index - the last index that was added to M.
+
+	State q1(6), q2(6);
+	iteration++;
+
+	// Check if reached the required resolution
+	double d = normDistanceDuo(qa1, qa2, qb1, qb2);
+	if (d < RBS_tol)
+		return true;
+
+	if (iteration > RBS_max_depth)
+		return false;
+
+	midpoint(qa1, qa2, qb1, qb2, q1, q2);
+
+	// Check obstacles collisions and joint limits
+	if (!isValidRBS(q1, q2, active_chain, ik_sol)) // Also updates s_mid with the projected value
+		return false; // Not suppose to happen since we run this function only when local connection feasibility is known
+
+	if (normDistanceDuo(q1, q2, qsg1, qsg2) < 25*RBS_tol)
+		return true;
 
 	if (firstORsecond==1)
 		M.insert(M.begin()+last_index, join_Vectors(q1, q2)); // Inefficient operation, but this is only for post-processing and validation

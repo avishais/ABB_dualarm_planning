@@ -55,19 +55,26 @@ State StateValidityChecker::sample_q() {
 
 	State q(12), q1(6), q2(6);
 
+	clock_t sT = clock();
 	while (1) {
 		for (int i = 0; i < q.size(); i++)
 			q[i] = -PI + (double)rand()/RAND_MAX * 2*PI;
 
-		if (!GD(q))
+		if (!GD(q)) {
+			sampling_counter[1]++;
 			continue;
+		}
 
 		q = get_GD_result();
 
 		seperate_Vector(q, q1, q2);
-		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q)) {
+			sampling_counter[1]++;
 			continue;
+		}
 
+		sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+		sampling_counter[0]++;
 		return q;
 	}
 }

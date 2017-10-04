@@ -48,7 +48,7 @@
 #include <vector>
 #include <map>
 
-#include "../validity_checkers/StateValidityCheckerGD.h"
+#include "../validity_checkers/StateValidityCheckerRX.h"
 
 namespace ompl
 {

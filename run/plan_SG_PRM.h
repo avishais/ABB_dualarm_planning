@@ -15,13 +15,7 @@
 #include <ompl/config.h>
 
 // Modified and custom planners
-#include "../planners/CBiRRT_RX.h"
-#include "../planners/RRT_RX.h"
-#include "../planners/LazyRRT_RX.h"
-#include "../planners/PRM_RX.h"
-#include "../planners/SBL_RX.h"
-
-//#include "../validity_checkers/verification_class.h"
+#include "../planners/PRM_SG.h"
 
 // Standard libraries
 #include <iostream>
@@ -44,7 +38,7 @@ enum plannerType
 bool isStateValid(const ob::State *state);
 
 // Prototypes
-class plan_C
+class plan_PRM //: public StateValidityChecker
 {
 public:
 
@@ -59,8 +53,6 @@ public:
 	int ode_count;
 
 	double maxStep;
-
-	//verification_class vfc;
 
 	int env;
 	void set_environment(int env_index) {

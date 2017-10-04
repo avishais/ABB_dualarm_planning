@@ -63,10 +63,10 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 		break;
 	}
 	/*case PLANNER_PRM:
-        {
-        	return std::make_shared<og::PRM>(si);
-        	break;
-        }*/
+	{
+		return std::make_shared<og::PRM>(si, env);
+		break;
+	}*/
 	case PLANNER_SBL:
 	{
 		return std::make_shared<og::SBL>(si, maxStep, env);
@@ -207,7 +207,6 @@ void extract_from_perf_file(ofstream &ToFile) {
 
 	FromFile.close();
 }
-
 
 int main(int argn, char ** args) {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;

@@ -196,19 +196,20 @@ bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain) {
 bool StateValidityChecker::sample_q(ob::State *st) {
 
 	State q(12), q1(6), q2(6), ik(2);
+	int ik_sol;
 
 	while (1) {
 		// Random active chain
 		for (int i = 0; i < 6; i++)
 			q1[i] = ((double) rand() / (RAND_MAX)) * 2 * PI_ - PI_;
 
-		int ik_sol = rand() % 8;
+		ik_sol = rand() % 8;
 
 		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
 			q2 = get_IK_solution_q2();
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1 && ik[1]==-1)
+		if (ik[0]==-1)
 			continue;
 
 		q = join_Vectors(q1, q2);
@@ -220,7 +221,6 @@ bool StateValidityChecker::sample_q(ob::State *st) {
 
 	updateStateVector(st, q1, q2);
 	return true;
-
 }
 
 State StateValidityChecker::sample_q() {
@@ -238,7 +238,7 @@ State StateValidityChecker::sample_q() {
 			q2 = get_IK_solution_q2();
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1 && ik[1]==-1)
+		if (ik[0]==-1)
 			continue;
 
 		q = join_Vectors(q1, q2);
