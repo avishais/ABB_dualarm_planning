@@ -1,25 +1,10 @@
 clear all
 clc
-%% GD
-D1 = load('gd_rbs_verification_withObs_env2_distMix (copy).txt');
-D2 = load('gd_rbs_verification_withObs_env2.txt');
 
-Do{1} = [D1; D2];
-clear D1 D2
-%% PCS
-D1 = load('pcs_rbs_verification_withObs_env2_distMix (copy).txt');
-D2 = load('pcs_rbs_verification_withObs_env2.txt');
-
-Do{2} = [D1; D2];
-clear D1 D2
-%% RLX
+Do{1} = load('gd_rbs_verification_withObs_env2.txt');
+Do{2} = load('pcs_rbs_verification_withObs_env2.txt');
+Do{4} = load('rss_rbs_verification_withObs_env2.txt');
 Do{3} = load('rlx_rbs_verification_eps0.5_withObs_env2.txt');
-
-%% RSS
-D1 = load('rss_rbs_verification_withObs_env2_distMix (copy).txt');
-D2 = load('rss_rbs_verification_withObs_env2.txt');
-
-Do{4} = [D1; D2];
 
 %%
 figure(2)

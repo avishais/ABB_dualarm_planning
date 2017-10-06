@@ -424,8 +424,8 @@ int collisionDetection::collision_state(Matrix M, State q1, State q2)
 
 	if (withObs && env == 2) {
 
-		//if (T7[2] > 790 || T72[2] > 790) // Path not from above
-		//	return 1;
+		if (T7[2] > 800 || T72[2] > 800) // Path not from above
+			return 1;
 
 		PQP_REAL Mobs[3][3], Robs[3][3], Tobs[3];
 

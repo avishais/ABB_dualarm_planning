@@ -62,7 +62,7 @@ ob::PlannerPtr plan_C::allocatePlanner(ob::SpaceInformationPtr si, plannerType p
 	}
 	case PLANNER_PRM:
 	{
-		return std::make_shared<og::PRM>(si);
+		return std::make_shared<og::PRM>(si, env);
 		break;
 	}
 	case PLANNER_SBL:
@@ -303,11 +303,14 @@ int main(int argn, char ** args) {
 	case 3 : { // Benchmark maximum step size
 
 		ofstream RX;
-		RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
+		if (env == 1)
+			RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
+		else if (env == 2)
+			RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
 
 		for (int k = 0; k < 10; k++) {
-			for (int j = 0; j < 5; j++) {
-				double maxStep = 0.1 + 0.1*j;
+			for (int j = 0; j < 4; j++) {
+				double maxStep = 0.2 + 0.1*j;
 
 				cout << "** Running RLX iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 

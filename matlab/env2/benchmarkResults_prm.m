@@ -12,11 +12,11 @@ clc
 
 %%
 D1 = load('Benchmark_PRM_GD_3poles_rB.txt');
-D1 = D1(D1(:,2)==1,:);
+% D1 = D1(D1(:,2)==1,:);
 D1 = D1(:,2:end);
 
-D2 = load('Benchmark_PRM_GD_3poles_rB.txt'); 
-D2 = D2(D2(:,2)==1,:);
+D2 = load('Benchmark_PRM_PCS_3poles_rB.txt'); 
+% D2 = D2(D2(:,2)==1,:);
 D2 = D2(:,2:end);
 
 % D3 = load('Benchmark_PRM_RLX_eps5_3poles_rB.txt'); 

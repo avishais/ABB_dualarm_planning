@@ -12,7 +12,7 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{4};
+plannerType = planners{1};
 switch plannerType
     case 'BiRRT'
         D1 = load('Benchmark_BiRRT_RLX_eps1_3poles_rB.txt'); D1 = D1(D1(:,2)==1,:);
@@ -69,7 +69,6 @@ disp(' ');
 [tdmin, id] = min(td);
 [tgmin, ig] = min(tg);
 [tbmin, ib] = min(tb);
-
 
 %%
 h = figure(1);
@@ -187,7 +186,7 @@ end
 %%
 % 0.5
 tb = D3(:,3);
-maxT = max(tg);
+maxT = max(tb);
 T3 = linspace(0,maxT,1000);
 T3 = T3(2:end);
 for i = 1:length(T3)
