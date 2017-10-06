@@ -12,6 +12,10 @@ clear all
 clc
 
 D = load('rss_rbs_verification_withObs.txt');
+% D = load('rss_rbs_verification_withObs_env1.txt');
+% D = load('rss_rbs_verification_withObs_env2.txt');
+
+% D = D(1:5e4,:);
 
 %% Verification
 

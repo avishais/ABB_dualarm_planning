@@ -31,10 +31,10 @@ CPPRX = ${INC_CLASSES}kdl_class.cpp ${INC_VALIDITY}StateValidityCheckerRX.cpp
 CPP_P_PCS = ${INC_RUN}plan_PCS.cpp ${INC_PLANNERS}CBiRRT_PCS.cpp
 
 all:
-	$(CXX) test_rbs_pcs.cpp ${CPPAPC} ${CPPPQP} ${CPPVRF} -o trbspcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
-	$(CXX) test_rbs_rss.cpp ${CPPAPC} ${CPPPQP} ${CPPVRF} -o trbsrss $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
-	#$(CXX) test_rbs_gd.cpp ${CPPGD} ${CPPPQP} ${CPPVRF} -o trbsgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11	
-	#$(CXX) test_rbs_rlx.cpp ${CPPRX} ${CPPPQP} ${CPPVRF} -o trbsrx $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
+	#$(CXX) test_rbs_pcs.cpp ${CPPAPC} ${CPPPQP} -o trbspcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
+	#$(CXX) test_rbs_rss.cpp ${CPPAPC} ${CPPPQP} -o trbsrss $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
+	$(CXX) test_rbs_gd.cpp ${CPPGD} ${CPPPQP} -o trbsgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11	
+	#$(CXX) test_rbs_rlx.cpp ${CPPRX} ${CPPPQP} -o trbsrx $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 	#$(CXX) test_gd_kdl.cpp ${CPPGDKDL} -o tgd $(CXXFLAGS) $(LDFLAGS) -std=c++11
 	#$(CXX) test_apc.cpp ${CPPGD} ${CPPAPC} -o tapc $(CXXFLAGS) $(LDFLAGS) -std=c++11
 	#$(CXX) test_kdl_JL.cpp ${CPPGDKDL} -o tgd $(CXXFLAGS) $(LDFLAGS) -std=c++11

@@ -13,10 +13,10 @@ double fRand(double fMin, double fMax)
 void gen_data(StateValidityChecker svc) {
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps" + std::to_string(svc.get_epsilon()) + ".txt", ios::app);
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps0.5_env2.txt", ios::app);
 
 	State q(12);
-	int N = 10000;
+	int N = 1e5;
 	for (int k = 0; k < N; k++) {
 		q = svc.sample_q();
 
@@ -34,7 +34,7 @@ Matrix load_ranf_confs(double eps) {
 
 	ifstream fq;
 	//fq.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps" + std::to_string(eps) + ".txt");
-	fq.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps0.1.txt");
+	fq.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/data/rlx_rand_confs_eps0.5_env2.txt");
 	int i = 0;
 	while(!fq.eof()) {// || i > 1e5) {
 		for (int j=0; j < 12; j++) {
@@ -55,30 +55,31 @@ int main() {
 	cout << "Seed in testing: " << Seed << endl;
 
 	// KDL
-	StateValidityChecker svc;
-	svc.set_epsilon(0.1);
+	StateValidityChecker svc(2);
+	svc.initiate_log_parameters();
+	svc.set_epsilon(0.5);
 
 	//gen_data(svc);
-	Matrix C = load_ranf_confs(0.3);//svc.get_epsilon()
+	Matrix C = load_ranf_confs(0.5);//svc.get_epsilon()
 	//exit(1);
 
 	int n = 12;
 	State q1(n), q2(n);
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/rlx_rbs_verification_eps0.1_withObs.txt", ios::app);
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/rlx_rbs_verification_eps0.5_withObs_env2.txt", ios::app);
 
-	int N = 0.5e6, i = 0;
+	int N = 5.5e5, i = 0;
 
 	while (i < N) {
 		int k = rand() % C.size();
 		q1 = C[k];
 		//q1 = svc.sample_q();
 
-		if (1){//rand()%2==0) {
+		if (rand()%2==0) {
 			bool flag = false;
 			for (int a = 0; a < 20; a++) {
-				double s = fRand(0.001, 0.05);
+				double s = fRand(0.01, 1);
 				for (int j = 0; j < n; j++)
 					q2[j] = q1[j] + s * (fRand(-PI, PI) - q1[j]);
 
@@ -114,10 +115,10 @@ int main() {
 			bool path_valid = 1;
 
 			f << vsuc << " " << path_valid << " " << svc.normDistance(q1, q2) << " " << rbs_time << endl;
-			i++;
 		}
 		else
 			f << 0 << " " << 0 << " " << svc.normDistance(q1, q2) << " " << rbs_time << endl;
+		i++;
 	}
 /*
 

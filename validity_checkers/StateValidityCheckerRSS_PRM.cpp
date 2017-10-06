@@ -210,7 +210,7 @@ bool StateValidityChecker::IKproject(State &q1, State &q2, int active_chain) {
 			continue;
 	}
 	if (i==8) // Failed
-			return false;
+		return false;
 	else
 		return true;
 
@@ -221,6 +221,7 @@ bool StateValidityChecker::sample_q(ob::State *st) {
 	State q(12), q1(6), q2(6), ik(2);
 	int ik_sol;
 
+	clock_t sT = clock();
 	while (1) {
 		// Random active chain
 		for (int i = 0; i < 6; i++)
@@ -230,18 +231,28 @@ bool StateValidityChecker::sample_q(ob::State *st) {
 
 		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
 			q2 = get_IK_solution_q2();
+		else {
+			sampling_counter[1]++;
+			continue;
+		}
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1)
+		if (ik[0]==-1) {
+			sampling_counter[1]++;
 			continue;
+		}
 
 		q = join_Vectors(q1, q2);
-		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q)) {
+			sampling_counter[1]++;
 			continue;
+		}
 
 		break;
 	}
 
+	sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+	sampling_counter[0]++;
 	updateStateVector(st, q1, q2);
 	updateStateVector(st, {(double)ik_sol, -1.});
 	return true;
@@ -252,6 +263,7 @@ bool StateValidityChecker::sample_q(ob::State *st, State concom) {
 	State q(12), q1(6), q2(6), ik(2);
 	int ik_sol;
 
+	clock_t sT = clock();
 	while (1) {
 		// Random active chain
 		for (int i = 0; i < 6; i++)
@@ -266,18 +278,28 @@ bool StateValidityChecker::sample_q(ob::State *st, State concom) {
 
 		if (calc_specific_IK_solution_R1(Q, q1, ik_sol))
 			q2 = get_IK_solution_q2();
+		else {
+			sampling_counter[1]++;
+			continue;
+		}
 
 		ik = identify_state_ik(q1, q2);
-		if (ik[0]==-1)
+		if (ik[0]==-1) {
+			sampling_counter[1]++;
 			continue;
+		}
 
 		q = join_Vectors(q1, q2);
-		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q))
+		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q)) {
+			sampling_counter[1]++;
 			continue;
+		}
 
 		break;
 	}
 
+	sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+	sampling_counter[0]++;
 	updateStateVector(st, q1, q2);
 	updateStateVector(st, {(double)ik_sol, -1.});
 	return true;
@@ -314,6 +336,7 @@ State StateValidityChecker::sample_q() {
 // Sample singularities
 bool StateValidityChecker::sampleSingular(ob::State* state)
 {
+	clock_t sT = clock();
 	State q1(6), q2(6), q2_mode(6), q2_add(6), ik(2);
 	int sol_R2 = -1;
 	bool valid = false;
@@ -354,13 +377,20 @@ bool StateValidityChecker::sampleSingular(ob::State* state)
 
 			updateStateVector(state, q1, q2);
 			ik = identify_state_ik(state);
-			if (ik[1] == -1)
+			if (ik[1] == -1) {
+				sampling_counter[1]++;
 				continue;
+			}
 
 			if (!collision_state(getPMatrix(), q1, q2))
 				valid = true;
+			else
+				sampling_counter[1]++;
 		}
 	} while (!valid);
+
+	sampling_time += double(clock() - sT) / CLOCKS_PER_SEC;
+	sampling_counter[0]++;
 
 	return valid;
 }
@@ -843,7 +873,7 @@ void StateValidityChecker::log_q(State q1, State q2) {
 		myfile << q2[j] << " ";
 	myfile << endl;
 
-myfile.close();
+	myfile.close();
 
 }
 

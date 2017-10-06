@@ -274,7 +274,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 3;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 0.1);
@@ -305,9 +305,9 @@ int main(int argn, char ** args) {
 		ofstream RX;
 		RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
 
-		for (int k = 0; k < 100; k++) {
-			for (int j = 0; j < 1; j++) {
-				double maxStep = 0.3;//0.05 + 0.2*j;
+		for (int k = 0; k < 10; k++) {
+			for (int j = 0; j < 5; j++) {
+				double maxStep = 0.1 + 0.1*j;
 
 				cout << "** Running RLX iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 

@@ -14,9 +14,15 @@ clc
 % D = load('rlx_rbs_verification_eps0.7_withObs.txt');
 % D = load('rlx_rbs_verification_eps0.3_withObs.txt');
 % D = load('rlx_rbs_verification_eps0.5_withObs.txt');
-D = load('rlx_rbs_verification_eps0.1_withObs.txt');
+% D = load('rlx_rbs_verification_eps0.1_withObs.txt');
 
+% D = load('rlx_rbs_verification_eps0.5_withObs_env1.txt');
+% D = load('rlx_rbs_verification_eps0.5_withObs_env2.txt');
 
+% D = load('rlx_rbs_verification_eps0.5_withObs_env1_distMix.txt');
+D = load('rlx_rbs_verification_eps0.5_withObs_env2_distMix.txt');
+
+% D = D(1:5e4,:);
 
 %% Verification
 
@@ -66,7 +72,7 @@ ylabel(hAx(2),'computation time [msec]');
 clear V d
 Dd = D(:,3);
 max_d = max(Dd);
-d = linspace(0, max_d, 10);
+d = linspace(0, max_d, 50);
 for i = 2:length(d)
     S = D(D(:,3)>=d(i-1) & D(:,3)<d(i), 1);
     V(i-1) = (1-sum(S)/length(S)) * 100;
@@ -87,38 +93,38 @@ title('RLX');
 grid on
 
 %% Comparison
-clear D
-D{5} = load('rlx_rbs_verification_eps1_withObs.txt');
-D{4} = load('rlx_rbs_verification_eps0.7_withObs.txt');
-D{2} = load('rlx_rbs_verification_eps0.3_withObs.txt');
-D{3} = load('rlx_rbs_verification_eps0.5_withObs.txt');
-D{1} = load('rlx_rbs_verification_eps0.1_withObs.txt');
-
-%%
-clc
-eps = [0.1 0.3 0.5 0.7 1];
-for j = 1:5
-    suc = D{j}(:,1)==1;
-    disp(['Success rate/visibility for eps = ' num2str(eps(j)) ' is: ' num2str(sum(suc)/size(D{j},1)*100) '%']);
-end
-
-
-%%
-figure(3)
-clf
-hold on
-
-for j = 1:3
-    clear Dd d V S
-    Dd = D{j}(:,3);
-    max_d = max(Dd);
-    d = linspace(0, max_d, 10);
-    for i = 2:length(d)
-        S = D{j}(D{j}(:,3)>=d(i-1) & D{j}(:,3)<d(i), 1);
-        V(i-1) = (1-sum(S)/length(S)) * 100;
-    end
-    plot(d(2:end),V,'--');
-    plot(d(2:end),medfilt1(V,2),'-k');
-end
-hold off
-legend('0.1','0.3','0.5','0.7','1');
+% clear D
+% D{5} = load('rlx_rbs_verification_eps1_withObs.txt');
+% D{4} = load('rlx_rbs_verification_eps0.7_withObs.txt');
+% D{2} = load('rlx_rbs_verification_eps0.3_withObs.txt');
+% D{3} = load('rlx_rbs_verification_eps0.5_withObs.txt');
+% D{1} = load('rlx_rbs_verification_eps0.1_withObs.txt');
+% 
+% %%
+% clc
+% eps = [0.1 0.3 0.5 0.7 1];
+% for j = 1:5
+%     suc = D{j}(:,1)==1;
+%     disp(['Success rate/visibility for eps = ' num2str(eps(j)) ' is: ' num2str(sum(suc)/size(D{j},1)*100) '%']);
+% end
+% 
+% 
+% %%
+% figure(3)
+% clf
+% hold on
+% 
+% for j = 1:3
+%     clear Dd d V S
+%     Dd = D{j}(:,3);
+%     max_d = max(Dd);
+%     d = linspace(0, max_d, 10);
+%     for i = 2:length(d)
+%         S = D{j}(D{j}(:,3)>=d(i-1) & D{j}(:,3)<d(i), 1);
+%         V(i-1) = (1-sum(S)/length(S)) * 100;
+%     end
+%     plot(d(2:end),V,'--');
+%     plot(d(2:end),medfilt1(V,2),'-k');
+% end
+% hold off
+% legend('0.1','0.3','0.5','0.7','1');

@@ -12,6 +12,12 @@ clear all
 clc
 
 D = load('gd_rbs_verification_withObs.txt');
+% D = load('gd_rbs_verification_withObs_env1.txt');
+% D = load('gd_rbs_verification_withObs_env2.txt');
+
+% D = load('gd_rbs_verification_withObs_env1_distMix.txt');
+
+% D = D(1:5e4,:);
 
 %% Verification
 
@@ -68,7 +74,7 @@ for i = 2:length(d)
 end
 % V(1) = 100;
 
-Dd = D(D(:,1)==1,3);
+Dd = D(:,3);
 
 figure(2)
 hist(Dd, 40);

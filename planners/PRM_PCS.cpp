@@ -473,6 +473,9 @@ ompl::base::PlannerStatus ompl::geometric::PRM::solve(const base::PlannerTermina
 		psol.setOptimized(opt_, bestCost_, addedNewSolution());
 		pdef_->addSolutionPath(psol);
 
+		ompl::geometric::PathGeometric Path( dynamic_cast< const ompl::geometric::PathGeometric& >( *pdef_->getSolutionPath()));
+		//const std::vector< ompl::base::State* > &states
+		nodes_in_path = Path.getStates().size();
 
 		nodes_in_trees = boost::num_vertices(g_);
 		LogPerf2file();
