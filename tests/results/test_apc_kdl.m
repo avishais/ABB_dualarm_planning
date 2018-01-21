@@ -69,7 +69,7 @@ xlabel('norm distance in configuration space');
 ylabel('time [msec]');
 set(gca,'fontsize',13);
 set(h, 'Position', [100, 100, 800, 400]);
-print apc_kdl_proj.eps -depsc -r200
+% print apc_kdl_proj.eps -depsc -r200
 
 
 % figure(2)

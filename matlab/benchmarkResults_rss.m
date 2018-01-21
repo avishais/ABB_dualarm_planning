@@ -12,14 +12,14 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{1};
+plannerType = planners{4};
 switch plannerType
     case 'BiRRT'
         D = load('Benchmark_BiRRT_SG_3poles_rB.txt'); D = D(D(:,2)==1,:);
     case 'RRT'
         D = load('Benchmark_RRT_SG_3poles_rB.txt'); D = D(D(:,2)==1,:);
     case 'LazyRRT'
-        D = load('Benchmark_LazyRRT_SG_3poles_rB.txt'); %D = D(D(:,2)==1,:);
+        D = load('Benchmark_LazyRRT_SG_3poles_rB.txt'); D = D(D(:,2)==1,:);
     case 'SBL'
         D = load('Benchmark_SBL_SG_3poles_rB.txt'); D = D(D(:,2)==1,:);
 end
@@ -39,8 +39,8 @@ end
 %%
 disp(' ');
 [tdmin, id] = min(td);
-% id = 2;
-% tdmin = td(id);
+id = 2;
+tdmin = td(id);
 
 %%
 h = figure(1);

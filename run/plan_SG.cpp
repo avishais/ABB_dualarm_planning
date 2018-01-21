@@ -285,11 +285,11 @@ int main(int argn, char ** args) {
 	case 2 : { // Benchmark planning time with constant maximum step size
 
 		ofstream APS;
-		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_SG_3poles.txt", ios::app);
+		APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_SG_env2.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			//Plan.plan(c_start, c_goal, runtime, ptype, 0.6); // CBiRRT
-			Plan.plan(c_start, c_goal, runtime, ptype, 0.4); // SBL
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.8); // CBiRRT
+			//Plan.plan(c_start, c_goal, runtime, ptype, 0.4); // SBL
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -312,8 +312,8 @@ int main(int argn, char ** args) {
 
 		int N = 100;
 		for (int k = 0; k < N; k++) {
-			for (int j = 0; j < 3; j++) {
-				double maxStep = 0.4 + 0.2*j;
+			for (int j = 0; j < 2; j++) {
+				double maxStep = 1 + 0.4*j;
 
 				cout << "** Running RSS iteration " << k << " with maximum step: " << maxStep << " **" << endl;
 

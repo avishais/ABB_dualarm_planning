@@ -11,7 +11,7 @@ clear Vgd Vpcs Vrss Vrlx
 clear dgd dpcs drss drlx
 %% gd
 
-bins = 30;
+bins = 40;
 
 D = Dgd;
 clear V d
@@ -28,7 +28,7 @@ dgd = d(2:end);
 
 %% pcs
 
-bins = 20;
+bins = 40;
 
 D = Dpcs;
 clear V d
@@ -45,7 +45,7 @@ dpcs = d(2:end);
 
 %% rss
 
-bins = 20;
+bins = 40;
 
 D = Drss;
 Dd = D(:,3);
@@ -81,16 +81,16 @@ drlx = d(2:end);
 
 h = figure(1);
 clf
-plot(dpcs, Vpcs,'-k','linewidth',2)
 hold on
-plot(dgd, Vgd,'--k','linewidth',2)
 plot(drss, Vrss,':k','linewidth',2)
-plot(drlx, Vrlx,'-.k','linewidth',2)
+plot(dpcs, Vpcs,'-k','linewidth',2)
+plot(dgd, Vgd,'--k','linewidth',2)
+% plot(drlx, Vrlx,'-.k','linewidth',2)
 hold off
-legend('PCS','GD','RSS','RLX','location','northeast');
+legend('RSS','PCS','NR','location','northeast');
 set(gca,'fontsize',14);
 xlim([max([dpcs(1) dgd(1) drss(1) drlx(1)]) max([dpcs(end) dgd(end) drss(end) drlx(end)])]);
-set(h, 'Position', [100, 100, 800, 400]);
 xlabel('distance: $\sqrt{(\phi_1-\phi_2)^T(\phi_1-\phi_2)}$','Interpreter','latex');
 ylabel('success rate (%)');
-% print successRate.eps -depsc -r200
+set(h, 'Position', [100, 100, 800, 280]);
+print successRate.eps -depsc -r200

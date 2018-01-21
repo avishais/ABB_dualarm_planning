@@ -341,7 +341,7 @@ bool StateValidityChecker::sampleSingular(ob::State* state)
 	int sol_R2 = -1;
 	bool valid = false;
 
-	int sMode = 2;//rng_.uniformInt(0, 2);
+	int sMode = rand() % 3;//rng_.uniformInt(0, 2);
 	switch (sMode) {
 	case 0:
 		q2_mode = {1,1,0,1,0,1};

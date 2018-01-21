@@ -25,7 +25,7 @@ D3 = D3(:,2:end);
 
 D4 = load('Benchmark_PRM_SG_3poles_rB.txt'); 
 D4 = D4(D4(:,2)==1,:);
-D4 = D4(113:end,2:end);
+D4 = D4(:,2:end); % 113:end with sampling data
 
 %% GD
 suc = D1(:,1)==1;

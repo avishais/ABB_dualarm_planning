@@ -289,7 +289,7 @@ int main(int argn, char ** args) {
 		else if (env == 2)
 			APS.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_SG_3poles_rB.txt", ios::app);
 
-		int N = 50;
+		int N = 500;
 		for (int k = 0; k < N; k++) {
 			for (int j = 0; j < 1; j++) {
 				double maxStep = 0;

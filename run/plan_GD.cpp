@@ -273,7 +273,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 1;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 2.6);
@@ -285,7 +285,7 @@ int main(int argn, char ** args) {
 		GD.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_GD_env2.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			//Plan.plan(c_start, c_goal, runtime, ptype, 2.6); // CBiRRT
+			Plan.plan(c_start, c_goal, runtime, ptype, 1); // CBiRRT
 			Plan.plan(c_start, c_goal, runtime, ptype, 0.6); // SBL
 
 			// Extract from perf file

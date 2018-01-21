@@ -83,10 +83,10 @@ plot(dgd, Vgd,'--k','linewidth',2)
 plot(drss, Vrss,':k','linewidth',2)
 plot(drlx, Vrlx,'-.k','linewidth',2)
 hold off
-legend('PCS','GD','RSS','RLX','location','northeast');
+legend('PCS','NR','RSS','RLX','location','northeast');
 set(gca,'fontsize',14);
 xlim([max([dpcs(1) dgd(1) drss(1) drlx(1)]) max([dpcs(end) dgd(end) drss(end) drlx(end)])]);
-set(h, 'Position', [100, 100, 800, 400]);
+set(h, 'Position', [100, 100, 800, 320]);
 xlabel('distance: $\sqrt{(\phi_1-\phi_2)^T(\phi_1-\phi_2)}$','Interpreter','latex');
 ylabel('success rate (%)');
-% print successRate.eps -depsc -r200
+% print successRate2.eps -depsc -r200

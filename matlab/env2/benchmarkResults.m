@@ -12,7 +12,7 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{4};
+plannerType = planners{2};
 switch plannerType
     case 'BiRRT'
         D1 = load('Benchmark_BiRRT_PCS_3poles_rB.txt'); D1 = D1(D1(:,2)==1,:);

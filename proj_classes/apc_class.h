@@ -72,6 +72,8 @@ public:
 	/** Check the angles limits of the ABB */
 	bool check_angle_limits(State q);
 
+	void log_q(State, State);
+
 	// Getters
 	int get_IK_number();
 	Matrix get_T2();
@@ -90,6 +92,7 @@ public:
 	bool InvertMatrix(Matrix M, Matrix &Minv); // Inverse of a 4x4 matrix
 	void clearMatrix(Matrix &);
 	double normDistance(State, State);
+	State rand_q_ambient();	
 
 	Matrix Q;
 	Matrix P;

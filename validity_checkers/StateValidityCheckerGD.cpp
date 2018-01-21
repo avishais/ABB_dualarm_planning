@@ -68,7 +68,7 @@ State StateValidityChecker::sample_q() {
 		q = get_GD_result();
 
 		seperate_Vector(q, q1, q2);
-		if (withObs && collision_state(P, q1, q2) && !check_angle_limits(q)) {
+		if ( withObs && (collision_state(P, q1, q2) || !check_angle_limits(q)) )  {
 			sampling_counter[1]++;
 			continue;
 		}
@@ -431,11 +431,11 @@ void StateValidityChecker::log_q(State q, bool New) {
 	std::ofstream myfile;
 
 	if (New) {
-		myfile.open("./paths/path.txt");
+		myfile.open("../paths/path.txt");
 		myfile << 1 << endl;
 	}
 	else
-		myfile.open("./paths/path.txt", ios::app);
+		myfile.open("../paths/path.txt", ios::app);
 
 	for (int j = 0; j<12; j++)
 		myfile << q[j] << " ";

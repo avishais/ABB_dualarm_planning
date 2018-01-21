@@ -274,7 +274,7 @@ int main(int argn, char ** args) {
 		Plan.set_environment(2);
 	}
 
-	int mode = 3;
+	int mode = 2;
 	switch (mode) {
 	case 1: {
 		Plan.plan(c_start, c_goal, runtime, ptype, 0.1);
@@ -283,10 +283,10 @@ int main(int argn, char ** args) {
 	}
 	case 2 : { // Benchmark planning time with constant maximum step size
 		ofstream RX;
-		RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_RLX_3poles.txt", ios::app);
+		RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/profile/profile_" + plannerName + "_RLX_env2.txt", ios::app);
 
 		for (int k = 0; k < 100; k++) {
-			Plan.plan(c_start, c_goal, runtime, ptype, 0.3);
+			Plan.plan(c_start, c_goal, runtime, ptype, 0.2);
 
 			// Extract from perf file
 			ifstream FromFile;
@@ -308,8 +308,8 @@ int main(int argn, char ** args) {
 		else if (env == 2)
 			RX.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/matlab/env2/Benchmark_" + plannerName + "_RLX_eps5_3poles_rB.txt", ios::app);
 
-		for (int k = 0; k < 10; k++) {
-			for (int j = 0; j < 4; j++) {
+		for (int k = 0; k < 500; k++) {
+			for (int j = 0; j < 1; j++) {
 				double maxStep = 0.2 + 0.1*j;
 
 				cout << "** Running RLX iteration " << k << " with maximum step: " << maxStep << " **" << endl;

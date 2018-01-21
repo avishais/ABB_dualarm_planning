@@ -325,7 +325,7 @@ void kdl::clearMatrix(Matrix &M) {
 
 void kdl::log_q(State q) {
 	std::ofstream myfile;
-	myfile.open("./paths/path.txt");
+	myfile.open("../paths/path.txt");
 
 	myfile << 1 << endl;
 

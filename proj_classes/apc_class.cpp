@@ -625,4 +625,39 @@ Matrix two_robots::get_T2() {
 	return T2;
 }
 
+void two_robots::log_q(State q1, State q2) {
+	std::ofstream myfile;
+	myfile.open("../paths/path.txt");
+
+	myfile << 1 << endl;
+
+	for (int i = 0; i < q1.size(); i++)
+		myfile << q1[i] << " ";
+	for (int i = 0; i < q2.size(); i++)
+		myfile << q2[i] << " ";
+	myfile << endl;
+
+	myfile.close();
+}
+
+State two_robots::rand_q_ambient() {
+	State q(12);
+
+	q[0] = (double)rand() / RAND_MAX * 2*q1minmax - q1minmax;
+	q[1] = (double)rand() / RAND_MAX * 2*q2minmax - q2minmax;
+	q[2] = (double)rand() / RAND_MAX * (q3max-q3min) + q3min;
+	q[3] = (double)rand() / RAND_MAX * 2*q4minmax - q4minmax;
+	q[4] = (double)rand() / RAND_MAX * 2*q5minmax - q5minmax;
+	q[5] = (double)rand() / RAND_MAX * 2*PI_ - PI_;
+
+	q[6] = (double)rand() / RAND_MAX * 2*q1minmax - q1minmax;
+	q[7] = (double)rand() / RAND_MAX * 2*q2minmax - q2minmax;
+	q[8] = (double)rand() / RAND_MAX * (q3max-q3min) + q3min;
+	q[9] = (double)rand() / RAND_MAX * 2*q4minmax - q4minmax;
+	q[10] = (double)rand() / RAND_MAX * 2*q5minmax - q5minmax;
+	q[11] = (double)rand() / RAND_MAX * 2*PI_ - PI_;
+
+	return q;
+}
+
 // ==================================

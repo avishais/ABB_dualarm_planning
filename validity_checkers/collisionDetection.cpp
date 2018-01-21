@@ -1,6 +1,6 @@
 #include "collisionDetection.h"
 
-#define CADLINK "./simulator/"
+#define CADLINK "../simulator/"
 
 bool withObs = true;
 

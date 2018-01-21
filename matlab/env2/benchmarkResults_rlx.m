@@ -12,7 +12,7 @@ clc
 
 %%
 planners = {'BiRRT','RRT','LazyRRT','SBL'};
-plannerType = planners{2};
+plannerType = planners{1};
 switch plannerType
     case 'BiRRT'
         D = load('Benchmark_BiRRT_RLX_eps5_3poles_rB.txt'); D = D(D(:,2)==1,:);
@@ -41,6 +41,8 @@ end
 %%
 disp(' ');
 [tbmin, ib] = min(tb);
+% ib = 3;
+% tbmin = tb(ib);
 
 %%
 h = figure(1);
