@@ -27,7 +27,7 @@ int main() {
 	State q1(n), q2(n), q1a(n/2), q1b(n/2), q2a(n/2), q2b(n/2);
 
 	std::ofstream f;
-	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/pcs_rbs_verification_withObs.txt", ios::app); //_env2_distMix
+	f.open("/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/tests/results/pcs_rbs_verification_withObs4.txt", ios::app); //_env2_distMix
 
 	int N = 1e5, i = 0;
 	while (i < N) {
@@ -41,8 +41,8 @@ int main() {
 				q2[j] = q1[j] + s * (fRand(-PI_, PI_)-q1[j]);
 
 			svc.seperate_Vector(q2, q2a, q2b);
-			int active_chain = rand() / RAND_MAX * 2;
-			int ik_sol = rand() / RAND_MAX * 8;
+			int active_chain = rand() % 2;
+			int ik_sol = rand() % 8;
 
 			if (!svc.IKproject(q2a, q2b, active_chain, ik_sol))
 				continue;
