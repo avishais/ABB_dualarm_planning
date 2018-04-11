@@ -1,24 +1,23 @@
 #compiler
-OMPL_DIR = /usr/local
-INC_CLASSES = /home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/proj_classes/
-INC_PLANNERS = /home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/planners/
-INC_VALIDITY = /home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/validity_checkers/
-INC_RUN = /home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/run/
+OMPL_DIR = /usr
+INC_CLASSES = ./proj_classes/
+INC_PLANNERS = ./planners/
+INC_VALIDITY = ./validity_checkers/
+INC_RUN = ./run/
 
 EIGEN_DIR = /home/avishai/Documents/eigen
 
 KDL_DIR = /usr/local
 
 GL_INCPATH = -I/usr/include/
-GL_LIBPATH = -L/usr/lib/ -L/usr/X11R6/lib/
-GL_LIBS = -lGLU -lGL -lXext -lXmu -lXi -lX11 -lglut
+GL_LIBPATH = -L/usr/lib/ #-L/usr/X11R6/lib/
+GL_LIBS = -lGLU -lGL -lXext -lX11 -lglut #  -lXmu -lXi 
 
 PQP_DIR= /home/avishai/Documents/PQP_v1.3/
 
 CXX= g++
-CXXFLAGS= -I${OMPL_DIR}/include -I${OMPL_DIR}/lib/x86_64-linux-gnu -I${INC_CLASSES} -I${INC_PLANNERS} -I${PQP_DIR}/include $(GL_INCPATH) -I${KDL_DIR}/include  -I$(EIGEN_DIR) 
-LDFLAGS=  -L${OMPL_DIR}/lib -L${OMPL_DIR}/lib/x86_64-linux-gnu -lompl -lompl_app_base -lompl_app -lboost_filesystem -lboost_system -lboost_serialization -lboost_program_options -Wl,-rpath ${OMPL_DIR}/lib/x86_64-linux-gnu -L${PQP_DIR}/lib -L${KDL_DIR}/lib -lPQP -lm $(GL_LIBS) -larmadillo -lorocos-kdl
-LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
+CXXFLAGS= -I${OMPL_DIR}/local/include -I${OMPL_DIR}/lib/x86_64-linux-gnu -I${INC_CLASSES} -I${INC_PLANNERS} -I${PQP_DIR}/include $(GL_INCPATH) -I${KDL_DIR}/include  -I$(EIGEN_DIR) 
+LDFLAGS= -L${OMPL_DIR}/local/lib -L${OMPL_DIR}/lib/x86_64-linux-gnu -lompl -lboost_filesystem -lboost_system -lboost_serialization -lboost_program_options -Wl,-rpath ${OMPL_DIR}/lib/x86_64-linux-gnu -L${PQP_DIR}/lib -lPQP -L${KDL_DIR}/lib -lm $(GL_LIBS) -lorocos-kdl -lpthread
 
 CPPPQP = ${INC_VALIDITY}collisionDetection.cpp ${INC_VALIDITY}model.cpp
 CPPVRF = ${INC_VALIDITY}verification_class.cpp
@@ -44,15 +43,16 @@ all:
 	#$(CXX) ${CPP_P_PCS} ${CPPAPC} ${CPPPQP} -o ppcs $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 	#$(CXX) ${CPP_P_PCS_s} ${CPPAPC} ${CPPPQP} ${CPPVRF} -o ppcss $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
-	#$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} -o pgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
+	$(CXX) ${CPP_P_GD} ${CPPGD} ${CPPPQP} -o pgd $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 	#$(CXX) ${CPP_P_GD_s} ${CPPGD} ${CPPPQP} ${CPPVRF} -o pgds $(CXXFLAGS) $(LDFLAGS) -std=c++11
 
 	#$(CXX) ${CPP_P_SG} ${CPPRSS} ${CPPPQP} -o psg $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 	#$(CXX) ${CPP_P_SG_PRM} ${CPPRSS_PRM} ${CPPPQP} -o psgp $(CXXFLAGS) $(LDFLAGS) -DPCS -std=c++11
 
-	$(CXX) ${CPP_P_RX} ${CPPRX} ${CPPPQP} -o prx $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
+	#$(CXX) ${CPP_P_RX} ${CPPRX} ${CPPPQP} -o prx $(CXXFLAGS) $(LDFLAGS) -DPGD -std=c++11
 
 	#$(CXX) ${CPP_P_HB} ${CPPHB} ${CPPPQP} ${CPPVRF} -o phb $(CXXFLAGS) $(LDFLAGS) -DHB -std=c++11
+
 
 
 

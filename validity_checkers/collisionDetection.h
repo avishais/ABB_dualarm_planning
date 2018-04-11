@@ -7,14 +7,13 @@
 #include <GL/glut.h>
 #include "PQP.h"
 #include "model.h"
-#include "/home/avishai/Downloads/omplapp/ompl/Workspace/cplanner/simulator/MatVec.h"
+#include "../simulator/MatVec.h"
 #include <iostream>
 #include <string>
 #include <vector>
 
 typedef std::vector<std::vector< double > > Matrix;
 typedef std::vector< double > State;
-
 
 class collisionDetection
 {

@@ -92,5 +92,5 @@ set(gca,'fontsize',14);
 xlim([max([dpcs(1) dgd(1) drss(1) drlx(1)]) max([dpcs(end) dgd(end) drss(end) drlx(end)])]);
 xlabel('distance: $\sqrt{(\phi_1-\phi_2)^T(\phi_1-\phi_2)}$','Interpreter','latex');
 ylabel('success rate (%)');
-set(h, 'Position', [100, 100, 800, 280]);
-print successRate.eps -depsc -r200
+% set(h, 'Position', [100, 100, 800, 280]);
+% print successRate.eps -depsc -r200

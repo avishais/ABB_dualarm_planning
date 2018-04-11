@@ -1317,8 +1317,8 @@ void execute_path(int k){
 	//std::cout << "Cong.: " << k << std::endl;
 
 	if(k == 0){
-		const char* rod_pfile = "/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/rod.txt";
-		const char* robot_pfile = "/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/path.txt";
+		const char* rod_pfile = "../paths/rod.txt";
+		const char* robot_pfile = "../paths/path.txt";
 		FILE *fro, *fr;
 		int i, nlines;
 
@@ -1446,14 +1446,14 @@ void execute_path(int k){
 }
 
 int fake_rod() {
-	const char* robot_pfile = "/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/path.txt";
+	const char* robot_pfile = "../paths/path.txt";
 	FILE *fr = fopen(robot_pfile,"r");
 	int nlines;
 	fscanf(fr,"%i",&nlines);  //NOT include number in line count itself
 	std::cout << "Num: " << nlines << std::endl;
 	fclose(fr);
 
-	const char* rod_pfile = "/home/avishai/Downloads/omplapp/ompl/Workspace/ckc3d/paths/rod.txt";
+	const char* rod_pfile = "../paths/rod.txt";
 
 	FILE *f = fopen(rod_pfile, "w");
 

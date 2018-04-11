@@ -2,8 +2,8 @@
 CXX= g++
 
 GL_INCPATH = -I/usr/include/
-GL_LIBPATH = -L/usr/lib/ -L/usr/X11R6/lib/
-GL_LIBS = -lGLU -lGL -lXext -lXmu -lXi -lX11 -lglut
+GL_LIBPATH = -L/usr/lib/ #-L/usr/X11R6/lib/
+GL_LIBS = -lGLU -lGL -lXext -lX11 -lglut #-lXmu -lXi 
 
 PQP_DIR= /home/avishai/Documents/PQP_v1.3/
 LDFLAGS= -L${PQP_DIR}/lib -lPQP -lm $(GL_LIBS) 
